@@ -189,9 +189,9 @@ class Database
 	public function query($query)
 	{
 		if($this->type=="SQLite")
-			$result = sqlite_query($this->db, $query) or die("Unable to perform query: ".$query);
+			$result = sqlite_query($this->db, $query);
 		else
-			$result = $this->db->query($query) or die("Unable to perform query: ".$query);
+			$result = $this->db->query($query);
 		return $result;
 	}
 	
@@ -238,6 +238,13 @@ class Database
 		}
 		else if($this->type=="SQLite")
 			return sqlite_fetch_all($result);
+	}
+	
+	//get number of rows in table
+	public function numRows($table)
+	{
+		$result = $this->select("SELECT Count(*) FROM ".$table);
+		return $result[0];
 	}
 }
 
@@ -379,12 +386,25 @@ class View
 
 		// -g-> We need to get the ROWID to be able to find the row again. I put it at the end of the list of fields so that the numbering remained unchanged.
 		$query = "SELECT *, ROWID FROM ".$table;
+		$queryDisp = "SELECT * FROM ".$table;
+		$queryAdd = "";
 		if($sort!=NULL)
-			$query .= " ORDER BY ".$sort;
+			$queryAdd .= " ORDER BY ".$sort;
 		if($order!=NULL)
-			$query .= " ".$order;
-		$query .= " LIMIT ".$startRow.", ".$numRows;
+			$queryAdd .= " ".$order;
+		$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
+		$query .= $queryAdd;
+		$queryDisp .= $queryAdd;
+		
+		$startTime = microtime(true);
 		$arr = $this->db->selectArray($query);
+		$endTime = microtime(true);
+		$time = round(($endTime - $startTime), 4);
+		$total = $this->db->numRows($table);
+		echo "<br/><div class='confirm'>";
+		echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
+		echo "<span style='font-size:11px;'>".$queryDisp."</span>";
+		echo "</div>";
 
 		if(sizeof($arr)==0)
 		{
@@ -467,9 +487,7 @@ class View
 			{
 				if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 				{
-					$query = "SELECT * FROM ".$result[$i]['name'];
-					$res = $this->db->selectArray($query);
-					$records = sizeof($res);
+					$records = $this->db->numRows($result[$i]['name']);
 					
 					$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
 					echo "<tr>";
@@ -512,6 +530,43 @@ class View
 		echo "</form>";
 		echo "</fieldset>";
 	}
+	
+	//generate the SQL query window
+	function generateSQL()
+	{
+		if(isset($_POST['query']))
+		{
+			$query = $_POST['queryval'];
+			$startTime = microtime(true);
+			$result = $this->db->query($query);
+			$endTime = microtime(true);
+			$time = round(($endTime - $startTime), 4);
+		
+			echo "<div class='confirm'>";
+			echo "<b>";
+			if($result)
+			{
+				echo "Query execution was successful ";
+				echo "(took ".$time." sec)</b><br/>";
+			}
+			else
+			{
+				echo "There is a problem with the syntax of your query ";
+				echo "(Query was not executed)</b><br/>";
+			}
+			echo "<span style='font-size:11px;'>".$query."</span>";
+			echo "</div>";
+		}
+		else
+			$query = "";
+			
+		echo "<fieldset>";
+		echo "<legend><b>Run SQL queries on database '".$this->db->getName()."'</b></legend>";
+		echo "<form action='".PAGE."?view=sql' method='post'>";
+		echo "<textarea style='width:100%; height:300px;' name='queryval'>".$query."</textarea>";
+		echo "<input type='submit' name='query' value='Go'/>";
+		echo "</form>";
+	}
 }
 
 // here begins the HTML.
@@ -530,7 +585,7 @@ body
 	font-family:"Courier New", Courier, monospace;
 	font-size:14px;
 	color:black;
-	background-color:#eee;
+	background-color:#e0ebf6;
 }
 ul
 {
@@ -545,14 +600,21 @@ li
 }
 a
 {
-	font-weight:bold;
-	color:green;
+	color:#03F;
+	text-decoration:none;
+}
+a:hover
+{
+	color:#06F;
 }
 h1
 {
 	margin:0px;
-	padding:0px;
+	padding:5px;
 	font-size:24px;
+	background-color:#f3cece;
+	text-align:center;
+	margin-bottom:10px;
 }
 h2
 {
@@ -561,11 +623,11 @@ h2
 	font-size:14px;
 	margin-bottom:20px;
 }
-input, select
+input, select, textarea
 {
-	background-color:#ddd;
-	color:green;
-	border-color:green;
+	background-color:#eaeaea;
+	color:#03F;
+	border-color:#03F;
 	border-style:solid;
 	border-width:1px;
 	margin:5px;
@@ -573,7 +635,7 @@ input, select
 fieldset
 {
 	padding:15px;
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 }
@@ -584,11 +646,13 @@ fieldset
 #leftNav
 {
 	float:left;
-	width:220px;
-	padding:5px;
-	border-color:green;
+	width:250px;
+	padding:0px;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
+	background-color:#FFF;
+	padding-bottom:15px;
 }
 #content
 {
@@ -606,60 +670,63 @@ fieldset
 	margin-left:auto;
 	margin-right:auto;
 	margin-top:50px;
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 }
 #main
 {
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 	padding:15px;
 	overflow:auto;
+	background-color:#FFF;
 }
 .td1
 {
-	border-bottom-color:green;
+	border-bottom-color:#03F;
 	border-bottom-width:1px;
 	border-bottom-style:none;
-	background-color:#ccc;
+	background-color:#f9e3e3;
 	text-align:right;
 	font-size:12px;
 }
 .td2
 {
-	border-bottom-color:green;
+	border-bottom-color:#03F;
 	border-bottom-width:1px;
 	border-bottom-style:none;
-	background-color:#bbb;
+	background-color:#f3cece;
 	text-align:right;
 	font-size:12px;
 }
 .tdheader
 {
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 	font-weight:bold;
 	font-size:12px;
 	padding-left:5px;
 	padding-right:5px;
+	background-color:#e0ebf6;
 }
 .confirm
 {
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:dashed;
 	padding:15px;
 	margin-bottom:30px;
+	background-color:#e0ebf6;
 }
 .tab
 {
 	display:block;
 	width:80px;
 	padding:5px;
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 	margin-right:15px;
@@ -668,13 +735,14 @@ fieldset
 	position:relative;
 	top:1px;
 	padding-bottom:4px;
+	background-color:#eaeaea;
 }
 .tab_pressed
 {
 	display:block;
 	width:80px;
 	padding:5px;
-	border-color:green;
+	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 	margin-right:15px;
@@ -682,7 +750,7 @@ fieldset
 	border-bottom-style:none;
 	position:relative;
 	top:1px;
-	background-color:#aaa;
+	background-color:#FFF;
 }
 </style>
 </head>
@@ -859,9 +927,8 @@ else
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
 	echo "<h1>".PROJECT."</h1>";
-	
+	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	echo "<form action='".PAGE."' method='post'>";
-	echo "<br/>";
 	echo "<select name='database_switch'>";
 	for($i=0; $i<sizeof($databases); $i++)
 	{
@@ -872,29 +939,29 @@ else
 	}
 	echo "</select> ";
 	echo "<input type='submit' value='Go'>";
-	echo "</form><br/>";
-	
-	echo "<a href='".PAGE."'>".$DBFilename."</a>";
+	echo "</form>";
+	echo "</fieldset>";
+	echo "<fieldset style='margin:15px;'><legend><a href='".PAGE."'>".$DBFilename."</a></legend>";
 	//Display list of tables
 	$query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 	$result = $db->selectArray($query);
 	$j=0;
-	echo "<ul>";
 	for($i=0; $i<sizeof($result); $i++)
 	{
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
-			echo "<li><a href='".PAGE."?table=".$result[$i]['name']."'>".$result[$i]['name']."</a></li>";
+			echo "<a href='".PAGE."?table=".$result[$i]['name']."'>".$result[$i]['name']."</a><br/>";
 			$j++;
 		}
 	}
-	echo "</ul>";
 	if($j==0) 
-		echo "No tables in database.<br/><br/>";
-
+		echo "No tables in database.";
+	echo "</fieldset>";
+	echo "<div style='text-align:center;'>";
 	echo "<form action='".PAGE."' method='post'/>";
 	echo "<input type='submit' value='Log Out' name='logout'/>";
 	echo "</form>";
+	echo "</div>";
 	echo "</div>";
 	echo "<div id='content'>";
 	echo "<div id='contentInner'>";
@@ -967,6 +1034,7 @@ else
 			$view = "browse";
 			
 		$table = $_GET['table'];
+		echo "<h2>Database: ".$DBFilename."</h2>";
 		echo "<h2>Table: ".$table."</h2>";
 		
 		if(isset($_GET['delete']) && !isset($_GET['confirm']))
@@ -1137,10 +1205,34 @@ else
 		}
 		else
 		{
-			$dbType = $db->getType();
-			echo "Welcome to ".PROJECT.", version ".$version.". Your installation of PHP permits the use of the extension, '".$dbType."', which is currently activated.<br/>";
-			echo "You are currently managing '".$DBFilename."'.<br/><br/>";
-			$dbView->generateTableList();
+			echo "<h2>Database: ".$DBFilename."</h2>";
+			
+			if(isset($_GET['view']))
+				$view = $_GET['view'];
+			else
+				$view = "structure";
+				
+			echo "<a href='".PAGE."?view=structure' ";
+			if($view=="structure")
+				echo "class='tab_pressed'";
+			else
+				echo "class='tab'";
+			echo ">Structure</a>";
+			echo "<a href='".PAGE."?view=sql' ";
+			if($view=="sql")
+				echo "class='tab_pressed'";
+			else
+				echo "class='tab'";
+			echo ">SQL</a>";
+			echo "<div style='clear:both;'></div>";
+			echo "<div id='main'>";
+			
+			if($view=="structure")
+				$dbView->generateTableList();
+			else if($view=="sql")
+				$dbView->generateSQL();
+				
+			echo "</div>";
 		}
 	}
 	echo "</div>";
