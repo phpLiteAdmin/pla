@@ -2,7 +2,9 @@
 
 /*
  * phpLiteAdmin
- * Author: Dane Iracleous
+ * Contributors:
+ *    Dane Iracleous (daneiracleous@gmail.com)
+ *    George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
  * Date: 2/3/11
  * Version: 1.0
  * Summary: PHP-based admin tool to view and edit SQLite databases
@@ -18,14 +20,15 @@ $databases = array
 	"database3.sqlite"
 );
 
-$password = "admin"; //password to gain access (please change this to something more secure than 'admin')
+//password to gain access (please change this to something more secure than 'admin')
+$password = "admin";
 
 
 
 
 
 
-//Do not edit anything below this line unless you are a trained expert
+//End of user-editable fields and beginning of user-unfriendly source code
 
 //version number
 $version = 1.0;
