@@ -577,7 +577,7 @@ class View
 				echo "(Query was not executed)</b><br/>";
 			}
 			echo "<span style='font-size:11px;'>".$query."</span>";
-			echo "</div>";
+			echo "</div><br/>";
 		}
 		else
 			$query = "";
