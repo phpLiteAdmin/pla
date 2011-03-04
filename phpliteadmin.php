@@ -3,8 +3,8 @@
 /*
  * phpLiteAdmin
  * Author: Dane Iracleous
- * Date: 2010-12-7
- * Version: 1.2
+ * Date: 2/3/11
+ * Version: 1.0
  * Summary: PHP-based admin tool to view and edit SQLite databases
  */
  
@@ -28,7 +28,7 @@ $password = "admin"; //password to gain access (please change this to something 
 //Do not edit anything below this line unless you are a trained expert
 
 //version number
-$version = 1.2;
+$version = 1.0;
 
 ini_set("display_errors", 1);
 error_reporting(E_STRICT | E_ALL);
@@ -330,40 +330,46 @@ class View
 	}
 	
 	//generate the edit row view
-	public function generateEdit($table, $edit, $pk)
+	public function generateEdit($table, $pks)
 	{
-		$query = "SELECT * FROM ".$table." WHERE ROWID = ".$pk;
-		$result1 = $this->db->select($query);
-		
-		$query = "PRAGMA table_info('".$table."')";
-		$result = $this->db->selectArray($query);
-		
-		echo "<form action='".PAGE."?table=".$table."&edit=".$edit."&pk=".$pk."&confirm=1' method='post'>";
-		
-		echo "<table border='0' cellpadding='2' cellspacing='1'>";
-		echo "<tr>";
-		echo "<td class='tdheader'>Field</td>";
-		echo "<td class='tdheader'>Type</td>";
-		echo "<td class='tdheader'>Value</td>";
-		echo "</tr>";
-		
-		for($i=0; $i<sizeof($result); $i++)
+		echo "<form action='".PAGE."?table=".$table."&edit=1&confirm=1&pk=".$pks[0]."' method='post'>";
+		$str = "";
+		for($j=0; $j<sizeof($pks); $j++)
 		{
-			$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+			$str .= $pks[$j].":";
+			$query = "SELECT * FROM ".$table." WHERE ROWID = ".$pks[$j];
+			$result1 = $this->db->select($query);
+		
+			$query = "PRAGMA table_info('".$table."')";
+			$result = $this->db->selectArray($query);
+		
+			echo "<table border='0' cellpadding='2' cellspacing='1'>";
 			echo "<tr>";
-			$inBase64 = endsIn64($result[$i][1]);
-			for ($k=1; $k<3; $k++)
-				echo $tdWithClass.$result[$i][$k]."</td>";
-
-			echo $tdWithClass;
-			$f = $inBase64 ? base64_decode($result1[$i]) : $result1[$i];
-			echo '<textarea name="'.$result[$i][1].'" wrap="hard" rows="1" cols="60">' . 
-			htmlspecialchars($f).'</textarea>';
-			echo "</td>";
+			echo "<td class='tdheader'>Field</td>";
+			echo "<td class='tdheader'>Type</td>";
+			echo "<td class='tdheader'>Value</td>";
 			echo "</tr>";
-		}
+		
+			for($i=0; $i<sizeof($result); $i++)
+			{
+				$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+				echo "<tr>";
+				$inBase64 = endsIn64($result[$i][1]);
+				for ($k=1; $k<3; $k++)
+					echo $tdWithClass.$result[$i][$k]."</td>";
 
-		echo "</table>";
+				echo $tdWithClass;
+				$f = $inBase64 ? base64_decode($result1[$i]) : $result1[$i];
+				echo '<textarea name="'.$result[$i][1].'" wrap="hard" rows="1" cols="60">' . 
+				htmlspecialchars($f).'</textarea>';
+				echo "</td>";
+				echo "</tr>";
+			}
+
+			echo "</table>";
+			echo "<br/><br/>";
+		}
+		echo "<input type='hidden' value='".$str."'/>";
 		echo "<input type='submit' value='Save Changes'/> ";
 		echo "<a href='".PAGE."?table=".$table."'>Cancel</a>";
 		echo "</form>";
@@ -401,24 +407,28 @@ class View
 		$endTime = microtime(true);
 		$time = round(($endTime - $startTime), 4);
 		$total = $this->db->numRows($table);
-		echo "<br/><div class='confirm'>";
-		echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
-		echo "<span style='font-size:11px;'>".$queryDisp."</span>";
-		echo "</div>";
-
-		if(sizeof($arr)==0)
+		
+		if(sizeof($arr)>0)
+		{
+			echo "<br/><div class='confirm'>";
+			echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
+			echo "<span style='font-size:11px;'>".$queryDisp."</span>";
+			echo "</div><br/>";
+		}
+		else
 		{
 			echo "<br/><br/>This table is empty.";
 			return;
 		}
 		
+		echo "<form action='".PAGE."?edit=1&table=".$table."' method='post' name='checkForm'>";
 		echo "<table border='0' cellpadding='2' cellspacing='1'>";
 		$query = "PRAGMA table_info('".$table."')";
 		$result = $this->db->selectArray($query);
 		$rowidColumn = sizeof($result);
 		
 		echo "<tr>";
-		echo "<td colspan='2'>";
+		echo "<td colspan='3'>";
 		echo "</td>";
 		
 		for($i=0; $i<sizeof($result); $i++)
@@ -441,9 +451,11 @@ class View
 			$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 			echo "<tr>";
 			echo $tdWithClass;
-
+			echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
+			echo "</td>";
+			echo $tdWithClass;
 			// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-			echo "<a href='".PAGE."?table=".$table."&edit=1&pk=". $pk ."'>edit</a>";
+			echo "<a href='".PAGE."?table=".$table."&edit=1&pk=".$pk."'>edit</a>";
 			echo "</td>";
 			echo $tdWithClass;
 			echo "<a href='".PAGE."?table=".$table."&delete=1&pk=".$pk."' style='color:red;'>delete</a>";
@@ -459,6 +471,13 @@ class View
 			echo "</tr>";
 		}
 		echo "</table>";
+		echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
+		echo "<select name='massType'>";
+		//echo "<option value='edit'>Edit</option>";
+		echo "<option value='delete'>Delete</option>";
+		echo "</select> ";
+		echo "<input type='submit' value='Go' name='massGo'/>";
+		echo "</form>";
 	}
 	
 	//generate a list of all the tables in the database
@@ -577,6 +596,26 @@ class View
 <head>
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <title><?php echo PROJECT ?></title>
+<script>
+function checkAll(field)
+{
+	var i=0;
+	while(document.getElementById('check_'+i)!=undefined)
+	{
+		document.getElementById('check_'+i).checked = true;
+		i++;	
+	}
+}
+function uncheckAll(field)
+{
+	var i=0;
+	while(document.getElementById('check_'+i)!=undefined)
+	{
+		document.getElementById('check_'+i).checked = false;
+		i++;	
+	}
+}
+</script>
 <style type="text/css">
 body
 {
@@ -602,6 +641,7 @@ a
 {
 	color:#03F;
 	text-decoration:none;
+	cursor:pointer;
 }
 a:hover
 {
@@ -615,6 +655,8 @@ h1
 	background-color:#f3cece;
 	text-align:center;
 	margin-bottom:10px;
+	text-shadow: 1px 1px 1px #e0ebf6;
+	color:#03F;
 }
 h2
 {
@@ -665,14 +707,14 @@ fieldset
 }
 #loginBox
 {
-	width:330px;
-	padding:15px;
+	width:380px;
 	margin-left:auto;
 	margin-right:auto;
 	margin-top:50px;
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
+	background-color:#FFF;
 }
 #main
 {
@@ -718,7 +760,6 @@ fieldset
 	border-width:1px;
 	border-style:dashed;
 	padding:15px;
-	margin-bottom:30px;
 	background-color:#e0ebf6;
 }
 .tab
@@ -769,11 +810,13 @@ else if(isset($_POST['login'])) //user has attempted to log in
 if(!$auth->isAuthorized())
 {
 	echo "<div id='loginBox'>";
-	echo "<h1>".PROJECT."</h1>";
+	echo "<h1>".PROJECT." v".$version."</h1>";
+	echo "<div style='padding:15px;'>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "Password: <input type='password' name='password'/>";
 	echo "<input type='submit' value='Log In' name='login'/>";
 	echo "</form>";
+	echo "</div>";
 	echo "</div>";
 }
 else
@@ -887,6 +930,8 @@ else
 				$db->query($query);
 			}
 		}
+		$_GET['table'] = $_GET['tablename'];
+		$_GET['view'] = "structure";
 	}
 	else if(isset($_GET['droptable']) && isset($_GET['confirm'])) //drop table
 	{
@@ -926,7 +971,7 @@ else
 	}
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
-	echo "<h1>".PROJECT."</h1>";
+	echo "<h1>".PROJECT." v".$version."</h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "<select name='database_switch'>";
@@ -968,8 +1013,10 @@ else
 	
 	if(isset($_POST['createtable']) || isset($_POST['addfields']))
 	{
+		echo "<h2>Database: ".$DBFilename."</h2>";
+		echo "<div id='main'>";
 		if(isset($_POST['addfields']))
-			echo "<h2>Adding new field(s) to table ".$_POST['tablename']."</h2>";
+			echo "<h2>Adding new field(s) to table '".$_POST['tablename']."'</h2>";
 		else
 			echo "<h2>Creating new table: '".$_POST['tablename']."'</h2>";
 		if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
@@ -1020,11 +1067,13 @@ else
 			}
 			echo "</table>";
 			if(isset($_POST['addfields']))
-				echo "<input type='submit' name='addfieldsconfirm' value='Add Field(s)'/>";
+				echo "<input type='submit' name='addfieldsconfirm' value='Add Field(s)'/> ";
 			else
-				echo "<input type='submit' name='createtableconfirm' value='Create'/>";
+				echo "<input type='submit' name='createtableconfirm' value='Create'/> ";
+			echo "<a href='".PAGE."?table=".$_POST['tablename']."&view=structure'>Cancel</a>";
 			echo "</form>";
 		}
+		echo "</div>";
 	}
 	else if(isset($_GET['table']) && !isset($_POST['rename']))
 	{
@@ -1034,46 +1083,73 @@ else
 			$view = "browse";
 			
 		$table = $_GET['table'];
-		echo "<h2>Database: ".$DBFilename."</h2>";
-		echo "<h2>Table: ".$table."</h2>";
+		echo "<h2>Database: ".$DBFilename." | Table: ".$table."</h2>";
 		
-		if(isset($_GET['delete']) && !isset($_GET['confirm']))
+		if((isset($_GET['delete']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="delete"))
 		{
-			echo "<div class='confirm'>";
-			echo "Are you sure you want to delete record '".$_GET['pk']."'?<br/><br/>";
-			echo "<a href='".PAGE."?table=".$table."&delete=".$_GET['delete']."&pk=".$_GET['pk']."&confirm=1'>Confirm</a> | ";
-			echo "<a href='".PAGE."?table=".$table."'>Cancel</a>";
+			echo "<div id='main'>";
+			if(isset($_POST['check']))
+				$pks = $_POST['check'];
+			else if(isset($_GET['pk']))
+				$pks = array($_GET['pk']);
+			
+			if(isset($pks))
+			{
+				$str = $pks[0];
+				$pass = $pks[0];
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$str .= ", ".$pks[$i];
+					$pass .= ":".$pks[$i];
+				}
+				echo "<div class='confirm'>";
+				echo "Are you sure you want to delete record(s) ".$str."?<br/><br/>";
+				echo "<a href='".PAGE."?table=".$table."&delete=1&pks=".$pass."&confirm=1'>Confirm</a> | ";
+				echo "<a href='".PAGE."?table=".$table."'>Cancel</a>";
+				echo "</div>";
+			}
+			else
+			{
+				echo "<div class='confirm'>";
+				echo "You have not selected any rows.";
+				echo "</div>";	
+			}
 			echo "</div>";
 		}
-		else if(isset($_GET['edit']) && !isset($_GET['confirm']))
+		else if((isset($_GET['edit']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="edit"))
 		{
-			echo "<div class='confirm'>";
-			$dbView->generateEdit($table, $_GET['edit'], $_GET['pk']);
+			echo "<div id='main'>";
+			if(isset($_POST['check']))
+				$pks = $_POST['check'];
+			else
+				$pks = array($_GET['pk']);
+			$dbView->generateEdit($table, $pks);
 			echo "</div>";
 		}
 		else
 		{
 			if(isset($_GET['delete']) && isset($_GET['confirm']))
 			{
-				if($_GET['pk']=="" || $_GET['delete']=="")
-					die("Error: GET parameters are blank");
-				
-				// -g-> And we have to change this request a bit.	
-				$query = "DELETE FROM ".$table." WHERE ROWID = ".$_GET['pk'];
+				$pks = explode(":", $_GET['pks']);
+				$str = $pks[0];
+				$query = "DELETE FROM ".$table." WHERE ROWID = ".$pks[0];
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$str .= ", ".$pks[$i];
+					$query .= " OR ROWID = ".$pks[$i];
+				}
 				$result = $db->query($query);
 				echo "<div class='confirm'>";
 				if($result)
-					echo "Record '".$_GET['delete']."' has been deleted.";
+					echo "Record(s) ".$str." deleted.";
 				else
 					echo "An error occured.";
 				echo "</div>";
 			}
 			else if(isset($_GET['edit']) && isset($_GET['confirm']))
 			{
-				if($_GET['pk']=="" || $_GET['edit']=="")
-					die("Error: GET parameters are blank");
-
-				// -g-> And we have to change this request a bit.	
+				// -g-> And we have to change this request a bit.
+				//$pks = explode(":", $_POST['pks']);
 				$query = "UPDATE ".$table." SET ";
 				foreach($_POST as $vblname => $value)
 				{
@@ -1089,13 +1165,13 @@ else
 					echo "Record '".$_GET['edit']."' has been edited.";
 				else
 					echo "An error occured.";
-				echo "</div>";
+				echo "</div><br/>";
 			}
 			else if(isset($_GET['insert']))
 			{	
 				echo "<div class='confirm'>";
 				echo "A new row has been inserted into '".$_GET['table']."'.";
-				echo "</div>";
+				echo "</div><br/>";
 			}
 			echo "<a href='".PAGE."?table=".$table."&view=browse' ";
 			if($view=="browse")
@@ -1168,45 +1244,49 @@ else
 	}
 	else
 	{
+		echo "<h2>Database: ".$DBFilename."</h2>";
+		
 		if(isset($_POST['createtableconfirm']))
 		{
 			echo "<div class='confirm'>";
 			echo "Table '".$_GET['tablename']."' has been created.";
-			echo "</div>";
+			echo "</div><br/>";
 		}
 		else if(isset($_GET['droptable']) && isset($_GET['confirm']))
 		{
 			echo "<div class='confirm'>";
 			echo "Table '".$_GET['droptable']."' has been dropped.";
-			echo "</div>";
+			echo "</div><br/>";
 		}
 		else if(isset($_GET['emptytable']) && isset($_GET['confirm']))
 		{
 			echo "<div class='confirm'>";
 			echo "Table '".$_GET['emptytable']."' has been emptied.";
-			echo "</div>";
+			echo "</div><br/>";
 		}
 		
 		if(isset($_GET['emptytable']) && !isset($_GET['confirm']))
 		{
+			echo "<div id='main'>";
 			echo "<div class='confirm'>";
 			echo "Are you sure you want to empty the table '".$_GET['emptytable']."'?<br/><br/>";
 			echo "<a href='".PAGE."?emptytable=".$_GET['emptytable']."&confirm=1'>Confirm</a> | ";
 			echo "<a href='".PAGE."'>Cancel</a>";
 			echo "</div>";
+			echo "</div>";
 		}
 		else if(isset($_GET['droptable']) && !isset($_GET['confirm']))
 		{
+			echo "<div id='main'>";
 			echo "<div class='confirm'>";
 			echo "Are you sure you want to drop the table '".$_GET['droptable']."'?<br/><br/>";
 			echo "<a href='".PAGE."?droptable=".$_GET['droptable']."&confirm=1'>Confirm</a> | ";
 			echo "<a href='".PAGE."'>Cancel</a>";
 			echo "</div>";
+			echo "</div>";
 		}
 		else
 		{
-			echo "<h2>Database: ".$DBFilename."</h2>";
-			
 			if(isset($_GET['view']))
 				$view = $_GET['view'];
 			else
@@ -1236,6 +1316,8 @@ else
 		}
 	}
 	echo "</div>";
+	echo "<br/>";
+	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>Get help and updates from the ".PROJECT." project on Google Code</a>";
 	echo "</div>";
 	echo "</div>";
 	$db->close(); //close the database
