@@ -1,16 +1,13 @@
 <?php
-
 /*
- * phpLiteAdmin
+ * Project: phpLiteAdmin
+ * Version: 1.1
+ * Summary: PHP-based admin tool to view and edit SQLite databases
+ * Last updated: 2/4/11
  * Contributors:
  *    Dane Iracleous (daneiracleous@gmail.com)
  *    George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
- * Date: 2/3/11
- * Version: 1.0
- * Summary: PHP-based admin tool to view and edit SQLite databases
  */
- 
-//Edit the following variables to suit your needs
 
 //an array of databases that you want to manage by path name relative to this file
 $databases = array
@@ -26,12 +23,7 @@ $password = "admin";
 
 
 
-
-
 //End of user-editable fields and beginning of user-unfriendly source code
-
-//version number
-$version = 1.0;
 
 ini_set("display_errors", 1);
 error_reporting(E_STRICT | E_ALL);
@@ -42,54 +34,12 @@ $nameArr = explode("?", $_SERVER['PHP_SELF']);
 $thisName = $nameArr[0];
 $nameArr = explode("/", $thisName);
 $thisName = $nameArr[sizeof($nameArr)-1];
+
+//constants
+define("VERSION", "1.1");
 define("PAGE", $thisName);
 define("PROJECT", "phpLiteAdmin");
-
-//the various possible error/warning messages (some are go-home errors, others are just warnings)
-$errorMessages = array
-(
-	"Error: Your version of PHP, ".doubleval(phpversion())." does not contain the necessary packages - either PDO, SQLite3, or SQLite. You may not continue until you enable/intall these packages.", // 0
-	"Error: The database file specified does not exist. You may not continue until you correctly reference the path to the database file.", // 1
-	"Error: The database file cannot be read or written-to. Use chmod to alter the permissions.", // 2
-	"Warning: The database file can be read but not written-to. Attempts to INSERT and UPDATE will cause errors.", // 3
-	"Warning: The password has not been changed from its default value, 'admin'. You may continue, but be warned that this is a security lapse.", // 4
-	"Warning: The password is less than 4 characters long.", // 5
-	"Error: You have not specified any databases.", //6
-	"You should never see this message" //7
-);
-  
-//loose functions
-
-//added this function to provide consistent data quoting.
 define("TICK", "'");
-function quoteIt($s)
-{
-  $t = TICK;
-  for($u = 0; $u < strlen($s); $u++)
-  {
-    if ($s[$u] == TICK) $t .= TICK;
-    $t .= $s[$u];
-  }
-  $t .= TICK;
-  return $t;
-}
-
-//don't know what this does but it's important
-function endsIn64($s)
-{
-  if (strlen($s) < 3) return false;
-  return substr($s, -2) === "64";
-}
-
-//error message function to show error on screen
-function errorMsg($msg, $exit)
-{
-	echo "<div class='confirm' style='margin:15px;'>";
-	echo $msg;
-	echo "</div>";
-	if($exit)
-		exit();
-}
 
 //
 // Authorization class
@@ -120,6 +70,7 @@ class Database
 	protected $db; //reference to the DB object
 	protected $type; //the extension for PHP that handles SQLite
 	protected $name; //the filename of the database
+	protected $lastResult;
 	
 	public function __construct($filename) 
 	{
@@ -163,6 +114,17 @@ class Database
 		return $this->name;	
 	}
 	
+	//get number of affected rows from last query
+	public function getAffectedRows()
+	{
+		if($this->type=="PDO")
+			return $this->lastResult->rowCount();
+		else if($this->type=="SQLite3")
+			return $this->db->changes();
+		else if($this->type=="SQLite")
+			return sqlite_changes($this->db);
+	}
+	
 	public function close() 
 	{
 		if($this->type=="PDO")
@@ -195,6 +157,7 @@ class Database
 			$result = sqlite_query($this->db, $query);
 		else
 			$result = $this->db->query($query);
+		$this->lastResult = $result;
 		return $result;
 	}
 	
@@ -357,12 +320,11 @@ class View
 			{
 				$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 				echo "<tr>";
-				$inBase64 = endsIn64($result[$i][1]);
 				for ($k=1; $k<3; $k++)
 					echo $tdWithClass.$result[$i][$k]."</td>";
 
 				echo $tdWithClass;
-				$f = $inBase64 ? base64_decode($result1[$i]) : $result1[$i];
+				$f = $result1[$i];
 				echo '<textarea name="'.$result[$i][1].'" wrap="hard" rows="1" cols="60">' . 
 				htmlspecialchars($f).'</textarea>';
 				echo "</td>";
@@ -467,8 +429,7 @@ class View
 			{
 				echo $tdWithClass;
 				// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-				$inBase64 = endsIn64($arr[$i][$j]);
-				echo $inBase64 ? base64_decode($arr[$i][$j]) : $arr[$i][$j];
+				echo $arr[$i][$j];
 				echo "</td>";
 			}
 			echo "</tr>";
@@ -556,39 +517,71 @@ class View
 	//generate the SQL query window
 	function generateSQL()
 	{
-		if(isset($_POST['query']))
+		if(isset($_POST['query']) && $_POST['query']!="")
 		{
-			$query = $_POST['queryval'];
-			$startTime = microtime(true);
-			$result = $this->db->query($query);
-			$endTime = microtime(true);
-			$time = round(($endTime - $startTime), 4);
-		
-			echo "<div class='confirm'>";
-			echo "<b>";
-			if($result)
+			$queryStr = stripslashes($_POST['queryval']);
+			$query = explode($_POST['delimiter'], $queryStr); //explode the query string into individual queries based on the delimiter
+			
+			for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
 			{
-				echo "Query execution was successful ";
-				echo "(took ".$time." sec)</b><br/>";
+				if($query[$i]!="") //make sure this query is not an empty string
+				{
+					$startTime = microtime(true);
+					if(strpos(strtolower($query[$i]), "select ")!=false)
+					{
+						$isSelect = true;
+						$result = $this->db->selectArray($query[$i]);
+					}
+					else
+					{
+						$isSelect = false;
+						$result = $this->db->query($query[$i]);
+					}
+					$endTime = microtime(true);
+					$time = round(($endTime - $startTime), 4);
+			
+					echo "<div class='confirm'>";
+					echo "<b>";
+					if($result)
+					{
+						$affected = $this->db->getAffectedRows();
+						echo $affected." row(s) affected.";
+						echo "(Query took ".$time." sec)</b><br/>";
+					}
+					else
+					{
+						echo "There is a problem with the syntax of your query ";
+						echo "(Query was not executed)</b><br/>";
+					}
+					echo "<span style='font-size:11px;'>".$query[$i]."</span>";
+					echo "</div><br/>";
+				}
 			}
-			else
-			{
-				echo "There is a problem with the syntax of your query ";
-				echo "(Query was not executed)</b><br/>";
-			}
-			echo "<span style='font-size:11px;'>".$query."</span>";
-			echo "</div>";
 		}
 		else
-			$query = "";
-			
+			$queryStr = "";
+
 		echo "<fieldset>";
-		echo "<legend><b>Run SQL queries on database '".$this->db->getName()."'</b></legend>";
+		echo "<legend><b>Run SQL query/queries on database '".$this->db->getName()."'</b></legend>";
 		echo "<form action='".PAGE."?view=sql' method='post'>";
-		echo "<textarea style='width:100%; height:300px;' name='queryval'>".$query."</textarea>";
+		echo "<textarea style='width:100%; height:300px;' name='queryval'>".$queryStr."</textarea>";
+		echo "Delimiter <input type='text' name='delimiter' value=';' style='width:50px;'/> ";
 		echo "<input type='submit' name='query' value='Go'/>";
 		echo "</form>";
 	}
+}
+
+//added this function to provide consistent data quoting.
+function quoteIt($s)
+{
+  $t = TICK;
+  for($u = 0; $u < strlen($s); $u++)
+  {
+    if ($s[$u] == TICK) $t .= TICK;
+    $t .= $s[$u];
+  }
+  $t .= TICK;
+  return $t;
 }
 
 // here begins the HTML.
@@ -624,7 +617,7 @@ body
 {
 	margin:0px;
 	padding:0px;
-	font-family:"Courier New", Courier, monospace;
+	font-family:Arial, Helvetica, sans-serif;
 	font-size:14px;
 	color:black;
 	background-color:#e0ebf6;
@@ -813,7 +806,7 @@ else if(isset($_POST['login'])) //user has attempted to log in
 if(!$auth->isAuthorized())
 {
 	echo "<div id='loginBox'>";
-	echo "<h1>".PROJECT." v".$version."</h1>";
+	echo "<h1>".PROJECT." <span style='font-size:14px; color:#000;'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px;'>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "Password: <input type='password' name='password'/>";
@@ -951,11 +944,9 @@ else
 	else if(isset($_GET['insert'])) //insert record into table
 	{
 		$query = "INSERT INTO ".$_GET['table']." (";
-		$inBase64 = array();
 		$i = 0;
 		foreach($_POST as $vblname => $value)
 		{
-			$inBase64[$i++] = endsIn64($vblname);
 			$query .= $vblname.",";
 		}
 		$query = substr($query, 0, sizeof($query)-2);
@@ -966,7 +957,7 @@ else
 			if($value=="")
 				$query .= "NULL,";
 			else
-				$query .= quoteIt($inBase64[$i++] ? base64_encode($value) : $value) . ",";
+				$query .= $value.",";
 		}
 		$query = substr($query, 0, sizeof($query)-2);
 		$query .= ")";
@@ -974,7 +965,7 @@ else
 	}
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
-	echo "<h1>".PROJECT." v".$version."</h1>";
+	echo "<h1>".PROJECT." <span style='font-size:14px; color:#000;'>v".VERSION."</span></h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "<select name='database_switch'>";
@@ -1147,7 +1138,7 @@ else
 					echo "Record(s) ".$str." deleted.";
 				else
 					echo "An error occured.";
-				echo "</div>";
+				echo "</div><br/>";
 			}
 			else if(isset($_GET['edit']) && isset($_GET['confirm']))
 			{
@@ -1156,7 +1147,7 @@ else
 				$query = "UPDATE ".$table." SET ";
 				foreach($_POST as $vblname => $value)
 				{
-					$query .= $vblname."=".quoteIt((endsIn64($vblname) ? base64_encode($value) : $value)).", ";
+					$query .= $vblname."=".$value.", ";
 				}
 				$query = substr($query, 0, sizeof($query)-3);
 				
@@ -1233,7 +1224,7 @@ else
 				echo "<input type='submit' value='Show : ' name='show'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION['numRows']."'/> ";
 				echo "row(s) starting from record # ";
-				echo "<input type='text' name='startRow' style='width:90px;' value='".$_SESSION['startRow']."'/>";
+				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
 				echo "</form>";
 				if(!isset($_GET['sort']))
 					$_GET['sort'] = NULL;
