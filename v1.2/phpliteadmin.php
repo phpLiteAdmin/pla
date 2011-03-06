@@ -242,6 +242,29 @@ class Database
 		$result = $this->select("SELECT Count(*) FROM ".$table);
 		return $result[0];
 	}
+	
+	//correctly quote a string for use in a query
+	public function quote($value)
+	{
+		if($this->type=="PDO")
+		{
+			return $this->db->quote($value);	
+		}
+		else if($this->type=="SQLite3")
+		{
+			return $this->db->escapeString($value);
+		}
+		else
+		{
+			return sqlite_escape_string($value);
+		}
+	}
+	
+	//correctly escape slashes for use in displaying a row value
+	public function formatString($value)
+	{
+		return htmlspecialchars(stripslashes($value));	
+	}
 }
 
 //
@@ -355,8 +378,7 @@ class View
 
 				echo $tdWithClass;
 				$f = $result1[$i];
-				echo '<textarea name="'.$result[$i][1].'" wrap="hard" rows="1" cols="60">' . 
-				htmlspecialchars($f).'</textarea>';
+				echo '<textarea name="'.$result[$i][1].'" wrap="hard" rows="1" cols="60">'.$this->db->formatString($f).'</textarea>';
 				echo "</td>";
 				echo "</tr>";
 			}
@@ -490,7 +512,7 @@ class View
 			{
 				echo $tdWithClass;
 				// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-				echo $arr[$i][$j];
+				echo $this->db->formatString($arr[$i][$j]);
 				echo "</td>";
 			}
 			echo "</tr>";
@@ -641,21 +663,6 @@ class View
 		echo "<input type='submit' name='query' value='Go'/>";
 		echo "</form>";
 	}
-}
-
-//added this function to provide consistent data quoting.
-function quoteIt($s)
-{
-	$s = sqlite_escape_string($s);
-	/*$t = TICK;
-	for($u = 0; $u < strlen($s); $u++)
-	{
-		if ($s[$u] == TICK) $t .= TICK;
-		$t .= $s[$u];
-	}
-	$t .= TICK;
-	return $t;*/
-	return $s;
 }
 
 // here begins the HTML.
@@ -1031,7 +1038,7 @@ else
 			if($value=="")
 				$query .= "NULL,";
 			else
-				$query .= quoteIt($value).",";
+				$query .= $db->quote($value).",";
 		}
 		$query = substr($query, 0, sizeof($query)-2);
 		$query .= ")";
@@ -1225,7 +1232,7 @@ else
 				$query = "UPDATE ".$table." SET ";
 				foreach($_POST as $vblname => $value)
 				{
-					$query .= $vblname."=".quoteIt($value).", ";
+					$query .= $vblname."=".$db->quote($value).", ";
 				}
 				$query = substr($query, 0, sizeof($query)-3);
 				
