@@ -1,7 +1,7 @@
 <?php
 /*
  * Project: phpLiteAdmin (http://code.google.com/p/phpliteadmin/)
- * Version: 1.1
+ * Version: 1.2
  * Summary: PHP-based admin tool to view and edit SQLite databases
  * Last updated: 2/4/11
  * Contributors:
@@ -36,7 +36,7 @@ $nameArr = explode("/", $thisName);
 $thisName = $nameArr[sizeof($nameArr)-1];
 
 //constants
-define("VERSION", "1.1");
+define("VERSION", "1.2");
 define("PAGE", $thisName);
 define("PROJECT", "phpLiteAdmin");
 define("TICK", "'");
@@ -646,14 +646,16 @@ class View
 //added this function to provide consistent data quoting.
 function quoteIt($s)
 {
-  $t = TICK;
-  for($u = 0; $u < strlen($s); $u++)
-  {
-    if ($s[$u] == TICK) $t .= TICK;
-    $t .= $s[$u];
-  }
-  $t .= TICK;
-  return $t;
+	$s = sqlite_escape_string($s);
+	/*$t = TICK;
+	for($u = 0; $u < strlen($s); $u++)
+	{
+		if ($s[$u] == TICK) $t .= TICK;
+		$t .= $s[$u];
+	}
+	$t .= TICK;
+	return $t;*/
+	return $s;
 }
 
 // here begins the HTML.
@@ -1029,11 +1031,12 @@ else
 			if($value=="")
 				$query .= "NULL,";
 			else
-				$query .= $value.",";
+				$query .= quoteIt($value).",";
 		}
 		$query = substr($query, 0, sizeof($query)-2);
 		$query .= ")";
 		$db->query($query);
+		$insertQuery = $query;
 	}
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
@@ -1207,7 +1210,10 @@ else
 				$result = $db->query($query);
 				echo "<div class='confirm'>";
 				if($result)
-					echo "Record(s) ".$str." deleted.";
+				{
+					echo "<b>".sizeof($pks)." row(s) affected.</b><br/>";
+					echo "<span style='font-size:11px;'>".$query."</span>";
+				}
 				else
 					echo "An error occured.";
 				echo "</div><br/>";
@@ -1219,7 +1225,7 @@ else
 				$query = "UPDATE ".$table." SET ";
 				foreach($_POST as $vblname => $value)
 				{
-					$query .= $vblname."=".$value.", ";
+					$query .= $vblname."=".quoteIt($value).", ";
 				}
 				$query = substr($query, 0, sizeof($query)-3);
 				
@@ -1228,7 +1234,10 @@ else
 				$result = $db->query($query);
 				echo "<div class='confirm'>";
 				if($result)
-					echo "Record '".$_GET['edit']."' has been edited.";
+				{
+					echo "<b>1 row(s) affected.</b><br/>";
+					echo "<span style='font-size:11px;'>".$query."</span>";
+				}
 				else
 					echo "An error occured.";
 				echo "</div><br/>";
@@ -1236,7 +1245,8 @@ else
 			else if(isset($_GET['insert']))
 			{	
 				echo "<div class='confirm'>";
-				echo "A new row has been inserted into '".$_GET['table']."'.";
+				echo "<b>1 row(s) inserted.</b><br/>";
+				echo "<span style='font-size:11px;'>".$insertQuery."</span>";
 				echo "</div><br/>";
 			}
 			echo "<a href='".PAGE."?table=".$table."&view=browse' ";
