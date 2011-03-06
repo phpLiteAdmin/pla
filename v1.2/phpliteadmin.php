@@ -174,28 +174,58 @@ class Database
 	}
 	
 	//returns an array for SELECT
-	public function select($query) 
+	public function select($query, $mode="both") 
 	{
 		$result = $this->query($query);
 		if($this->type=="PDO")
+		{
+			if($mode=="assoc")
+				$mode = PDO::FETCH_ASSOC;
+			else if($mode=="num")
+				$mode = PDO::FETCH_NUM;
+			else
+				$mode = PDO::FETCH_BOTH;
 			return $result->fetch();
+		}
 		else if($this->type=="SQLite3")
-			return $result->fetchArray();
+		{
+			if($mode=="assoc")
+				$mode = SQLITE3_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE3_NUM;
+			else
+				$mode = SQLITE3_BOTH;
+			return $result->fetchArray($mode);
+		}
 		else if($this->type=="SQLite")
 			return sqlite_fetch_array($result);
 	}
 	
 	//returns an array of arrays after doing a SELECT
-	public function selectArray($query)
+	public function selectArray($query, $mode="both")
 	{
 		$result = $this->query($query);
 		if($this->type=="PDO")
-			return $result->fetchAll();
+		{
+			if($mode=="assoc")
+				$mode = PDO::FETCH_ASSOC;
+			else if($mode=="num")
+				$mode = PDO::FETCH_NUM;
+			else
+				$mode = PDO::FETCH_BOTH;
+			return $result->fetchAll($mode);
+		}
 		else if($this->type=="SQLite3")
 		{
+			if($mode=="assoc")
+				$mode = SQLITE3_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE3_NUM;
+			else
+				$mode = SQLITE3_BOTH;
 			$arr = array();
 			$i = 0;
-			while($res = $result->fetchArray())
+			while($res = $result->fetchArray($mode))
 			{ 
 				$arr[$i] = $res;
 				$i++;
@@ -347,6 +377,37 @@ class View
 		echo "<input type='hidden' name='oldname' value='".$table."'/>";
 		echo "Rename table '".$table."' to <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='Rename' name='rename'/>";
 		echo "</form>";
+	}
+	
+	public function generateSelect($result)
+	{
+		if(sizeof($result)==0)
+			return;
+			
+		$headers = array_keys($result[0]);
+
+		echo "<table border='0' cellpadding='2' cellspacing='1'>";
+		echo "<tr>";
+		for($i=0; $i<sizeof($headers); $i++)
+		{
+			echo "<td class='tdheader'>";
+			echo $headers[$i];
+			echo "</td>";
+		}
+		echo "</tr>";
+		for($i=0; $i<sizeof($result); $i++)
+		{
+			$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+			echo "<tr>";
+			for($j=0; $j<sizeof($headers); $j++)
+			{
+				echo $tdWithClass;
+				echo $result[$i][$headers[$j]];
+				echo "</td>";
+			}
+			echo "</tr>";
+		}
+		echo "</table><br/><br/>";
 	}
 	
 	//generate the view rows view
@@ -517,6 +578,7 @@ class View
 	//generate the SQL query window
 	function generateSQL()
 	{
+		$isSelect = false;
 		if(isset($_POST['query']) && $_POST['query']!="")
 		{
 			$queryStr = stripslashes($_POST['queryval']);
@@ -527,10 +589,10 @@ class View
 				if($query[$i]!="") //make sure this query is not an empty string
 				{
 					$startTime = microtime(true);
-					if(strpos(strtolower($query[$i]), "select ")!=false)
+					if(strpos(strtolower($query[$i]), "select ")!==false)
 					{
 						$isSelect = true;
-						$result = $this->db->selectArray($query[$i]);
+						$result = $this->db->selectArray($query[$i], "assoc");
 					}
 					else
 					{
@@ -542,10 +604,18 @@ class View
 			
 					echo "<div class='confirm'>";
 					echo "<b>";
-					if($result)
+					if($isSelect || $result)
 					{
-						$affected = $this->db->getAffectedRows();
-						echo $affected." row(s) affected.";
+						if($isSelect)
+						{
+							$affected = sizeof($result);
+							echo "Showing ".$affected." row(s). ";
+						}
+						else
+						{
+							$affected = $this->db->getAffectedRows();
+							echo $affected." row(s) affected. ";
+						}
 						echo "(Query took ".$time." sec)</b><br/>";
 					}
 					else
@@ -555,12 +625,14 @@ class View
 					}
 					echo "<span style='font-size:11px;'>".$query[$i]."</span>";
 					echo "</div><br/>";
+					if($isSelect)
+						$this->generateSelect($result);
 				}
 			}
 		}
 		else
 			$queryStr = "";
-
+			
 		echo "<fieldset>";
 		echo "<legend><b>Run SQL query/queries on database '".$this->db->getName()."'</b></legend>";
 		echo "<form action='".PAGE."?view=sql' method='post'>";
