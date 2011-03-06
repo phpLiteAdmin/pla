@@ -1,20 +1,41 @@
 <?php
 /*
  * Project: phpLiteAdmin (http://code.google.com/p/phpliteadmin/)
- * Version: 1.2
+ * Version: 1.3
  * Summary: PHP-based admin tool to view and edit SQLite databases
- * Last updated: 2/4/11
+ * Last updated: 3/6/11
  * Contributors:
  *    Dane Iracleous (daneiracleous@gmail.com)
  *    George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
  */
 
-//an array of databases that you want to manage by path name relative to this file
+//an array of databases that will appear in the application
 $databases = array
 (
-	"database1.sqlite",
-	"database2.sqlite",
-	"database3.sqlite"
+	array
+	(
+		"path"=> "database1.sqlite", //path to database file on server relative to this file
+		"name"=> "Database 1", //name of database to appear in application
+		"version"=> 3 //SQLite version of database (important!)
+	),
+	array
+	(
+		"path"=> "database2.sqlite",
+		"name"=> "Database 2",
+		"version"=> 3
+	),
+	array
+	(
+		"path"=> "database3.sqlite",
+		"name"=> "Database 3",
+		"version"=> 3
+	),
+	array
+	(
+		"path"=> "database4.sqlite",
+		"name"=> "Database 4",
+		"version"=> 2
+	)
 );
 
 //password to gain access (please change this to something more secure than 'admin')
@@ -25,9 +46,10 @@ $password = "admin";
 
 //End of user-editable fields and beginning of user-unfriendly source code
 
-ini_set("display_errors", 1);
-error_reporting(E_STRICT | E_ALL);
+//ini_set("display_errors", 1);
+//error_reporting(E_STRICT | E_ALL);
 session_start();
+$startTimeTot = microtime(true); //start the timer to record page load time
 
 //build the basename of this file
 $nameArr = explode("?", $_SERVER['PHP_SELF']);
@@ -37,7 +59,7 @@ $thisName = $nameArr[sizeof($nameArr)-1];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.2");
+define("VERSION", "1.3");
 define("PAGE", $thisName);
 
 //
@@ -68,37 +90,50 @@ class Database
 {
 	protected $db; //reference to the DB object
 	protected $type; //the extension for PHP that handles SQLite
-	protected $name; //the filename of the database
+	protected $data;
 	protected $lastResult;
 	
-	public function __construct($filename) 
+	public function __construct($data) 
 	{
-		$this->name = $filename;
-		
-		if(class_exists("PDO")) //first choice is PDO
+		$this->data = $data;
+		try
 		{
-			$this->type = "PDO";
-			$this->db = new PDO("sqlite:".$filename) or die("Error connecting to database");
+			if(class_exists("PDO") && $this->data["version"]==3) //first choice is PDO
+			{
+				$this->type = "PDO";
+				$this->db = new PDO("sqlite:".$this->data["path"]);
+			}
+			else if(class_exists("SQLite3") && $this->data["version"]==3) //second choice is SQLite3
+			{
+				$this->type = "SQLite3";
+				$this->db = new SQLite3($this->data["path"]);
+			}
+			else if(class_exists("SQLiteDatabase") && $this->data["version"]==2) //third choice is SQLite, AKA SQlite2 - some features may be missing and cause problems, but it's better than nothing :/
+			{
+				$this->type = "SQLiteDatabase";
+				$this->db = new SQLiteDatabase($this->data["path"]);
+			}
+			else //none of the possible extensions are enabled/installed and thus, the application cannot work
+			{
+				echo "<div class='confirm' style='margin:20px;'>";
+				echo "Your installation of PHP does not include a valid SQLite3 or PDO extension required by the application. The application is unusable until you install/enable the necessary library extension.";
+				echo "</div><br/>";
+				exit();
+			}
 		}
-		else if(class_exists("SQLite3")) //second choice is SQLite3
+		catch(Exception $e)
 		{
-			$this->type = "SQLite3";
-			$this->db = new SQLite3($filename) or die("Error connecting to database");
-		}
-		else if(class_exists("SQLite")) //third choice is SQLite, AKA SQlite2 - some features may be missing and cause problems, but it's better than nothing :/
-		{
-			$this->type = "SQLite";
-			$this->db = new SQLite($filename) or die("Error connecting to database");	
-		}
-		else //none of the possible extensions are enabled/installed and thus, the application cannot work
-		{
-			die("Your installation of PHP does not include a valid SQLite3 or PDO extension required by the application.");	
+			echo "<div class='confirm' style='margin:20px;'>";
+			echo "The database you provided, '".$this->data["path"]."', either does not match the version you specified, does not exist and cannot be created, is corrupt, or is encrypted. The application is unusable until you open the file and make sure each database in the array of databases is valid.";
+			echo "</div><br/>";
+			exit();
 		}
 	}
 	
 	public function __destruct() 
 	{
-		$this->close();
+		if($this->db)
+			$this->close();
 	}
 	
 	//get the exact PHP extension being used for SQLite
@@ -107,10 +142,22 @@ class Database
 		return $this->type;	
 	}
 	
-	//get the filename of the database
+	//get the name of the database
 	public function getName()
 	{
-		return $this->name;	
+		return $this->data["name"];	
+	}
+	
+	//get the filename of the database
+	public function getPath()
+	{
+		return $this->data["path"];	
+	}
+	
+	//get the version of the database
+	public function getVersion()
+	{
+		return $this->data["version"];	
 	}
 	
 	//get number of affected rows from last query
@@ -120,8 +167,8 @@ class Database
 			return $this->lastResult->rowCount();
 		else if($this->type=="SQLite3")
 			return $this->db->changes();
-		else if($this->type=="SQLite")
-			return sqlite_changes($this->db);
+		else if($this->type=="SQLiteDatabase")
+			return $this->db->changes();
 	}
 	
 	public function close() 
@@ -130,8 +177,8 @@ class Database
 			$this->db = NULL;
 		else if($this->type=="SQLite3")
 			$this->db->close();
-		else if($this->type=="SQLite")
-			sqlite_close($this->db);
+		else if($this->type=="SQLiteDatabase")
+			$this->db = NULL;
 	}
 	
 	public function beginTransaction()  
@@ -152,10 +199,7 @@ class Database
 	//generic query wrapper
 	public function query($query)
 	{
-		if($this->type=="SQLite")
-			$result = sqlite_query($this->db, $query);
-		else
-			$result = $this->db->query($query);
+		$result = $this->db->query($query);
 		$this->lastResult = $result;
 		return $result;
 	}
@@ -168,8 +212,8 @@ class Database
 			return $this->db->lastInsertId();
 		else if($this->type=="SQLite3")
 			return $this->db->lastInsertRowID();
-		else if($this->type=="SQLite")
-			return sqlite_last_insert_rowid($this->db);
+		else if($this->type=="SQLiteDatabase")
+			return $this->db->lastInsertRowid();
 	}
 	
 	//returns an array for SELECT
@@ -196,8 +240,16 @@ class Database
 				$mode = SQLITE3_BOTH;
 			return $result->fetchArray($mode);
 		}
-		else if($this->type=="SQLite")
-			return sqlite_fetch_array($result);
+		else if($this->type=="SQLiteDatabase")
+		{
+			if($mode=="assoc")
+				$mode = SQLITE_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE_NUM;
+			else
+				$mode = SQLITE_BOTH;
+			return $result->fetch($mode);
+		}
 	}
 	
 	//returns an array of arrays after doing a SELECT
@@ -231,8 +283,16 @@ class Database
 			} 
 			return $arr;	
 		}
-		else if($this->type=="SQLite")
-			return sqlite_fetch_all($result);
+		else if($this->type=="SQLiteDatabase")
+		{
+			if($mode=="assoc")
+				$mode = SQLITE_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE_NUM;
+			else
+				$mode = SQLITE_BOTH;
+			return $result->fetchAll($mode);
+		}
 	}
 	
 	//get number of rows in table
@@ -255,7 +315,7 @@ class Database
 		}
 		else
 		{
-			return sqlite_escape_string($value);
+			return "'".$value."'";
 		}
 	}
 	
@@ -470,7 +530,7 @@ class View
 		$startTime = microtime(true);
 		$arr = $this->db->selectArray($query);
 		$endTime = microtime(true);
-		$time = round(($endTime - $startTime), 4);
+		$time = round(($endTime - $startTime), 5);
 		$total = $this->db->numRows($table);
 		
 		if(sizeof($arr)>0)
@@ -605,7 +665,7 @@ class View
 			echo "<br/>";
 		}
 		echo "<fieldset>";
-		echo "<legend><b>Create new table in database '".$this->db->getName()."'</b></legend>";
+		echo "<legend><b>Create new table on database '".$this->db->getName()."'</b></legend>";
 		echo "<form action='".PAGE."' method='post'>";
 		echo "Name: <input type='text' name='tablename' style='width:200px;'/> ";
 		echo "Number of Fields: <input type='text' name='tablefields' style='width:90px;'/> ";
@@ -639,7 +699,7 @@ class View
 						$result = $this->db->query($query[$i]);
 					}
 					$endTime = microtime(true);
-					$time = round(($endTime - $startTime), 4);
+					$time = round(($endTime - $startTime), 5);
 			
 					echo "<div class='confirm'>";
 					echo "<b>";
@@ -684,13 +744,14 @@ class View
 
 // here begins the HTML.
 ?>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <title><?php echo PROJECT ?></title>
-<script>
+<!-- JavaScript Support -->
+<script type="text/javascript">
+//finds and checks all checkboxes for all rows on the Browse tab for a table
 function checkAll(field)
 {
 	var i=0;
@@ -700,6 +761,7 @@ function checkAll(field)
 		i++;	
 	}
 }
+//finds and unchecks all checkboxes for all rows on the Browse tab for a table
 function uncheckAll(field)
 {
 	var i=0;
@@ -710,6 +772,7 @@ function uncheckAll(field)
 	}
 }
 </script>
+<!-- CSS stylesheet for look and feel of application - fully customizable -->
 <style type="text/css">
 body
 {
@@ -891,18 +954,16 @@ fieldset
 </style>
 </head>
 <body>
-
 <?php
 $auth = new Authorization(); //create authorization object
 if(isset($_POST['logout'])) //user has attempted to log out
 	$auth->revoke();
 else if(isset($_POST['login'])) //user has attempted to log in
 {
-	if($_POST['password']==$password)
+	if($_POST['password']==$password) //make sure passwords match before granting authorization
 		$auth->grant();
 }
-
-if(!$auth->isAuthorized())
+if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 {
 	echo "<div id='loginBox'>";
 	echo "<h1>".PROJECT." <span style='font-size:14px; color:#000;'>v".VERSION."</span></h1>";
@@ -913,62 +974,43 @@ if(!$auth->isAuthorized())
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
+	echo "<br/>";
+	echo "<div style='text-align:center;'>";
+	$endTimeTot = microtime(true);
+	$timeTot = round(($endTimeTot - $startTimeTot), 5);
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
+	echo "</div>";
 }
-else
+else //user is authorized - display the main application
 {
+	//set the current database to the first in the array (default)
 	if(sizeof($databases)>0)
-		$DBFilename = $databases[0];
-	else
-		errorMsg($errorMessages[6], true);
+		$currentDB = $databases[0];
+	else //the database array is empty - show error and halt execution
+		die("Error: you have not specified any databases to manage.");
 		
-	if(isset($_POST['database_switch']))
+	if(isset($_POST['database_switch'])) //user is switching database with drop-down menu
 	{
-		$_SESSION['DBFilename'] = $_POST['database_switch'];
-		$DBFilename = $_POST['database_switch'];
+		$_SESSION["currentDB"] = $_POST['database_switch'];
+		$currentDB = $databases[$_SESSION['currentDB']];
 	}
-	if(isset($_SESSION['DBFilename']))
-		$DBFilename = $_SESSION['DBFilename'];
-		
-	//First, check that the right classes are available
-	if(!class_exists("PDO") && !class_exists("SQLite3") && !class_exists("SQLite"))
-		errorMsg($errorMessages[0], true);
-	/*
-	if($DBFilename!="") //these errors only apply when the file is specified - so if it isn't, don't check for the errors
-	{
-		//Second, check to see that the database file is intact and can be used
-		if(!file_exists($DBFilename))
-			errorMsg($errorMessages[1], true);
-
-		//Check the permissions of the database file
-		$perms = substr(decoct(fileperms($DBFilename)),4);
-		if(intval($perms)<44) 
-			errorMsg($errorMessages[2], true);	
-		else if(intval($perms)>=44 && intval($perms)<66)
-			errorMsg($errorMessages[3], false); // non-fatal error.
-	}
-*/
-	//Check to see if user has not changed default password
-	/*
-	if($password=="admin")
-		errorMsg($errorMessages[4], false);
-	else if(strlen($password)<4)
-		errorMsg($errorMessages[5], false);
-	*/
+	if(isset($_SESSION['currentDB']))
+		$currentDB = $databases[$_SESSION['currentDB']];
 	
-	$db = new Database($DBFilename); //create the Database object
-	$dbView = new View($db);
+	$db = new Database($currentDB); //create the Database object
+	$dbView = new View($db); //create the database View object
 	
 	//Switch board for various operations a user could have requested
 	if(isset($_POST['createtable'])) //ver 1.1 bug fix - check for $_POST variables before $_GET variables 
 	{
 	  // Not sure what is happening here... gkf
 	}
-	else if(isset($_POST['rename']))
+	else if(isset($_POST['rename'])) //user is renaming a table
 	{
 		$query = "ALTER TABLE ".$_POST['oldname']." RENAME TO ".$_POST['newname'];
 		$db->query($query);
 	}
-	else if(isset($_POST['createtableconfirm'])) //create new table
+	else if(isset($_POST['createtableconfirm'])) //user is creating a new table
 	{
 		$num = intval($_GET['rows']);
 		$name = $_GET['tablename'];
@@ -1000,11 +1042,11 @@ else
 		$query .= ")";
 		$db->query($query);
 	}
-	else if(isset($_POST['addfieldsconfirm'])) //create new table
+	else if(isset($_POST['addfieldsconfirm'])) //user is adding new fields to the table
 	{
 		$num = intval($_GET['rows']);
 		$name = $_GET['tablename'];
-		//build the query for creating this new table
+		//build the query
 		for($i=0; $i<$num; $i++)
 		{
 			if($_POST[$i.'_field']!="")
@@ -1028,19 +1070,19 @@ else
 		$_GET['table'] = $_GET['tablename'];
 		$_GET['view'] = "structure";
 	}
-	else if(isset($_GET['droptable']) && isset($_GET['confirm'])) //drop table
+	else if(isset($_GET['droptable']) && isset($_GET['confirm'])) //user is dropping the table
 	{
 		$query = "DROP TABLE ".$_GET['droptable'];
 		$db->query($query);
 	}
-	else if(isset($_GET['emptytable']) && isset($_GET['confirm'])) //empty table
+	else if(isset($_GET['emptytable']) && isset($_GET['confirm'])) //user is emptying the table
 	{
 		$query = "DELETE FROM ".$_GET['emptytable'];
 		$db->query($query);
 		$query = "VACUUM";
 		$db->query($query);
 	}
-	else if(isset($_GET['insert'])) //insert record into table
+	else if(isset($_GET['insert'])) //user is inserting a record into the table
 	{
 		$query = "INSERT INTO ".$_GET['table']." (";
 		$i = 0;
@@ -1071,16 +1113,16 @@ else
 	echo "<select name='database_switch'>";
 	for($i=0; $i<sizeof($databases); $i++)
 	{
-		if($databases[$i]==$DBFilename)
-			echo "<option value='".$databases[$i]."' selected='selected'>".$databases[$i]."</option>";
+		if($i==$_SESSION["currentDB"])
+			echo "<option value='".$i."' selected='selected'>".$databases[$i]["name"]."</option>";
 		else
-			echo "<option value='".$databases[$i]."'>".$databases[$i]."</option>";
+			echo "<option value='".$i."'>".$databases[$i]["name"]."</option>";
 	}
 	echo "</select> ";
 	echo "<input type='submit' value='Go'>";
 	echo "</form>";
 	echo "</fieldset>";
-	echo "<fieldset style='margin:15px;'><legend><a href='".PAGE."'>".$DBFilename."</a></legend>";
+	echo "<fieldset style='margin:15px;'><legend><a href='".PAGE."'>".$currentDB["name"]."</a></legend>";
 	//Display list of tables
 	$query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 	$result = $db->selectArray($query);
@@ -1107,7 +1149,7 @@ else
 	
 	if(isset($_POST['createtable']) || isset($_POST['addfields']))
 	{
-		echo "<h2>Database: ".$DBFilename."</h2>";
+		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].")</h2>";
 		echo "<div id='main'>";
 		if(isset($_POST['addfields']))
 			echo "<h2>Adding new field(s) to table '".$_POST['tablename']."'</h2>";
@@ -1177,7 +1219,7 @@ else
 			$view = "browse";
 			
 		$table = $_GET['table'];
-		echo "<h2>Database: ".$DBFilename." | Table: ".$table."</h2>";
+		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].") | Table: ".$table."</h2>";
 		
 		if((isset($_GET['delete']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="delete"))
 		{
@@ -1345,7 +1387,7 @@ else
 	}
 	else
 	{
-		echo "<h2>Database: ".$DBFilename."</h2>";
+		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].")</h2>";
 		
 		if(isset($_POST['createtableconfirm']))
 		{
@@ -1409,7 +1451,13 @@ else
 			echo "<div id='main'>";
 			
 			if($view=="structure")
+			{
+				echo "<b>Database Name</b>: ".$db->getName()."<br/>";
+				echo "<b>Path to Database</b>: ".$db->getPath()."<br/>";
+				echo "<b>Database Version</b>: ".$db->getVersion()."<br/>";
+				echo "<b>PHP Extension Used</b>: ".$db->getType()."<br/><br/>";
 				$dbView->generateTableList();
+			}
 			else if($view=="sql")
 				$dbView->generateSQL();
 				
@@ -1418,7 +1466,9 @@ else
 	}
 	echo "</div>";
 	echo "<br/>";
-	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>Get help and updates from the ".PROJECT." project on Google Code</a>";
+	$endTimeTot = microtime(true);
+	$timeTot = round(($endTimeTot - $startTimeTot), 5);
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
 	echo "</div>";
 	echo "</div>";
 	$db->close(); //close the database
