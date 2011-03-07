@@ -35,7 +35,7 @@ $databases = array
 	(
 		"path"=> "database4.sqlite",
 		"name"=> "Database 4",
-		"version"=> 2
+		"version"=> 3
 	)
 );
 
@@ -124,19 +124,44 @@ class Database
 			}
 			else //none of the possible extensions are enabled/installed and thus, the application cannot work
 			{
-				echo "<div class='confirm' style='margin:20px;'>";
-				echo "Your installation of PHP does not include a valid SQLite3 or PDO extension required by the application. The application is unusable until you install/enable the necessary library extension.";
-				echo "</div><br/>";
+				$this->showError();
 				exit();
 			}
 		}
 		catch(Exception $e)
 		{
-			echo "<div class='confirm' style='margin:20px;'>";
-			echo "The database you provided, '".$this->data["path"]."', either does not match the version you specified, does not exist and cannot be created, is corrupt, or is encrypted. The application is unusable until you open the file and make sure each database in the array of databases is valid.";
-			echo "</div><br/>";
+			$this->showError();
 			exit();
 		}
+	}
+	
+	public function showError()
+	{
+		$classPDO = class_exists("PDO");
+		$classSQLite3 = class_exists("SQLite3");
+		$classSQLiteDatabase = class_exists("SQLiteDatabase");
+		if($classPDO)
+			$strPDO = "installed";
+		else
+			$strPDO = "not installed";
+		if($classSQLite3)
+			$strSQLite3 = "installed";
+		else
+			$strSQLite3 = "not installed";
+		if($classSQLiteDatabase)
+			$strSQLiteDatabase = "installed";
+		else
+			$strSQLiteDatabase = "not installed";
+		echo "<div class='confirm' style='margin:20px;'>";
+		echo "<i>Checking supported SQLite PHP extensions...<br/><br/>";
+		echo "<b>PDO</b>: ".$strPDO."<br/>";
+		echo "<b>SQLite3</b>: ".$strSQLite3."<br/>";
+		echo "<b>SQLiteDatabase</b>: ".$strSQLiteDatabase."<br/><br/>...done.</i><br/><br/>";
+		if(!$classPDO && !$classSQLite3 && !$classSQLiteDatabase)
+			echo "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use phpLiteAdmin until you install at least one of them.";
+		else
+			echo "It appears that your installation of PHP includes one or more of the supported SQLite library extensions. However, your database(s) are not configured correctly. Most likely, you specified a version of SQLite for your database(s) that is not compatible with your available extensions. Try changing the version value for your database(s).";
+		echo "</div><br/>";
 	}
 	
 	public function __destruct() 
