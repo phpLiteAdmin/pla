@@ -35,7 +35,7 @@ $databases = array
 	(
 		"path"=> "database4.sqlite",
 		"name"=> "Database 4",
-		"version"=> 3
+		"version"=> 2
 	)
 );
 
@@ -250,7 +250,7 @@ class Database
 			$queryparts = preg_split("/[\s]+/", $query, 4, PREG_SPLIT_NO_EMPTY);
 			$tablename = $queryparts[2];
 			$alterdefs = $queryparts[3];
-			echo $query;
+			//echo $query;
 			$result = $this->alterTable($tablename, $alterdefs);
 		}
 		else //this query is normal - proceed as normal
@@ -546,21 +546,51 @@ class View
 		
 		for($i=0; $i<sizeof($result); $i++)
 		{
+			$colVal = $result[$i][0];
+			$fieldVal = $result[$i][1];
+			$typeVal = $result[$i][2];
+			$notnullVal = $result[$i][3];
+			$defaultVal = $result[$i][4];
+			$primarykeyVal = $result[$i][5];
+			
+			if(intval($notnullVal)!=0)
+				$notnullVal = "yes";
+			else
+				$notnullVal = "no";
+			if(intval($primarykeyVal)!=0)
+				$primarykeyVal = "yes";
+			else
+				$primarykeyVal = "no";
+			
 			$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 			echo "<tr>";
 			echo $tdWithClass;
-			echo "<input type='checkbox' name='check[]' value='".$result[$i][1]."' id='check_".$i."'/>";
+			echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
 			echo "</td>";
 			echo $tdWithClass;
-			echo "<a href='".PAGE."?table=".$table."&edit=1&field=".$result[$i][1]."'>edit</a>";
+			echo "<a href='".PAGE."?table=".$table."&edit=1&col=".$colVal."'>edit</a>";
 			echo "</td>";
 			echo $tdWithClass;
-			echo "<a href='".PAGE."?table=".$table."&delete=1&field=".$result[$i][1]."' style='color:red;'>delete</a>";
+			echo "<a href='".PAGE."?table=".$table."&delete=1&col=".$fieldVal."' style='color:red;'>delete</a>";
 			echo "</td>";
-			for($j=0; $j<6; $j++)
-			{
-				echo $tdWithClass.$result[$i][$j]."</td>";
-			}
+			echo $tdWithClass;
+			echo $colVal;
+			echo "</td>";
+			echo $tdWithClass;
+			echo $fieldVal;
+			echo "</td>";
+			echo $tdWithClass;
+			echo $typeVal;
+			echo "</td>";
+			echo $tdWithClass;
+			echo $notnullVal;
+			echo "</td>";
+			echo $tdWithClass;
+			echo $defaultVal;
+			echo "</td>";
+			echo $tdWithClass;
+			echo $primarykeyVal;
+			echo "</td>";
 			echo "</tr>";
 		}
 		
@@ -571,22 +601,15 @@ class View
 		//echo "<option value='edit'>Edit</option>";
 		echo "<option value='delete'>Delete</option>";
 		echo "</select> ";
+		echo "<input type='hidden' name='structureDel' value='true'/>";
 		echo "<input type='submit' value='Go' name='massGo'/>";
 		echo "</form>";
 		
-		if($this->db->getVersion()==3)
-		{
-			echo "<br/>";
-			echo "<form action='".PAGE."' method='post'>";
-			echo "<input type='hidden' name='tablename' value='".$table."'/>";
-			echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields'/>";
-			echo "</form>";
-		}
-		else
-		{
-			echo "<br/>";
-			echo "This is an SQLite2 database, which does not support altering the table structure. For this reason, adding, editing, or deleting columns is disabled.";	
-		}
+		echo "<br/>";
+		echo "<form action='".PAGE."' method='post'>";
+		echo "<input type='hidden' name='tablename' value='".$table."'/>";
+		echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields'/>";
+		echo "</form>";
 	}
 	
 	//generate the rename table view
@@ -636,6 +659,100 @@ class View
 		}
 		echo "</table>";
 		echo "<input type='submit' value='Insert'/>";
+		echo "</form>";
+	}
+	
+	//generate the edit row view
+	public function generateEditStructure($table, $col)
+	{
+		echo "<form action='".PAGE."?table=".$table."&edit=1&confirm=1&view=structure&col=".$col."' method='post'>";
+			
+		$query = "PRAGMA table_info('".$table."')";
+		$result = $this->db->selectArray($query);
+		$fieldVal = $result[$col][1];
+		$typeVal = $result[$col][2];
+		$notnullVal = $result[$col][3];
+		$defaultVal = $result[$col][4];
+		$primarykeyVal = $result[$col][5];
+		
+		//build the table
+		echo "<table border='0' cellpadding='2' cellspacing='1'>";
+		//field column
+		echo "<tr>";
+		echo "<td class='td1'>";
+		echo "Field";
+		echo "</td>";
+		echo "<td class='td1' style='text-align:left;'>";
+		echo "<input type='hidden' name='field_old' value='".$fieldVal."'/>";
+		echo "<input type='text' name='field' value='".$fieldVal."'/>";
+		echo "</td>";
+		echo "</tr>";
+		//type column
+		echo "<tr>";
+		echo "<td class='td2'>";
+		echo "Type";
+		echo "</td>";
+		echo "<td class='td2' style='text-align:left;'>";
+		echo "<select name='type'>";
+		echo "<option value='INTEGER'";
+		if($typeVal=="INTEGER")
+			echo " selected='selected'";
+		echo ">INTEGER</option>";
+		echo "<option value='REAL'";
+		if($typeVal=="REAL")
+			echo " selected='selected'";
+		echo ">REAL</option>";
+		echo "<option value='TEXT'";
+		if($typeVal=="TEXT")
+			echo " selected='selected'";
+		echo ">TEXT</option>";
+		echo "<option value='BLOB'";
+		if($typeVal=="BLOB")
+			echo " selected='selected'";
+		echo ">BLOB</option>";
+		echo "<option value='NULL'";
+		if($typeVal=="NULL")
+			echo " selected='selected'";
+		echo ">NULL</option>";
+		echo "</select>";
+		echo "</td>";
+		echo "</tr>";
+		//not null column
+		echo "<tr>";
+		echo "<td class='td1'>";
+		echo "Not Null";
+		echo "</td>";
+		echo "<td class='td1' style='text-align:left;'>";
+		echo "<input type='checkbox' disabled='disabled' name='notnull' ";
+		if(intval($notnullVal)!=0)
+			echo "checked='checked'";
+		echo "/>";
+		echo "</td>";
+		echo "</tr>";
+		//default value column
+		echo "<tr>";
+		echo "<td class='td2'>";
+		echo "Default Value";
+		echo "</td>";
+		echo "<td class='td2' style='text-align:left;'>";
+		echo "<input type='text' disabled='disabled' name='defaultvalue' value='".$defaultVal."'/>";
+		echo "</td>";
+		echo "</tr>";
+		//primary key column
+		echo "<tr>";
+		echo "<td class='td1'>";
+		echo "Primary Key";
+		echo "</td>";
+		echo "<td class='td1' style='text-align:left;'>";
+		echo "<input type='checkbox' disabled='disabled' name='primarykey' ";
+		if(intval($primarykeyVal)!=0)
+			echo "checked='checked'";
+		echo "/>";
+		echo "</td>";
+		echo "</tr>";
+		echo "</table><br/><br/>";
+		echo "<input type='submit' value='Save Changes' name='editfieldconfirm'/> ";
+		echo "<a href='".PAGE."?table=".$table."&view=structure'>Cancel</a>";
 		echo "</form>";
 	}
 	
@@ -1294,6 +1411,12 @@ else //user is authorized - display the main application
 		$_GET['table'] = $_GET['tablename'];
 		$_GET['view'] = "structure";
 	}
+	else if(isset($_POST['editfieldconfirm'])) //change a column
+	{
+		$col = $_GET['col'];
+		$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['field_old']." ".$_POST['field']." ".$_POST['type'];
+		$db->query($query);
+	}
 	else if(isset($_GET['droptable']) && isset($_GET['confirm'])) //user is dropping the table
 	{
 		$query = "DROP TABLE ".$_GET['droptable'];
@@ -1371,7 +1494,14 @@ else //user is authorized - display the main application
 	echo "<div id='content'>";
 	echo "<div id='contentInner'>";
 	
-	if(isset($_POST['createtable']) || isset($_POST['addfields']))
+	if(isset($_GET['col']) && !isset($_GET['confirm']) && !isset($_GET['delete']) && !isset($_POST['massGo']))
+	{
+		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].")</h2>";
+		echo "<div id='main'>";
+		$dbView->generateEditStructure($_GET['table'], $_GET['col']);
+		echo "</div>";
+	}
+	else if(isset($_POST['createtable']) || isset($_POST['addfields']))
 	{
 		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].")</h2>";
 		echo "<div id='main'>";
@@ -1445,7 +1575,7 @@ else //user is authorized - display the main application
 		$table = $_GET['table'];
 		echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].") | Table: ".$table."</h2>";
 		
-		if((isset($_GET['delete']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="delete"))
+		if((isset($_GET['delete']) && !isset($_GET['confirm']) && !isset($_GET['col'])) || (isset($_POST['massType']) && $_POST['massType']=="delete") && !isset($_POST['structureDel']))
 		{
 			echo "<div id='main'>";
 			if(isset($_POST['check']))
@@ -1476,6 +1606,37 @@ else //user is authorized - display the main application
 			}
 			echo "</div>";
 		}
+		else if((isset($_GET['delete']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="delete"))
+		{
+			echo "<div id='main'>";
+			if(isset($_POST['check']))
+				$pks = $_POST['check'];
+			else if(isset($_GET['col']))
+				$pks = array($_GET['col']);
+			
+			if(isset($pks))
+			{
+				$str = $pks[0];
+				$pass = $pks[0];
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$str .= ", ".$pks[$i];
+					$pass .= ":".$pks[$i];
+				}
+				echo "<div class='confirm'>";
+				echo "Are you sure you want to delete column(s) ".$str."?<br/><br/>";
+				echo "<a href='".PAGE."?table=".$table."&view=structure&delete=1&col=".$pass."&confirm=1'>Confirm</a> | ";
+				echo "<a href='".PAGE."?table=".$table."'>Cancel</a>";
+				echo "</div>";
+			}
+			else
+			{
+				echo "<div class='confirm'>";
+				echo "You have not selected any rows.";
+				echo "</div>";	
+			}
+			echo "</div>";
+		}
 		else if((isset($_GET['edit']) && !isset($_GET['confirm'])) || (isset($_POST['massType']) && $_POST['massType']=="edit"))
 		{
 			echo "<div id='main'>";
@@ -1488,7 +1649,7 @@ else //user is authorized - display the main application
 		}
 		else
 		{
-			if(isset($_GET['delete']) && isset($_GET['confirm']))
+			if(isset($_GET['delete']) && isset($_GET['confirm']) && !isset($_GET['col']))
 			{
 				$pks = explode(":", $_GET['pks']);
 				$str = $pks[0];
@@ -1509,7 +1670,28 @@ else //user is authorized - display the main application
 					echo "An error occured.";
 				echo "</div><br/>";
 			}
-			else if(isset($_GET['edit']) && isset($_GET['confirm']))
+			if(isset($_GET['delete']) && isset($_GET['confirm']) && isset($_GET['col']))
+			{
+				$pks = explode(":", $_GET['col']);
+				$str = $pks[0];
+				$query = "ALTER TABLE ".$table." DROP ".$pks[0];
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$str .= ", ".$pks[$i];
+					$query .= ", DROP ".$pks[$i];
+				}
+				$result = $db->query($query);
+				echo "<div class='confirm'>";
+				if($result)
+				{
+					echo "<b>".sizeof($pks)." column(s) affected.</b><br/>";
+					echo "<span style='font-size:11px;'>".$query."</span>";
+				}
+				else
+					echo "An error occured.";
+				echo "</div><br/>";
+			}
+			else if(isset($_GET['edit']) && isset($_GET['confirm']) && !isset($_GET['col']))
 			{
 				// -g-> And we have to change this request a bit.
 				//$pks = explode(":", $_POST['pks']);
