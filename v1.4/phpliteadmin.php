@@ -1536,7 +1536,7 @@ else //user is authorized - display the main application
 		echo "</div>";
 	}
 	$view = "structure";
-	if(!isset($_GET['table']) && !isset($_GET['confirm']))
+	if(!isset($_GET['table']) && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create"))) //the absence of these fields means we are viewing the database homepage
 	{
 		if(isset($_GET['view']))
 			$view = $_GET['view'];
@@ -1558,7 +1558,7 @@ else //user is authorized - display the main application
 		echo "<div style='clear:both;'></div>";
 		echo "<div id='main'>";
 		
-		if($view=="structure")
+		if($view=="structure") //database structure - view of all the tables
 		{
 			echo "<b>Database name</b>: ".$db->getName()."<br/>";
 			echo "<b>Path to database</b>: ".$db->getPath()."<br/>";
@@ -1582,7 +1582,7 @@ else //user is authorized - display the main application
 				echo "<table border='0' cellpadding='2' cellspacing='1'>";
 				echo "<tr>";
 				echo "<td class='tdheader'>Table</td>";
-				echo "<td class='tdheader' colspan='5'>Action</td>";
+				echo "<td class='tdheader' colspan='6'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
 				echo "</tr>";
 			
@@ -1601,19 +1601,22 @@ else //user is authorized - display the main application
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_view'>".$result[$i]['name']."</a><br/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_drop' style='color:red;'>Drop</a>";
-						echo "</td>";
-						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_empty' style='color:red;'>Empty</a>";
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_view'>Browse</a>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=column_view'>Structure</a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_view'>Browse</a>";
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_create'>Insert</a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_create'>Insert</a>";
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_rename'>Rename</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_empty' style='color:red;'>Empty</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_drop' style='color:red;'>Drop</a>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo $records;
@@ -1626,14 +1629,14 @@ else //user is authorized - display the main application
 			}
 			echo "<fieldset>";
 			echo "<legend><b>Create new table on database '".$db->getName()."'</b></legend>";
-			echo "<form action='".PAGE."' method='post'>";
+			echo "<form action='".PAGE."?action=table_create' method='post'>";
 			echo "Name: <input type='text' name='tablename' style='width:200px;'/> ";
 			echo "Number of Fields: <input type='text' name='tablefields' style='width:90px;'/> ";
 			echo "<input type='submit' name='createtable' value='Go'/>";
 			echo "</form>";
 			echo "</fieldset>";
 		}
-		else if($view=="sql")
+		else if($view=="sql") //database SQL editor
 		{
 			$isSelect = false;
 			if(isset($_POST['query']) && $_POST['query']!="")
@@ -1736,9 +1739,9 @@ else //user is authorized - display the main application
 	
 	echo "</div>";
 	echo "<br/>";
-	$endTimeTot = microtime(true);
-	$timeTot = round(($endTimeTot - $startTimeTot), 4);
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
+	$endTimeTot = microtime(true); //get the current time at this point in the execution
+	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>"; //the footer text
 	echo "</div>";
 	echo "</div>";
 	$db->close(); //close the database
