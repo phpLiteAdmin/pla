@@ -77,7 +77,6 @@ h1
 	background-color: #f3cece;
 	text-align: center;
 	margin-bottom: 10px;
-	text-shadow: 1px 1px 1px #e0ebf6;
 	color: #03F;
 }
 /* version text within the logo */
