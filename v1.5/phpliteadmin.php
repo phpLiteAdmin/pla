@@ -1690,8 +1690,8 @@ else //user is authorized - display the main application
 			{
 				$delimiter = $_POST['delimiter'];
 				$queryStr = stripslashes($_POST['queryval']);
-				$query = explode($_POST['delimiter'], $queryStr); //explode the query string into individual queries based on the delimiter
-			
+				$query = explode($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
+
 				for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
 				{
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
@@ -1735,33 +1735,33 @@ else //user is authorized - display the main application
 						echo "</div><br/>";
 						if($isSelect)
 						{
-							if(sizeof($result)==0)
-								return;
-			
-							$headers = array_keys($result[0]);
+							if(sizeof($result)>0)
+							{
+								$headers = array_keys($result[0]);
 
-							echo "<table border='0' cellpadding='2' cellspacing='1'>";
-							echo "<tr>";
-							for($i=0; $i<sizeof($headers); $i++)
-							{
-								echo "<td class='tdheader'>";
-								echo $headers[$i];
-								echo "</td>";
-							}
-							echo "</tr>";
-							for($i=0; $i<sizeof($result); $i++)
-							{
-								$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+								echo "<table border='0' cellpadding='2' cellspacing='1'>";
 								echo "<tr>";
 								for($j=0; $j<sizeof($headers); $j++)
 								{
-									echo $tdWithClass;
-									echo $result[$i][$headers[$j]];
+									echo "<td class='tdheader'>";
+									echo $headers[$j];
 									echo "</td>";
 								}
 								echo "</tr>";
+								for($j=0; $j<sizeof($result); $j++)
+								{
+									$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+									echo "<tr>";
+									for($z=0; $z<sizeof($headers); $z++)
+									{
+										echo $tdWithClass;
+										echo $result[$j][$headers[$z]];
+										echo "</td>";
+									}
+									echo "</tr>";
+								}
+								echo "</table><br/><br/>";	
 							}
-							echo "</table><br/><br/>";	
 						}
 					}
 				}

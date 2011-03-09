@@ -1,7 +1,7 @@
 <?php
 /*
  * Project: phpLiteAdmin (http://code.google.com/p/phpliteadmin/)
- * Version: 1.4
+ * Version: 1.5
  * Summary: PHP-based admin tool to view and edit SQLite databases
  * Last updated: 3/8/11
  * Contributors:
@@ -16,224 +16,30 @@ $password = "admin";
 
 //an array of databases that will appear in the application
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically if possible
+//the SQLite version of each database is determined automatically
 $databases = array
 (
 	array
 	(
-		"path"=> "database1.sqlite", //path to database file on server relative to this file
-		"name"=> "Database 1", //name of database to appear in application
-		"version"=> 3 //SQLite version of database (important!)
+		"path"=> "database1.sqlite", //path to database file on server relative to phpliteadmin.php
+		"name"=> "Database 1" //name of database to appear in application
 	),
 	array
 	(
 		"path"=> "database2.sqlite",
-		"name"=> "Database 2",
-		"version"=> 3
+		"name"=> "Database 2"
 	),
 	array
 	(
 		"path"=> "database3.sqlite",
-		"name"=> "Database 3",
-		"version"=> 3
+		"name"=> "Database 3"
 	),
 	array
 	(
 		"path"=> "database4.sqlite",
-		"name"=> "Database 4",
-		"version"=> 2
+		"name"=> "Database 4"
 	)
 );
-
-?>
-<!-- begin the customizable stylesheet/theme -->
-<style type="text/css">
-/* overall styles for entire page */
-body
-{
-	margin: 0px;
-	padding: 0px;
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 14px;
-	color: #000000;
-	background-color: #e0ebf6;
-}
-/* general styles for hyperlink */
-a
-{
-	color: #03F;
-	text-decoration: none;
-	cursor :pointer;
-}
-a:hover
-{
-	color: #06F;
-}
-/* logo text containing name of project */
-h1
-{
-	margin: 0px;
-	padding: 5px;
-	font-size: 24px;
-	background-color: #f3cece;
-	text-align: center;
-	margin-bottom: 10px;
-	color: #03F;
-}
-/* version text within the logo */
-h1 #version
-{
-	color: #000000;
-	font-size: 16px;
-}
-/* general header for various views */
-h2
-{
-	margin:0px;
-	padding:0px;
-	font-size:14px;
-	margin-bottom:20px;
-}
-/* input buttons and areas for entering text */
-input, select, textarea
-{
-	font-family:Arial, Helvetica, sans-serif;
-	background-color:#eaeaea;
-	color:#03F;
-	border-color:#03F;
-	border-style:solid;
-	border-width:1px;
-	margin:5px;
-}
-/* general styles for hyperlink */
-fieldset
-{
-	padding:15px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-}
-/* outer div that holds everything */
-#container
-{
-	padding:15px;
-}
-/* div of left box with log, list of databases, etc. */
-#leftNav
-{
-	float:left;
-	width:250px;
-	padding:0px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-	padding-bottom:15px;
-}
-/* div holding the content to the right of the leftNav */
-#content
-{
-	overflow:hidden;
-	padding-left:15px;
-}
-/* div holding the login fields */
-#loginBox
-{
-	width:380px;
-	margin-left:auto;
-	margin-right:auto;
-	margin-top:50px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-}
-/* div under tabs with tab-specific content */
-#main
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	padding:15px;
-	overflow:auto;
-	background-color:#FFF;
-}
-/* odd-numbered table rows */
-.td1
-{
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
-	background-color:#f9e3e3;
-	text-align:right;
-	font-size:12px;
-}
-/* even-numbered table rows */
-.td2
-{
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
-	background-color:#f3cece;
-	text-align:right;
-	font-size:12px;
-}
-/* table column headers */
-.tdheader
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	font-weight:bold;
-	font-size:12px;
-	padding-left:5px;
-	padding-right:5px;
-	background-color:#e0ebf6;
-}
-/* div holding the confirmation text of certain actions */
-.confirm
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:dashed;
-	padding:15px;
-	background-color:#e0ebf6;
-}
-/* tab navigation for each table */
-.tab
-{
-	display:block;
-	width:80px;
-	padding:5px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:15px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	padding-bottom:4px;
-	background-color:#eaeaea;
-}
-/* pressed state of tab */
-.tab_pressed
-{
-	display:block;
-	width:80px;
-	padding:5px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:15px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	background-color:#FFF;
-}
-</style>
-<!-- end the customizable stylesheet/theme -->
-<?php
 
 //ini_set("display_errors", 1);
 //error_reporting(E_STRICT | E_ALL);
@@ -248,7 +54,7 @@ $thisName = $nameArr[sizeof($nameArr)-1];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.4");
+define("VERSION", "1.5");
 define("PAGE", $thisName);
 
 //
@@ -257,16 +63,26 @@ define("PAGE", $thisName);
 //
 class Authorization
 {
-	public function grant()
+	public function grant($remember)
 	{
+		if($remember) //user wants to be remembered, so set a cookie
+		{
+			$expire = time()+60*60*24*30; //set expiration to 1 month from now
+			setcookie("user", "admin", $expire);
+		}
 		$_SESSION['auth'] = true;
 	}
 	public function revoke()
 	{
-		unset($_SESSION['auth']);
+		setcookie("user", "", time()-3600);
+		unset($_COOKIE['user']);
+		session_unset();
+		session_destroy();
 	}
 	public function isAuthorized()
 	{
+		if(!isset($_SESSION['auth']) && isset($_COOKIE['user']) && $_COOKIE['user']=="admin")
+			$_SESSION['auth'] = true;
 		return isset($_SESSION['auth']);
 	}
 }
@@ -295,25 +111,34 @@ class Database
 				exit();
 			}
 			
-			if(class_exists("PDO") && $this->data["version"]==3) //first choice is PDO
+			$ver = $this->getVersion();
+			
+			switch(true)
 			{
-				$this->type = "PDO";
-				$this->db = new PDO("sqlite:".$this->data["path"]);
-			}
-			else if(class_exists("SQLite3") && $this->data["version"]==3) //second choice is SQLite3
-			{
-				$this->type = "SQLite3";
-				$this->db = new SQLite3($this->data["path"]);
-			}
-			else if(class_exists("SQLiteDatabase") && $this->data["version"]==2) //third choice is SQLite, AKA SQlite2 - some features may be missing and cause problems, but it's better than nothing :/
-			{
-				$this->type = "SQLiteDatabase";
-				$this->db = new SQLiteDatabase($this->data["path"]);
-			}
-			else //none of the possible extensions are enabled/installed and thus, the application cannot work
-			{
-				$this->showError();
-				exit();
+				case class_exists("PDO") && $ver==3:
+					$this->db = new PDO("sqlite:".$this->data['path']);
+					if($this->db!=NULL)
+					{
+						$this->type = "PDO";
+						break;
+					}
+				case class_exists("SQLite3") && $ver==3:
+					$this->db = new SQLite3($this->data['path']);
+					if($this->db!=NULL)
+					{
+						$this->type = "SQLite3";
+						break;
+					}
+				case class_exists("SQLiteDatabase") && $ver==2:
+					$this->db = new SQLiteDatabase($this->data['path']);
+					if($this->db!=NULL)
+					{
+						$this->type = "SQLiteDatabase";
+						break;
+					}
+				default:
+					$this->showError();
+					exit();
 			}
 		}
 		catch(Exception $e)
@@ -341,6 +166,7 @@ class Database
 		else
 			$strSQLiteDatabase = "not installed";
 		echo "<div class='confirm' style='margin:20px;'>";
+		echo "There was a problem setting up your database(s). An attempt will be made to find out what's going on so you can fix the problem more easily.<br/><br/>";
 		echo "<i>Checking supported SQLite PHP extensions...<br/><br/>";
 		echo "<b>PDO</b>: ".$strPDO."<br/>";
 		echo "<b>SQLite3</b>: ".$strSQLite3."<br/>";
@@ -379,7 +205,12 @@ class Database
 	//get the version of the database
 	public function getVersion()
 	{
-		return $this->data["version"];	
+		$content = strtolower(file_get_contents($this->data['path'], NULL, NULL, 0, 40)); //get the first 40 characters of the database file
+		$p = strpos($content, "** this file contains an sqlite 2"); //this text is at the beginning of every SQLite2 database
+		if($p!==false) //the text is found - this is version 2
+			return 2;
+		else
+			return 3;
 	}
 	
 	//get the size of the database
@@ -700,6 +531,20 @@ class Database
 	}
 }
 
+$auth = new Authorization(); //create authorization object
+if(isset($_POST['logout'])) //user has attempted to log out
+	$auth->revoke();
+else if(isset($_POST['login'])) //user has attempted to log in
+{
+	if($_POST['password']==$password) //make sure passwords match before granting authorization
+	{
+		if(isset($_POST['remember']))
+			$auth->grant(true);
+		else
+			$auth->grant(false);
+	}
+}
+
 // here begins the HTML.
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -707,6 +552,196 @@ class Database
 <head>
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <title><?php echo PROJECT ?></title>
+
+<!-- begin the customizable stylesheet/theme -->
+<style type="text/css">
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #000000;
+	background-color: #e0ebf6;
+}
+/* general styles for hyperlink */
+a
+{
+	color: #03F;
+	text-decoration: none;
+	cursor :pointer;
+}
+a:hover
+{
+	color: #06F;
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 24px;
+	background-color: #f3cece;
+	text-align: center;
+	margin-bottom: 10px;
+	color: #03F;
+}
+/* version text within the logo */
+h1 #version
+{
+	color: #000000;
+	font-size: 16px;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:14px;
+	margin-bottom:20px;
+}
+/* input buttons and areas for entering text */
+input, select, textarea
+{
+	font-family:Arial, Helvetica, sans-serif;
+	background-color:#eaeaea;
+	color:#03F;
+	border-color:#03F;
+	border-style:solid;
+	border-width:1px;
+	margin:5px;
+}
+/* general styles for hyperlink */
+fieldset
+{
+	padding:15px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+}
+/* outer div that holds everything */
+#container
+{
+	padding:15px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:left;
+	width:250px;
+	padding:0px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+	padding-bottom:15px;
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:15px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:380px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+}
+/* div under tabs with tab-specific content */
+#main
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	padding:15px;
+	overflow:auto;
+	background-color:#FFF;
+}
+/* odd-numbered table rows */
+.td1
+{
+	border-bottom-color:#03F;
+	border-bottom-width:1px;
+	border-bottom-style:none;
+	background-color:#f9e3e3;
+	text-align:right;
+	font-size:12px;
+}
+/* even-numbered table rows */
+.td2
+{
+	border-bottom-color:#03F;
+	border-bottom-width:1px;
+	border-bottom-style:none;
+	background-color:#f3cece;
+	text-align:right;
+	font-size:12px;
+}
+/* table column headers */
+.tdheader
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	font-weight:bold;
+	font-size:12px;
+	padding-left:5px;
+	padding-right:5px;
+	background-color:#e0ebf6;
+}
+/* div holding the confirmation text of certain actions */
+.confirm
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:dashed;
+	padding:15px;
+	background-color:#e0ebf6;
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	width:80px;
+	padding:5px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:15px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	padding-bottom:4px;
+	background-color:#eaeaea;
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	width:80px;
+	padding:5px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:15px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	background-color:#FFF;
+}
+</style>
+<!-- end the customizable stylesheet/theme -->
+
 <!-- JavaScript Support -->
 <script type="text/javascript">
 //finds and checks all checkboxes for all rows on the Browse or Structure tab for a table
@@ -733,21 +768,16 @@ function uncheckAll(field)
 </head>
 <body>
 <?php
-$auth = new Authorization(); //create authorization object
-if(isset($_POST['logout'])) //user has attempted to log out
-	$auth->revoke();
-else if(isset($_POST['login'])) //user has attempted to log in
-{
-	if($_POST['password']==$password) //make sure passwords match before granting authorization
-		$auth->grant();
-}
 if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 {
 	echo "<div id='loginBox'>";
-	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1";
-	echo "<div style='padding:15px;'>";
+	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1>";
+	echo "<div style='padding:15px; text-align:center;'>";
+	if(isset($_POST['login']))
+		echo "<span style='color:red;'>Incorrect password.</span><br/><br/>";
 	echo "<form action='".PAGE."' method='post'>";
-	echo "Password: <input type='password' name='password'/>";
+	echo "Password: <input type='password' name='password'/><br/>";
+	echo "<input type='checkbox' name='remember' value='yes' checked='checked'/> Remember me<br/><br/>";
 	echo "<input type='submit' value='Log In' name='login'/>";
 	echo "</form>";
 	echo "</div>";
@@ -1660,8 +1690,8 @@ else //user is authorized - display the main application
 			{
 				$delimiter = $_POST['delimiter'];
 				$queryStr = stripslashes($_POST['queryval']);
-				$query = explode($_POST['delimiter'], $queryStr); //explode the query string into individual queries based on the delimiter
-			
+				$query = explode($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
+
 				for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
 				{
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
@@ -1705,33 +1735,33 @@ else //user is authorized - display the main application
 						echo "</div><br/>";
 						if($isSelect)
 						{
-							if(sizeof($result)==0)
-								return;
-			
-							$headers = array_keys($result[0]);
+							if(sizeof($result)>0)
+							{
+								$headers = array_keys($result[0]);
 
-							echo "<table border='0' cellpadding='2' cellspacing='1'>";
-							echo "<tr>";
-							for($i=0; $i<sizeof($headers); $i++)
-							{
-								echo "<td class='tdheader'>";
-								echo $headers[$i];
-								echo "</td>";
-							}
-							echo "</tr>";
-							for($i=0; $i<sizeof($result); $i++)
-							{
-								$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+								echo "<table border='0' cellpadding='2' cellspacing='1'>";
 								echo "<tr>";
 								for($j=0; $j<sizeof($headers); $j++)
 								{
-									echo $tdWithClass;
-									echo $result[$i][$headers[$j]];
+									echo "<td class='tdheader'>";
+									echo $headers[$j];
 									echo "</td>";
 								}
 								echo "</tr>";
+								for($j=0; $j<sizeof($result); $j++)
+								{
+									$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+									echo "<tr>";
+									for($z=0; $z<sizeof($headers); $z++)
+									{
+										echo $tdWithClass;
+										echo $result[$j][$headers[$z]];
+										echo "</td>";
+									}
+									echo "</tr>";
+								}
+								echo "</table><br/><br/>";	
 							}
-							echo "</table><br/><br/>";	
 						}
 					}
 				}
