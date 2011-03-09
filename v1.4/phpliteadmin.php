@@ -3,11 +3,16 @@
  * Project: phpLiteAdmin (http://code.google.com/p/phpliteadmin/)
  * Version: 1.4
  * Summary: PHP-based admin tool to view and edit SQLite databases
- * Last updated: 3/6/11
+ * Last updated: 3/8/11
  * Contributors:
  *    Dane Iracleous (daneiracleous@gmail.com)
  *    George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
  */
+
+session_start(); //don't mess with this - required for the login session
+
+//password to gain access (please change this to something more secure than 'admin')
+$password = "admin";
 
 //an array of databases that will appear in the application
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically if possible
@@ -39,17 +44,201 @@ $databases = array
 	)
 );
 
-//password to gain access (please change this to something more secure than 'admin')
-$password = "admin";
-
-
-
-
-//End of user-editable fields and beginning of user-unfriendly source code
+?>
+<!-- begin the customizable stylesheet/theme -->
+<style type="text/css">
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #000000;
+	background-color: #e0ebf6;
+}
+/* general styles for hyperlink */
+a
+{
+	color: #03F;
+	text-decoration: none;
+	cursor :pointer;
+}
+a:hover
+{
+	color: #06F;
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 24px;
+	background-color: #f3cece;
+	text-align: center;
+	margin-bottom: 10px;
+	text-shadow: 1px 1px 1px #e0ebf6;
+	color: #03F;
+}
+/* version text within the logo */
+h1 #version
+{
+	color: #000000;
+	font-size: 16px;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:14px;
+	margin-bottom:20px;
+}
+/* input buttons and areas for entering text */
+input, select, textarea
+{
+	font-family:Arial, Helvetica, sans-serif;
+	background-color:#eaeaea;
+	color:#03F;
+	border-color:#03F;
+	border-style:solid;
+	border-width:1px;
+	margin:5px;
+}
+/* general styles for hyperlink */
+fieldset
+{
+	padding:15px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+}
+/* outer div that holds everything */
+#container
+{
+	padding:15px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:left;
+	width:250px;
+	padding:0px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+	padding-bottom:15px;
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:15px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:380px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+}
+/* div under tabs with tab-specific content */
+#main
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	padding:15px;
+	overflow:auto;
+	background-color:#FFF;
+}
+/* odd-numbered table rows */
+.td1
+{
+	border-bottom-color:#03F;
+	border-bottom-width:1px;
+	border-bottom-style:none;
+	background-color:#f9e3e3;
+	text-align:right;
+	font-size:12px;
+}
+/* even-numbered table rows */
+.td2
+{
+	border-bottom-color:#03F;
+	border-bottom-width:1px;
+	border-bottom-style:none;
+	background-color:#f3cece;
+	text-align:right;
+	font-size:12px;
+}
+/* table column headers */
+.tdheader
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	font-weight:bold;
+	font-size:12px;
+	padding-left:5px;
+	padding-right:5px;
+	background-color:#e0ebf6;
+}
+/* div holding the confirmation text of certain actions */
+.confirm
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:dashed;
+	padding:15px;
+	background-color:#e0ebf6;
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	width:80px;
+	padding:5px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:15px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	padding-bottom:4px;
+	background-color:#eaeaea;
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	width:80px;
+	padding:5px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:15px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	background-color:#FFF;
+}
+</style>
+<!-- end the customizable stylesheet/theme -->
+<?php
 
 //ini_set("display_errors", 1);
 //error_reporting(E_STRICT | E_ALL);
-session_start();
+
 $startTimeTot = microtime(true); //start the timer to record page load time
 
 //build the basename of this file
@@ -521,7 +710,7 @@ class Database
 <title><?php echo PROJECT ?></title>
 <!-- JavaScript Support -->
 <script type="text/javascript">
-//finds and checks all checkboxes for all rows on the Browse tab for a table
+//finds and checks all checkboxes for all rows on the Browse or Structure tab for a table
 function checkAll(field)
 {
 	var i=0;
@@ -531,7 +720,7 @@ function checkAll(field)
 		i++;	
 	}
 }
-//finds and unchecks all checkboxes for all rows on the Browse tab for a table
+//finds and unchecks all checkboxes for all rows on the Browse or Structure tab for a table
 function uncheckAll(field)
 {
 	var i=0;
@@ -542,186 +731,6 @@ function uncheckAll(field)
 	}
 }
 </script>
-<!-- CSS stylesheet for look and feel of application - fully customizable -->
-<style type="text/css">
-body
-{
-	margin:0px;
-	padding:0px;
-	font-family:Arial, Helvetica, sans-serif;
-	font-size:14px;
-	color:black;
-	background-color:#e0ebf6;
-}
-ul
-{
-	list-style:none;
-	padding-left:15px;
-	margin-left:0px;	
-}
-li
-{
-	padding-left:0px;
-	margin-left:0px;	
-}
-a
-{
-	color:#03F;
-	text-decoration:none;
-	cursor:pointer;
-}
-a:hover
-{
-	color:#06F;
-}
-h1
-{
-	margin:0px;
-	padding:5px;
-	font-size:24px;
-	background-color:#f3cece;
-	text-align:center;
-	margin-bottom:10px;
-	text-shadow: 1px 1px 1px #e0ebf6;
-	color:#03F;
-}
-h2
-{
-	margin:0px;
-	padding:0px;
-	font-size:14px;
-	margin-bottom:20px;
-}
-input, select, textarea
-{
-	font-family:Arial, Helvetica, sans-serif;
-	background-color:#eaeaea;
-	color:#03F;
-	border-color:#03F;
-	border-style:solid;
-	border-width:1px;
-	margin:5px;
-}
-fieldset
-{
-	padding:15px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-}
-#container
-{
-	padding:15px;
-}
-#leftNav
-{
-	float:left;
-	width:250px;
-	padding:0px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-	padding-bottom:15px;
-}
-#content
-{
-	overflow:hidden;
-	padding-left:15px;
-}
-#contentInner
-{
-	overflow:hidden;
-}
-#loginBox
-{
-	width:380px;
-	margin-left:auto;
-	margin-right:auto;
-	margin-top:50px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-}
-#main
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	padding:15px;
-	overflow:auto;
-	background-color:#FFF;
-}
-.td1
-{
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
-	background-color:#f9e3e3;
-	text-align:right;
-	font-size:12px;
-}
-.td2
-{
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
-	background-color:#f3cece;
-	text-align:right;
-	font-size:12px;
-}
-.tdheader
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	font-weight:bold;
-	font-size:12px;
-	padding-left:5px;
-	padding-right:5px;
-	background-color:#e0ebf6;
-}
-.confirm
-{
-	border-color:#03F;
-	border-width:1px;
-	border-style:dashed;
-	padding:15px;
-	background-color:#e0ebf6;
-}
-.tab
-{
-	display:block;
-	width:80px;
-	padding:5px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:15px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	padding-bottom:4px;
-	background-color:#eaeaea;
-}
-.tab_pressed
-{
-	display:block;
-	width:80px;
-	padding:5px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:15px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	background-color:#FFF;
-}
-</style>
 </head>
 <body>
 <?php
@@ -736,7 +745,7 @@ else if(isset($_POST['login'])) //user has attempted to log in
 if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 {
 	echo "<div id='loginBox'>";
-	echo "<h1>".PROJECT." <span style='font-size:14px; color:#000;'>v".VERSION."</span></h1>";
+	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1";
 	echo "<div style='padding:15px;'>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "Password: <input type='password' name='password'/>";
@@ -757,7 +766,12 @@ else //user is authorized - display the main application
 	if(sizeof($databases)>0)
 		$currentDB = $databases[0];
 	else //the database array is empty - show error and halt execution
-		die("Error: you have not specified any databases to manage.");
+	{
+		echo "<div class='confirm' style='margin:20px;'>";
+		echo "Error: you have not specified any databases to manage.";
+		echo "</div><br/>";
+		exit();
+	}
 		
 	if(isset($_POST['database_switch'])) //user is switching database with drop-down menu
 	{
@@ -953,7 +967,7 @@ else //user is authorized - display the main application
 	
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
-	echo "<h1>".PROJECT." <span style='font-size:14px; color:#000;'>v".VERSION."</span></h1>";
+	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "<select name='database_switch'>";
@@ -991,8 +1005,12 @@ else //user is authorized - display the main application
 	echo "</div>";
 	echo "</div>";
 	echo "<div id='content'>";
-	echo "<div id='contentInner'>";
-	echo "<h2>Database: ".$currentDB["name"]." (".$currentDB["path"].")</h2>";
+	
+	//breadcrumb navigation
+	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
+	if(isset($_GET['table']))
+		echo " -> <a href='".PAGE."?table=".$_GET['table']."&action=row_view'>".$_GET['table']."</a>";
+	echo "<br/><br/>";
 	
 	//user has performed some action so show the resulting message
 	if(isset($_GET['confirm']))
@@ -1737,7 +1755,6 @@ else //user is authorized - display the main application
 		echo "</div>";
 	}
 	
-	echo "</div>";
 	echo "<br/>";
 	$endTimeTot = microtime(true); //get the current time at this point in the execution
 	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
