@@ -1,17 +1,37 @@
 <?php
-/*
- * Project: phpLiteAdmin (http://code.google.com/p/phpliteadmin/)
- * Version: 1.5
- * Summary: PHP-based admin tool to view and edit SQLite databases
- * Last updated: 3/8/11
- * Contributors:
- *    Dane Iracleous (daneiracleous@gmail.com)
- *    George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
- */
+//
+//  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
+//  Version: 1.5
+//  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
+//  Last updated: 3/11/11
+//  Developers:
+//     Dane Iracleous (daneiracleous@gmail.com)
+//     Ian Aldrighetti (ian.aldrighetti@gmail.com)
+//     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
+//
+//
+//  Copyright (C) 2011  Dane Iracleous
+// 
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////
 
-session_start(); //don't mess with this - required for the login session
 
-//password to gain access (please change this to something more secure than 'admin')
+
+//please report any bugs you encounter to http://code.google.com/p/phpliteadmin/issues/list
+
+//password to gain access (change this to something more secure than 'admin')
 $password = "admin";
 
 //an array of databases that will appear in the application
@@ -21,7 +41,7 @@ $databases = array
 (
 	array
 	(
-		"path"=> "database1.sqlite", //path to database file on server relative to phpliteadmin.php
+		"path"=> "database1.sqlite", //path to database file on server relative to phpliteadmin.php (this file you are editing)
 		"name"=> "Database 1" //name of database to appear in application
 	),
 	array
@@ -31,6 +51,12 @@ $databases = array
 	)
 );
 
+
+
+
+//end of the variables you may need to edit
+
+session_start(); //don't mess with this - required for the login session
 //ini_set("display_errors", 1);
 //error_reporting(E_STRICT | E_ALL);
 
@@ -674,6 +700,8 @@ fieldset
 	background-color:#f9e3e3;
 	text-align:right;
 	font-size:12px;
+	padding-left:10px;
+	padding-right:10px;
 }
 /* even-numbered table rows */
 .td2
@@ -681,6 +709,8 @@ fieldset
 	background-color:#f3cece;
 	text-align:right;
 	font-size:12px;
+	padding-left:10px;
+	padding-right:10px;
 }
 /* table column headers */
 .tdheader
@@ -690,8 +720,8 @@ fieldset
 	border-style:solid;
 	font-weight:bold;
 	font-size:12px;
-	padding-left:5px;
-	padding-right:5px;
+	padding-left:10px;
+	padding-right:10px;
 	background-color:#e0ebf6;
 }
 /* div holding the confirmation text of certain actions */
@@ -735,6 +765,7 @@ fieldset
 	position:relative;
 	top:1px;
 	background-color:#FFF;
+	cursor:default;
 }
 </style>
 <!-- end the customizable stylesheet/theme -->
