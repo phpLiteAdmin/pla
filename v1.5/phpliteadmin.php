@@ -1,4 +1,5 @@
 <?php
+
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.5
@@ -1854,3 +1855,5 @@ else //user is authorized - display the main application
 }
 echo "</body>";
 echo "</html>";
+
+?>
