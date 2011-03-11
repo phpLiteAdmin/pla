@@ -668,9 +668,6 @@ fieldset
 /* odd-numbered table rows */
 .td1
 {
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
 	background-color:#f9e3e3;
 	text-align:right;
 	font-size:12px;
@@ -678,9 +675,6 @@ fieldset
 /* even-numbered table rows */
 .td2
 {
-	border-bottom-color:#03F;
-	border-bottom-width:1px;
-	border-bottom-style:none;
 	background-color:#f3cece;
 	text-align:right;
 	font-size:12px;
@@ -1053,6 +1047,8 @@ else //user is authorized - display the main application
 		echo "</div>";
 		if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
 			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Return</a>";
+		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit")
+			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Return</a>";
 		else
 			echo "<br/><br/><a href='".PAGE."'>Return</a>";
 		echo "</div>";
@@ -1338,8 +1334,12 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo "</tr>";
 				}
-				echo "</table>";
+				echo "<tr>";
+				echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
 				echo "<input type='submit' value='Insert'/>";
+				echo "</td>";
+				echo "</tr>";
+				echo "</table>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// delete row
@@ -1355,13 +1355,22 @@ else //user is authorized - display the main application
 					$str .= ", ".$pks[$i];
 					$pkVal .= ":".$pks[$i];
 				}
-					
-				echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_delete&confirm=1&pk=".$pkVal."' method='post'>";
-				echo "<div class='confirm'>";
-				echo "Are you sure you want to delete row(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm'/> ";
-				echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
-				echo "</div>";
+				if($str=="") //nothing was selected so show an error
+				{
+					echo "<div class='confirm'>";
+					echo "Error: You did not select anything.";
+					echo "</div>";
+					echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Return</a>";
+				}
+				else
+				{
+					echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_delete&confirm=1&pk=".$pkVal."' method='post'>";
+					echo "<div class='confirm'>";
+					echo "Are you sure you want to delete row(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
+					echo "<input type='submit' value='Confirm'/> ";
+					echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
+					echo "</div>";
+				}
 				break;
 			/////////////////////////////////////////////// edit row
 			case "row_edit":
@@ -1400,11 +1409,13 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo "</tr>";
 				}
-
-				echo "</table>";
-				echo "<br/><br/>";
+				echo "<tr>";
+				echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
 				echo "<input type='submit' value='Save Changes'/> ";
 				echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
+				echo "</td>";
+				echo "</tr>";
+				echo "</table>";
 				echo "</form>";
 				break;
 			//column actions
@@ -1544,9 +1555,13 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo "</tr>";
 					}
-					echo "</table>";
+					echo "<tr>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 					echo "<input type='submit' value='Add Field(s)'/> ";
-					echo "<a href='".PAGE."'>Cancel</a>";
+					echo "<a href='".PAGE."?table=".$_POST['tablename']."&action=column_view'>Cancel</a>";
+					echo "</td>";
+					echo "</tr>";
+					echo "</table>";
 					echo "</form>";
 				}
 				break;
@@ -1563,13 +1578,22 @@ else //user is authorized - display the main application
 					$str .= ", ".$pks[$i];
 					$pkVal .= ":".$pks[$i];
 				}
-					
-				echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete&confirm=1&pk=".$pkVal."' method='post'>";
-				echo "<div class='confirm'>";
-				echo "Are you sure you want to delete column(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm'/> ";
-				echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
-				echo "</div>";
+				if($str=="") //nothing was selected so show an error
+				{
+					echo "<div class='confirm'>";
+					echo "Error: You did not select anything.";
+					echo "</div>";
+					echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Return</a>";
+				}
+				else
+				{
+					echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete&confirm=1&pk=".$pkVal."' method='post'>";
+					echo "<div class='confirm'>";
+					echo "Are you sure you want to delete column(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
+					echo "<input type='submit' value='Confirm'/> ";
+					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
+					echo "</div>";
+				}
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
