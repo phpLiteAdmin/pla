@@ -57,9 +57,6 @@ $databases = array
 //end of the variables you may need to edit
 
 session_start(); //don't mess with this - required for the login session
-//ini_set("display_errors", 1);
-//error_reporting(E_STRICT | E_ALL);
-
 $startTimeTot = microtime(true); //start the timer to record page load time
 
 //build the basename of this file for later reference
