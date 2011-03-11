@@ -1271,6 +1271,7 @@ else //user is authorized - display the main application
 					// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
 					$pk = $arr[$i][$rowidColumn];
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					echo "<tr>";
 					echo $tdWithClass;
 					echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
@@ -1284,7 +1285,10 @@ else //user is authorized - display the main application
 					echo "</td>";
 					for($j=0; $j<sizeof($result); $j++)
 					{
-						echo $tdWithClass;
+						if($result[$j][2]=="TEXT")
+							echo $tdWithClassLeft;
+						else
+							echo $tdWithClass;
 						// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
 						echo $db->formatString($arr[$i][$j]);
 						echo "</td>";
@@ -1456,6 +1460,7 @@ else //user is authorized - display the main application
 						$primarykeyVal = "no";
 			
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					echo "<tr>";
 					echo $tdWithClass;
 					echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
@@ -1469,19 +1474,19 @@ else //user is authorized - display the main application
 					echo $tdWithClass;
 					echo $colVal;
 					echo "</td>";
-					echo $tdWithClass;
+					echo $tdWithClassLeft;
 					echo $fieldVal;
 					echo "</td>";
-					echo $tdWithClass;
+					echo $tdWithClassLeft;
 					echo $typeVal;
 					echo "</td>";
-					echo $tdWithClass;
+					echo $tdWithClassLeft;
 					echo $notnullVal;
 					echo "</td>";
-					echo $tdWithClass;
+					echo $tdWithClassLeft;
 					echo $defaultVal;
 					echo "</td>";
-					echo $tdWithClass;
+					echo $tdWithClassLeft;
 					echo $primarykeyVal;
 					echo "</td>";
 					echo "</tr>";
