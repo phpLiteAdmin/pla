@@ -28,16 +28,6 @@ $databases = array
 	(
 		"path"=> "database2.sqlite",
 		"name"=> "Database 2"
-	),
-	array
-	(
-		"path"=> "database3.sqlite",
-		"name"=> "Database 3"
-	),
-	array
-	(
-		"path"=> "database4.sqlite",
-		"name"=> "Database 4"
 	)
 );
 
@@ -46,11 +36,9 @@ $databases = array
 
 $startTimeTot = microtime(true); //start the timer to record page load time
 
-//build the basename of this file
-$nameArr = explode("?", $_SERVER['PHP_SELF']);
-$thisName = $nameArr[0];
-$nameArr = explode("/", $thisName);
-$thisName = $nameArr[sizeof($nameArr)-1];
+//build the basename of this file for later reference
+$info = pathinfo($_SERVER['PHP_SELF']);
+$thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
@@ -103,10 +91,18 @@ class Database
 		$this->data = $data;
 		try
 		{
-			if(file_exists($this->data["path"]) && !is_writable($this->data["path"])) //make sure the containing directory is writable
+			if(file_exists($this->data["path"]) && !is_writable($this->data["path"])) //make sure the actual database file is writable
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				echo "The database, '".$this->data["path"]."', is not writable. The application is unusable until you make it writable.";
+				echo "</div><br/>";
+				exit();
+			}
+			
+			if(!file_exists($this->data["path"]) && !is_writable(dirname($this->data["path"]))) //make sure the containing directory is writable if the database does not exist
+			{
+				echo "<div class='confirm' style='margin:20px;'>";
+				echo "The database, '".$this->data["path"]."', does not exist and cannot be created because the containing directory, '".dirname($this->data["path"])."', is not writable. The application is unusable until you make it writable.";
 				echo "</div><br/>";
 				exit();
 			}
@@ -115,21 +111,21 @@ class Database
 			
 			switch(true)
 			{
-				case class_exists("PDO") && $ver==3:
+				case class_exists("PDO") && ($ver==-1 || $ver==3):
 					$this->db = new PDO("sqlite:".$this->data['path']);
 					if($this->db!=NULL)
 					{
 						$this->type = "PDO";
 						break;
 					}
-				case class_exists("SQLite3") && $ver==3:
+				case class_exists("SQLite3") && ($ver==-1 || $ver==3):
 					$this->db = new SQLite3($this->data['path']);
 					if($this->db!=NULL)
 					{
 						$this->type = "SQLite3";
 						break;
 					}
-				case class_exists("SQLiteDatabase") && $ver==2:
+				case class_exists("SQLiteDatabase") && ($ver==-1 || $ver==2):
 					$this->db = new SQLiteDatabase($this->data['path']);
 					if($this->db!=NULL)
 					{
@@ -205,12 +201,19 @@ class Database
 	//get the version of the database
 	public function getVersion()
 	{
-		$content = strtolower(file_get_contents($this->data['path'], NULL, NULL, 0, 40)); //get the first 40 characters of the database file
-		$p = strpos($content, "** this file contains an sqlite 2"); //this text is at the beginning of every SQLite2 database
-		if($p!==false) //the text is found - this is version 2
-			return 2;
-		else
-			return 3;
+		if(file_exists($this->data['path'])) //make sure file exists before getting its contents
+		{
+			$content = strtolower(file_get_contents($this->data['path'], NULL, NULL, 0, 40)); //get the first 40 characters of the database file
+			$p = strpos($content, "** this file contains an sqlite 2"); //this text is at the beginning of every SQLite2 database
+			if($p!==false) //the text is found - this is version 2
+				return 2;
+			else
+				return 3;
+		}
+		else //return -1 to indicate that it does not exist and needs to be created
+		{
+			return -1;	
+		}
 	}
 	
 	//get the size of the database
