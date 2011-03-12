@@ -950,17 +950,27 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit row
 			case "row_edit":
-				$query = "UPDATE ".$_GET['table']." SET ";
-				foreach($_POST as $vblname => $value)
+				$pks = explode(":", $_GET['pk']);
+				$fields = explode(":", $_POST['fieldArray']);
+				
+				$completed = sizeof($pks)." row(s) affected.<br/><br/>";
+				
+				for($i=0; $i<sizeof($pks); $i++)
 				{
-					$query .= $vblname."=".$db->quote($value).", ";
+					$query = "UPDATE ".$_GET['table']." SET ";
+					for($j=0; $j<sizeof($fields); $j++)
+					{
+						$query .= $fields[$j]."=".$db->quote($_POST[$pks[$i].":".$fields[$j]]).", ";
+					}
+					$query = substr($query, 0, sizeof($query)-3);
+					$query .= " WHERE ROWID = ".$pks[$i];
+					$result = $db->query($query);
+					if(!$result)
+					{
+						$error = true;
+					}
+					$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
 				}
-				$query = substr($query, 0, sizeof($query)-3);
-				$query .= " WHERE ROWID = ".$_GET['pk'];
-				$result = $db->query($query);
-				if(!$result)
-					$error = true;
-				$completed = "1 row(s) affected.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			//column actions
 			/////////////////////////////////////////////// create column
@@ -1010,7 +1020,6 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$col = $_POST['columnname'];
 				$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['field_old']." ".$_POST['field']." ".$_POST['type'];
 				$result = $db->query($query);
 				if(!$result)
@@ -1275,7 +1284,7 @@ else //user is authorized - display the main application
 					return;
 				}
 		
-				echo "<form action='".PAGE."?action=row_delete&table=".$table."' method='post' name='checkForm'>";
+				echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
 				echo "<table border='0' cellpadding='2' cellspacing='1'>";
 				$query = "PRAGMA table_info('".$table."')";
 				$result = $db->selectArray($query);
@@ -1310,10 +1319,10 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo $tdWithClass;
 					// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-					echo "<a href='".PAGE."?table=".$table."&action=row_edit&pk=".$pk."'>edit</a>";
+					echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=edit'>edit</a>";
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='".PAGE."?table=".$table."&action=row_delete&pk=".$pk."' style='color:red;'>delete</a>";
+					echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=delete' style='color:red;'>delete</a>";
 					echo "</td>";
 					for($j=0; $j<sizeof($result); $j++)
 					{
@@ -1329,8 +1338,8 @@ else //user is authorized - display the main application
 				}
 				echo "</table>";
 				echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
-				echo "<select name='massType'>";
-				//echo "<option value='edit'>Edit</option>";
+				echo "<select name='type'>";
+				echo "<option value='edit'>Edit</option>";
 				echo "<option value='delete'>Delete</option>";
 				echo "</select> ";
 				echo "<input type='submit' value='Go' name='massGo'/>";
@@ -1378,8 +1387,8 @@ else //user is authorized - display the main application
 				echo "</table>";
 				echo "</form>";
 				break;
-			/////////////////////////////////////////////// delete row
-			case "row_delete":
+			/////////////////////////////////////////////// edit or delete row
+			case "row_editordelete":
 				if(isset($_POST['check']))
 					$pks = $_POST['check'];
 				else if(isset($_GET['pk']))
@@ -1400,59 +1409,74 @@ else //user is authorized - display the main application
 				}
 				else
 				{
-					echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_delete&confirm=1&pk=".$pkVal."' method='post'>";
-					echo "<div class='confirm'>";
-					echo "Are you sure you want to delete row(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
-					echo "<input type='submit' value='Confirm'/> ";
-					echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
-					echo "</div>";
+					if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
+					{
+						echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_edit&confirm=1&pk=".$pkVal."' method='post'>";
+						$query = "PRAGMA table_info('".$_GET['table']."')";
+						$result = $db->selectArray($query);
+						
+						//build the POST array of fields
+						$fieldStr = $result[0][1];
+						for($j=1; $j<sizeof($result); $j++)
+							$fieldStr .= ":".$result[$j][1];	
+						
+						echo "<input type='hidden' name='fieldArray' value='".$fieldStr."'/>";
+						
+						for($j=0; $j<sizeof($pks); $j++)
+						{
+							$query = "SELECT * FROM ".$_GET['table']." WHERE ROWID = ".$pks[$j];
+							$result1 = $db->select($query);
+							
+							echo "<table border='0' cellpadding='2' cellspacing='1'>";
+							echo "<tr>";
+							echo "<td class='tdheader'>Field</td>";
+							echo "<td class='tdheader'>Type</td>";
+							echo "<td class='tdheader'>Value</td>";
+							echo "</tr>";
+					
+							for($i=0; $i<sizeof($result); $i++)
+							{
+								$field = $result[$i][1];
+								$type = $result[$i][2];
+								$value = $result1[$i];
+								$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+								$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+								echo "<tr>";
+								echo $tdWithClass;
+								echo $field;
+								echo "</td>";
+								echo $tdWithClass;
+								echo $type;
+								echo "</td>";
+								echo $tdWithClassLeft;
+								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
+									echo "<input type='text' name='".$pks[$j].":".$field."' value='".$db->formatString($value)."'/>";
+								else
+									echo "<textarea name='".$pks[$j].":".$field."' wrap='hard' rows='1' cols='60'>".$db->formatString($value)."</textarea>";
+								echo "</td>";
+								echo "</tr>";
+							}
+							echo "<tr>";
+							echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
+							echo "<input type='submit' value='Save Changes'/> ";
+							echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
+							echo "</td>";
+							echo "</tr>";
+							echo "</table>";
+							echo "<br/>";
+						}
+						echo "</form>";
+					}
+					else //delete
+					{
+						echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_delete&confirm=1&pk=".$pkVal."' method='post'>";
+						echo "<div class='confirm'>";
+						echo "Are you sure you want to delete row(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
+						echo "<input type='submit' value='Confirm'/> ";
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
+						echo "</div>";
+					}
 				}
-				break;
-			/////////////////////////////////////////////// edit row
-			case "row_edit":
-				echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_edit&confirm=1&pk=".$_GET['pk']."' method='post'>";
-				$query = "SELECT * FROM ".$_GET['table']." WHERE ROWID = ".$_GET['pk'];
-				$result1 = $db->select($query);
-				$query = "PRAGMA table_info('".$_GET['table']."')";
-				$result = $db->selectArray($query);
-		
-				echo "<table border='0' cellpadding='2' cellspacing='1'>";
-				echo "<tr>";
-				echo "<td class='tdheader'>Field</td>";
-				echo "<td class='tdheader'>Type</td>";
-				echo "<td class='tdheader'>Value</td>";
-				echo "</tr>";
-		
-				for($i=0; $i<sizeof($result); $i++)
-				{
-					$field = $result[$i][1];
-					$type = $result[$i][2];
-					$value = $result1[$i];
-					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
-					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
-					echo "<tr>";
-					echo $tdWithClass;
-					echo $field;
-					echo "</td>";
-					echo $tdWithClass;
-					echo $type;
-					echo "</td>";
-      			echo $tdWithClassLeft;
-					if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-						echo "<input type='text' name='".$field."' value='".$db->formatString($value)."'/>";
-					else
-						echo "<textarea name='".$field."' wrap='hard' rows='1' cols='60'>".$db->formatString($value)."</textarea>";
-					echo "</td>";
-					echo "</tr>";
-				}
-				echo "<tr>";
-				echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
-				echo "<input type='submit' value='Save Changes'/> ";
-				echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
-				echo "</td>";
-				echo "</tr>";
-				echo "</table>";
-				echo "</form>";
 				break;
 			//column actions
 			/////////////////////////////////////////////// view column
@@ -1463,7 +1487,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete' method='post' name='checkForm'>";
 				echo "<table border='0' cellpadding='2' cellspacing='1'>";
 				echo "<tr>";
-				echo "<td colspan='3'>";
+				echo "<td colspan='2'>";
 				echo "</td>";
 				echo "<td class='tdheader'>Column #</td>";
 				echo "<td class='tdheader'>Field</td>";
@@ -1496,9 +1520,6 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					echo $tdWithClass;
 					echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_edit&pk=".$colVal."'>edit</a>";
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_delete&pk=".$fieldVal."' style='color:red;'>delete</a>";
@@ -1634,11 +1655,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$col = $_POST['columnname'];
-				$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['field_old']." ".$_POST['field']." ".$_POST['type'];
-				$result = $db->query($query);
-				if(!$result)
-					$error = true;
+				//this section will contain the code for editing a column
 				break;
 		}
 		echo "</div>";
