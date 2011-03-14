@@ -790,6 +790,11 @@ function uncheckAll(field)
 		i++;	
 	}
 }
+function changeIgnore(area, e)
+{
+	if(area.value!="")
+		document.getElementById(e).checked = false;	
+}
 </script>
 </head>
 <body>
@@ -910,33 +915,39 @@ else //user is authorized - display the main application
 			//row actions
 			/////////////////////////////////////////////// create row
 			case "row_create":
+				$completed = "";
 				$num = $_POST['numRows'];
-				$completed = $num." row(s) inserted.<br/><br/>";
 				$fields = explode(":", $_POST['fields']);
+				$z = 0;
 				for($i=0; $i<$num; $i++)
 				{
-					$query = "INSERT INTO ".$_GET['table']." (";
-					for($j=0; $j<sizeof($fields); $j++)
+					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query .= $fields[$j].",";
+						$query = "INSERT INTO ".$_GET['table']." (";
+						for($j=0; $j<sizeof($fields); $j++)
+						{
+							$query .= $fields[$j].",";
+						}
+						$query = substr($query, 0, sizeof($query)-2);
+						$query .= ") VALUES (";
+						for($j=0; $j<sizeof($fields); $j++)
+						{
+							$value = $_POST[$i.":".$fields[$j]];
+							if($value=="")
+								$query .= "NULL,";
+							else
+								$query .= $db->quote($value).",";
+						}
+						$query = substr($query, 0, sizeof($query)-2);
+						$query .= ")";
+						$result = $db->query($query);
+						if(!$result)
+							$error = true;
+						$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
+						$z++;
 					}
-					$query = substr($query, 0, sizeof($query)-2);
-					$query .= ") VALUES (";
-					for($j=0; $j<sizeof($fields); $j++)
-					{
-						$value = $_POST[$i.":".$fields[$j]];
-						if($value=="")
-							$query .= "NULL,";
-						else
-							$query .= $db->quote($value).",";
-					}
-					$query = substr($query, 0, sizeof($query)-2);
-					$query .= ")";
-					$result = $db->query($query);
-					if(!$result)
-						$error = true;
-					$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
 				}
+				$completed = $z." row(s) inserted.<br/><br/>".$completed;
 				break;
 			/////////////////////////////////////////////// delete row
 			case "row_delete":
@@ -1536,6 +1547,8 @@ else //user is authorized - display the main application
 				echo "<input type='hidden' name='numRows' value='".$num."'/>";
 				for($j=0; $j<$num; $j++)
 				{
+					if($j>0)
+						echo "<input type='checkbox' value='ignore' name='".$j.":ignore' id='".$j."_ignore' checked='checked'/> Ignore<br/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1'>";
 					echo "<tr>";
 					echo "<td class='tdheader'>Field</td>";
@@ -1560,9 +1573,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClassLeft;
 						if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-							echo "<input type='text' name='".$j.":".$field."'/>";
+							echo "<input type='text' name='".$j.":".$field."' onblur='changeIgnore(this, \"".$j."_ignore\")'/>";
 						else
-							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60'></textarea>";
+							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."_ignore\")'></textarea>";
 						echo "</td>";
 						echo "</tr>";
 					}
