@@ -2,7 +2,7 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.5
+//  Version: 1.6
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
 //  Last updated: 3/11/11
 //  Developers:
@@ -66,7 +66,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.5");
+define("VERSION", "1.6");
 define("PAGE", $thisName);
 
 //
@@ -910,28 +910,33 @@ else //user is authorized - display the main application
 			//row actions
 			/////////////////////////////////////////////// create row
 			case "row_create":
-				$query = "INSERT INTO ".$_GET['table']." (";
-				$i = 0;
-				foreach($_POST as $vblname => $value)
+				$num = $_POST['numRows'];
+				$completed = $num." row(s) inserted.<br/><br/>";
+				$fields = explode(":", $_POST['fields']);
+				for($i=0; $i<$num; $i++)
 				{
-					$query .= $vblname.",";
+					$query = "INSERT INTO ".$_GET['table']." (";
+					for($j=0; $j<sizeof($fields); $j++)
+					{
+						$query .= $fields[$j].",";
+					}
+					$query = substr($query, 0, sizeof($query)-2);
+					$query .= ") VALUES (";
+					for($j=0; $j<sizeof($fields); $j++)
+					{
+						$value = $_POST[$i.":".$fields[$j]];
+						if($value=="")
+							$query .= "NULL,";
+						else
+							$query .= $db->quote($value).",";
+					}
+					$query = substr($query, 0, sizeof($query)-2);
+					$query .= ")";
+					$result = $db->query($query);
+					if(!$result)
+						$error = true;
+					$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
 				}
-				$query = substr($query, 0, sizeof($query)-2);
-				$query .= ") VALUES (";
-				$i = 0;
-				foreach($_POST as $vblname => $value)
-				{
-					if($value=="")
-						$query .= "NULL,";
-					else
-						$query .= $db->quote($value).",";
-				}
-				$query = substr($query, 0, sizeof($query)-2);
-				$query .= ")";
-				$result = $db->query($query);
-				if(!$result)
-					$error = true;
-				$completed = "1 row(s) inserted.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// delete row
 			case "row_delete":
@@ -1096,7 +1101,7 @@ else //user is authorized - display the main application
 	}
 	
 	//show the various tab views for a table
-	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename"))
+	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename") || $_GET['action']=="table_search")
 	{
 		echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view' ";
 		if($_GET['action']=="row_view")
@@ -1110,6 +1115,12 @@ else //user is authorized - display the main application
 		else
 			echo "class='tab'";
 		echo ">Structure</a>";
+		echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search' ";
+		if($_GET['action']=="table_search")
+			echo "class='tab_pressed'";
+		else
+			echo "class='tab'";
+		echo ">Search</a>";
 		echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_create' ";
 		if($_GET['action']=="row_create")
 			echo "class='tab_pressed'";
@@ -1225,6 +1236,155 @@ else //user is authorized - display the main application
 				echo "<input type='hidden' name='oldname' value='".$_GET['table']."'/>";
 				echo "Rename table '".$_GET['table']."' to <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='Rename' name='rename'/>";
 				echo "</form>";
+				break;
+			/////////////////////////////////////////////// search table
+			case "table_search":
+				if(isset($_GET['done']))
+				{
+					$query = "PRAGMA table_info('".$_GET['table']."')";
+					$result = $db->selectArray($query);
+					$str = "";
+					$j = 0;
+					$arr = array();
+					for($i=0; $i<sizeof($result); $i++)
+					{
+						$field = $result[$i][1];
+						$operator = $_POST[$field.":operator"];
+						$value = $_POST[$field];
+						if($value!="" || $operator=="!= ''" || $operator=="= ''")
+						{
+							if($operator=="= ''" || $operator=="!= ''")
+								$arr[$j] .= $field." ".$operator;
+							else
+								$arr[$j] .= $field." ".$operator." ".$db->quote($value);
+							$j++;
+						}
+					}
+					$query = "SELECT * FROM ".$_GET['table'];
+					if(sizeof($arr)>0)
+					{
+						$query .= " WHERE ".$arr[0];
+						for($i=1; $i<sizeof($arr); $i++)
+						{
+							$query .= " AND ".$arr[$i];
+						}
+					}
+					$startTime = microtime(true);
+					$result = $db->selectArray($query, "assoc");
+					$endTime = microtime(true);
+					$time = round(($endTime - $startTime), 4);
+		
+					echo "<div class='confirm'>";
+					echo "<b>";
+					if($result)
+					{
+						$affected = sizeof($result);
+						echo "Showing ".$affected." row(s). ";
+						echo "(Query took ".$time." sec)</b><br/>";
+					}
+					else
+					{
+						echo "There is a problem with the syntax of your query ";
+						echo "(Query was not executed)</b><br/>";
+					}
+					echo "<span style='font-size:11px;'>".$query."</span>";
+					echo "</div><br/>";
+						
+					if(sizeof($result)>0)
+					{
+						$headers = array_keys($result[0]);
+
+						echo "<table border='0' cellpadding='2' cellspacing='1'>";
+						echo "<tr>";
+						for($j=0; $j<sizeof($headers); $j++)
+						{
+							echo "<td class='tdheader'>";
+							echo $headers[$j];
+							echo "</td>";
+						}
+						echo "</tr>";
+						for($j=0; $j<sizeof($result); $j++)
+						{
+							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+							echo "<tr>";
+							for($z=0; $z<sizeof($headers); $z++)
+							{
+								echo $tdWithClass;
+								echo $result[$j][$headers[$z]];
+								echo "</td>";
+							}
+							echo "</tr>";
+						}
+						echo "</table><br/><br/>";
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search'>Do Another Search</a>";
+					}
+				}
+				else
+				{
+					$query = "PRAGMA table_info('".$_GET['table']."')";
+					$result = $db->selectArray($query);
+					
+					echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_search&done=1' method='post'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<tr>";
+					echo "<td class='tdheader'>Field</td>";
+					echo "<td class='tdheader'>Type</td>";
+					echo "<td class='tdheader'>Operator</td>";
+					echo "<td class='tdheader'>Value</td>";
+					echo "</tr>";
+					
+					for($i=0; $i<sizeof($result); $i++)
+					{
+					  $field = $result[$i][1];
+					  $type = $result[$i][2];
+					  $tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+					  $tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+					  echo "<tr>";
+					  echo $tdWithClassLeft;
+					  echo $field;
+					  echo "</td>";
+					  echo $tdWithClassLeft;
+					  echo $type;
+					  echo "</td>";
+					  echo $tdWithClassLeft;
+					  echo "<select name='".$field.":operator'>";
+					  echo "<option value='='>=</option>";
+					  if($type=="INTEGER" || $type=="REAL")
+					  {
+						  echo "<option value='>'>></option>";
+						  echo "<option value='>='>>=</option>";
+						  echo "<option value='<'><</option>";
+						  echo "<option value='<='><=</option>";
+					  }
+					  else if($type=="TEXT" || $type=="BLOB")
+					  {
+						  echo "<option value='= '''>= ''</option>";
+						  echo "<option value='!= '''>!= ''</option>";	
+					  }
+					  echo "<option value='!='>!=</option>";
+					  if($type=="TEXT" || $type=="BLOB")
+						  echo "<option value='LIKE' selected='selected'>LIKE</option>";
+					  else
+						  echo "<option value='LIKE'>LIKE</option>";
+					  echo "<option value='NOT LIKE'>NOT LIKE</option>";
+					  echo "</select>";
+					  echo "</td>";
+					  echo $tdWithClassLeft;
+					  if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
+						  echo "<input type='text' name='".$field."'/>";
+					  else
+						  echo "<textarea name='".$field."' wrap='hard' rows='1' cols='60'></textarea>";
+					  echo "</td>";
+					  echo "</tr>";
+					}
+					echo "<tr>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
+					echo "<input type='submit' value='Search'/>";
+					echo "</td>";
+					echo "</tr>";
+					echo "</table>";
+					echo "</form>";
+				}
 				break;
 			//row actions
 			/////////////////////////////////////////////// view row
@@ -1351,44 +1511,70 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create row
 			case "row_create":
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_create' method='post'>";
+				echo "Restart insertion with ";
+				echo "<select name='num'>";
+				for($i=1; $i<=40; $i++)
+				{
+					if(isset($_POST['num']) && $_POST['num']==$i)
+						echo "<option value='".$i."' selected='selected'>".$i."</option>";
+					else
+						echo "<option value='".$i."'>".$i."</option>";
+				}
+				echo "</select>";
+				echo " rows ";
+				echo "<input type='submit' value='Go'/>";
+				echo "</form>";
+				echo "<br/>";
 				$query = "PRAGMA table_info('".$_GET['table']."')";
 				$result = $db->selectArray($query);
-		
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_create&confirm=1' method='post'>";
-				echo "<table border='0' cellpadding='2' cellspacing='1'>";
-				echo "<tr>";
-				echo "<td class='tdheader'>Field</td>";
-				echo "<td class='tdheader'>Type</td>";
-				echo "<td class='tdheader'>Value</td>";
-				echo "</tr>";
-		
-				for($i=0; $i<sizeof($result); $i++)
+				if(isset($_POST['num']))
+					$num = $_POST['num'];
+				else
+					$num = 1;
+				echo "<input type='hidden' name='numRows' value='".$num."'/>";
+				for($j=0; $j<$num; $j++)
 				{
-					$field = $result[$i][1];
-					$type = $result[$i][2];
-					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
-					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1'>";
 					echo "<tr>";
-					echo $tdWithClass;
-					echo $field;
-					echo "</td>";
-					echo $tdWithClass;
-					echo $type;
-					echo "</td>";
-      			echo $tdWithClassLeft;
-					if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-						echo "<input type='text' name='".$field."'/>";
-					else
-						echo "<textarea name='".$field."' wrap='hard' rows='1' cols='60'></textarea>";
+					echo "<td class='tdheader'>Field</td>";
+					echo "<td class='tdheader'>Type</td>";
+					echo "<td class='tdheader'>Value</td>";
+					echo "</tr>";
+					
+					for($i=0; $i<sizeof($result); $i++)
+					{
+						$field = $result[$i][1];
+						if($j==0)
+							$fieldStr .= ":".$field;
+						$type = $result[$i][2];
+						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						echo "<tr>";
+						echo $tdWithClassLeft;
+						echo $field;
+						echo "</td>";
+						echo $tdWithClassLeft;
+						echo $type;
+						echo "</td>";
+						echo $tdWithClassLeft;
+						if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
+							echo "<input type='text' name='".$j.":".$field."'/>";
+						else
+							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60'></textarea>";
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "<tr>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
+					echo "<input type='submit' value='Insert'/>";
 					echo "</td>";
 					echo "</tr>";
+					echo "</table><br/>";
 				}
-				echo "<tr>";
-				echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
-				echo "<input type='submit' value='Insert'/>";
-				echo "</td>";
-				echo "</tr>";
-				echo "</table>";
+				$fieldStr = substr($fieldStr, 1);
+				echo "<input type='hidden' name='fields' value='".$fieldStr."'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// edit or delete row
@@ -1711,7 +1897,7 @@ else //user is authorized - display the main application
 				echo "<table border='0' cellpadding='2' cellspacing='1'>";
 				echo "<tr>";
 				echo "<td class='tdheader'>Table</td>";
-				echo "<td class='tdheader' colspan='6'>Action</td>";
+				echo "<td class='tdheader' colspan='7'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
 				echo "</tr>";
 			
@@ -1734,6 +1920,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=column_view'>Structure</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_search'>Search</a>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_create'>Insert</a>";
