@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.7
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 3/15/11
+//  Last updated: 3/26/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -619,7 +619,7 @@ h1
 	background-color: #f3cece;
 	text-align: center;
 	margin-bottom: 10px;
-	color: #03F;
+	color: #000;
 }
 /* version text within the logo */
 h1 #version
@@ -657,7 +657,7 @@ fieldset
 /* outer div that holds everything */
 #container
 {
-	padding:15px;
+	padding:10px;
 }
 /* div of left box with log, list of databases, etc. */
 #leftNav
@@ -675,12 +675,12 @@ fieldset
 #content
 {
 	overflow:hidden;
-	padding-left:15px;
+	padding-left:10px;
 }
 /* div holding the login fields */
 #loginBox
 {
-	width:380px;
+	width:500px;
 	margin-left:auto;
 	margin-right:auto;
 	margin-top:50px;
@@ -742,12 +742,12 @@ fieldset
 .tab
 {
 	display:block;
-	width:80px;
+	width:70px;
 	padding:5px;
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
-	margin-right:15px;
+	margin-right:5px;
 	float:left;
 	border-bottom-style:none;
 	position:relative;
@@ -759,12 +759,12 @@ fieldset
 .tab_pressed
 {
 	display:block;
-	width:80px;
+	width:70px;
 	padding:5px;
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
-	margin-right:15px;
+	margin-right:5px;
 	float:left;
 	border-bottom-style:none;
 	position:relative;
@@ -824,7 +824,7 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<div style='text-align:center;'>";
 	$endTimeTot = microtime(true);
 	$timeTot = round(($endTimeTot - $startTimeTot), 4);
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> and <a href='http://www.danedesigns.com' target='_blank' style='font-size:11px;'>Dane Designs</a> | Page generated in ".$timeTot." seconds.</span>";
 	echo "</div>";
 }
 else //user is authorized - display the main application
@@ -1054,7 +1054,11 @@ else //user is authorized - display the main application
 	
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
-	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1>";
+	echo "<h1>";
+	echo "<a href='".PAGE."' style='color:#000;'>";
+	echo PROJECT." <span id='version'>v".VERSION."</span>";
+	echo "</a>";
+	echo "</h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "<select name='database_switch'>";
@@ -1078,7 +1082,10 @@ else //user is authorized - display the main application
 	{
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
-			echo "<a href='".PAGE."?action=row_view&table=".$result[$i]['name']."'>".$result[$i]['name']."</a><br/>";
+			echo "<a href='".PAGE."?action=row_view&table=".$result[$i]['name']."'";
+			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
+				echo " style='text-decoration:underline;'";
+			echo ">".$result[$i]['name']."</a><br/>";
 			$j++;
 		}
 	}
@@ -1133,6 +1140,12 @@ else //user is authorized - display the main application
 		else
 			echo "class='tab'";
 		echo ">Structure</a>";
+		echo "<a href='".PAGE."?view=sql' ";
+		if($_GET['action']=="table_sql")
+			echo "class='tab_pressed'";
+		else
+			echo "class='tab'";
+		echo ">SQL</a>";
 		echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search' ";
 		if($_GET['action']=="table_search")
 			echo "class='tab_pressed'";
@@ -1459,73 +1472,73 @@ else //user is authorized - display the main application
 					echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
 					echo "<span style='font-size:11px;'>".$queryDisp."</span>";
 					echo "</div><br/>";
-				}
-				else
-				{
-					echo "<br/><br/>This table is empty.";
-					return;
-				}
-		
-				echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
-				echo "<table border='0' cellpadding='2' cellspacing='1'>";
-				$query = "PRAGMA table_info('".$table."')";
-				$result = $db->selectArray($query);
-				$rowidColumn = sizeof($result);
-		
-				echo "<tr>";
-				echo "<td colspan='3'>";
-				echo "</td>";
-		
-				for($i=0; $i<sizeof($result); $i++)
-				{
-					echo "<td class='tdheader'>";
-					echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
-					$orderTag = ($sort==$result[$i][1] && $order=="ASC") ? "DESC" : "ASC";
-					echo "&order=".$orderTag;
-					echo "'>".$result[$i][1]."</a>";
-					if($sort==$result[$i][1])
-						echo (($order=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
-					echo "</td>";
-				}
-				echo "</tr>";
-		
-				for($i=0; $i<sizeof($arr); $i++)
-				{
-					// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
-					$pk = $arr[$i][$rowidColumn];
-					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
-					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+					
+					echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					$query = "PRAGMA table_info('".$table."')";
+					$result = $db->selectArray($query);
+					$rowidColumn = sizeof($result);
+			
 					echo "<tr>";
-					echo $tdWithClass;
-					echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
+					echo "<td colspan='3'>";
 					echo "</td>";
-					echo $tdWithClass;
-					// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-					echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=edit'>edit</a>";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=delete' style='color:red;'>delete</a>";
-					echo "</td>";
-					for($j=0; $j<sizeof($result); $j++)
+			
+					for($i=0; $i<sizeof($result); $i++)
 					{
-						if($result[$j][2]=="TEXT")
-							echo $tdWithClassLeft;
-						else
-							echo $tdWithClass;
-						// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-						echo $db->formatString($arr[$i][$j]);
+						echo "<td class='tdheader'>";
+						echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
+						$orderTag = ($sort==$result[$i][1] && $order=="ASC") ? "DESC" : "ASC";
+						echo "&order=".$orderTag;
+						echo "'>".$result[$i][1]."</a>";
+						if($sort==$result[$i][1])
+							echo (($order=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 						echo "</td>";
 					}
 					echo "</tr>";
+			
+					for($i=0; $i<sizeof($arr); $i++)
+					{
+						// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
+						$pk = $arr[$i][$rowidColumn];
+						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						echo "<tr>";
+						echo $tdWithClass;
+						echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
+						echo "</td>";
+						echo $tdWithClass;
+						// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
+						echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=edit'>edit</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=delete' style='color:red;'>delete</a>";
+						echo "</td>";
+						for($j=0; $j<sizeof($result); $j++)
+						{
+							if($result[$j][2]=="TEXT")
+								echo $tdWithClassLeft;
+							else
+								echo $tdWithClass;
+							// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
+							echo $db->formatString($arr[$i][$j]);
+							echo "</td>";
+						}
+						echo "</tr>";
+					}
+					echo "</table>";
+					echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
+					echo "<select name='type'>";
+					echo "<option value='edit'>Edit</option>";
+					echo "<option value='delete'>Delete</option>";
+					echo "</select> ";
+					echo "<input type='submit' value='Go' name='massGo'/>";
+					echo "</form>";
 				}
-				echo "</table>";
-				echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
-				echo "<select name='type'>";
-				echo "<option value='edit'>Edit</option>";
-				echo "<option value='delete'>Delete</option>";
-				echo "</select> ";
-				echo "<input type='submit' value='Go' name='massGo'/>";
-				echo "</form>";
+				else //empty table case - do nothing
+				{
+					echo "<br/><br/>This table is empty. <a href='".PAGE."?table=".$_GET['table']."&action=row_create'>Click here</a> to insert rows.";
+				}
+		
 				break;
 			/////////////////////////////////////////////// create row
 			case "row_create":
@@ -1917,7 +1930,7 @@ else //user is authorized - display the main application
 				echo "<table border='0' cellpadding='2' cellspacing='1'>";
 				echo "<tr>";
 				echo "<td class='tdheader'>Table</td>";
-				echo "<td class='tdheader' colspan='7'>Action</td>";
+				echo "<td class='tdheader' colspan='8'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
 				echo "</tr>";
 			
@@ -1940,6 +1953,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=column_view'>Structure</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?view=sql'>SQL</a>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_search'>Search</a>";
@@ -2078,7 +2094,7 @@ else //user is authorized - display the main application
 	echo "<br/>";
 	$endTimeTot = microtime(true); //get the current time at this point in the execution
 	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>"; //the footer text
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> and <a href='http://www.danedesigns.com' target='_blank' style='font-size:11px;'>Dane Designs</a> | Page generated in ".$timeTot." seconds.</span>";
 	echo "</div>";
 	echo "</div>";
 	$db->close(); //close the database
