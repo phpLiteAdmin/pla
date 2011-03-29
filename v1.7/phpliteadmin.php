@@ -797,10 +797,60 @@ function uncheckAll(field)
 		i++;	
 	}
 }
+//unchecks the ignore checkbox if user has typed something into one of the fields for adding new rows
 function changeIgnore(area, e)
 {
 	if(area.value!="")
 		document.getElementById(e).checked = false;	
+}
+//moves fields from select menu into query textarea for SQL tab
+function moveFields()
+{
+	var fields = document.getElementById("fieldcontainer");
+	var selected = new Array();
+	for(var i=0; i<fields.options.length; i++)
+		if(fields.options[i].selected)
+			selected.push(fields.options[i].value);
+	for(var i=0; i<selected.length; i++)
+		insertAtCaret("queryval", "`"+selected[i]+"`");
+}
+//helper function for moveFields
+function insertAtCaret(areaId,text)
+{
+	var txtarea = document.getElementById(areaId);
+	var scrollPos = txtarea.scrollTop;
+	var strPos = 0;
+	var br = ((txtarea.selectionStart || txtarea.selectionStart == '0') ? "ff" : (document.selection ? "ie" : false ));
+	if(br=="ie")
+	{ 
+		txtarea.focus();
+		var range = document.selection.createRange();
+		range.moveStart ('character', -txtarea.value.length);
+		strPos = range.text.length;
+	}
+	else if(br=="ff")
+		strPos = txtarea.selectionStart;
+	
+	var front = (txtarea.value).substring(0,strPos);  
+	var back = (txtarea.value).substring(strPos,txtarea.value.length); 
+	txtarea.value=front+text+back;
+	strPos = strPos + text.length;
+	if(br=="ie")
+	{ 
+		txtarea.focus();
+		var range = document.selection.createRange();
+		range.moveStart ('character', -txtarea.value.length);
+		range.moveStart ('character', strPos);
+		range.moveEnd ('character', 0);
+		range.select();
+	}
+	else if(br=="ff")
+	{
+		txtarea.selectionStart = strPos;
+		txtarea.selectionEnd = strPos;
+		txtarea.focus();
+	}
+	txtarea.scrollTop = scrollPos;
 }
 </script>
 </head>
@@ -1073,7 +1123,12 @@ else //user is authorized - display the main application
 	echo "<input type='submit' value='Go'>";
 	echo "</form>";
 	echo "</fieldset>";
-	echo "<fieldset style='margin:15px;'><legend><a href='".PAGE."'>".$currentDB['name']."</a></legend>";
+	echo "<fieldset style='margin:15px;'><legend>";
+	echo "<a href='".PAGE."'";
+	if(!isset($_GET['table']))
+		echo " style='text-decoration:underline;'";
+	echo ">".$currentDB['name']."</a>";
+	echo "</legend>";
 	//Display list of tables
 	$query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 	$result = $db->selectArray($query);
@@ -1103,7 +1158,7 @@ else //user is authorized - display the main application
 	//breadcrumb navigation
 	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
 	if(isset($_GET['table']))
-		echo " -> <a href='".PAGE."?table=".$_GET['table']."&action=row_view'>".$_GET['table']."</a>";
+		echo " > <a href='".PAGE."?table=".$_GET['table']."&action=row_view'>".$_GET['table']."</a>";
 	echo "<br/><br/>";
 	
 	//user has performed some action so show the resulting message
@@ -1126,7 +1181,7 @@ else //user is authorized - display the main application
 	}
 	
 	//show the various tab views for a table
-	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename") || $_GET['action']=="table_search")
+	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename") || $_GET['action']=="table_search")
 	{
 		echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view' ";
 		if($_GET['action']=="row_view")
@@ -1140,7 +1195,7 @@ else //user is authorized - display the main application
 		else
 			echo "class='tab'";
 		echo ">Structure</a>";
-		echo "<a href='".PAGE."?view=sql' ";
+		echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_sql' ";
 		if($_GET['action']=="table_sql")
 			echo "class='tab_pressed'";
 		else
@@ -1240,6 +1295,118 @@ else //user is authorized - display the main application
 					echo "</table>";
 					echo "</form>";
 				}
+				break;
+			/////////////////////////////////////////////// perform SQL query on table
+			case "table_sql":
+				$isSelect = false;
+				if(isset($_POST['query']) && $_POST['query']!="")
+				{
+					$delimiter = $_POST['delimiter'];
+					$queryStr = stripslashes($_POST['queryval']);
+					$query = explode($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
+	
+					for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
+					{
+						if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
+						{
+							$startTime = microtime(true);
+							if(strpos(strtolower($query[$i]), "select ")!==false)
+							{
+								$isSelect = true;
+								$result = $db->selectArray($query[$i], "assoc");
+							}
+							else
+							{
+								$isSelect = false;
+								$result = $db->query($query[$i]);
+							}
+							$endTime = microtime(true);
+							$time = round(($endTime - $startTime), 4);
+				
+							echo "<div class='confirm'>";
+							echo "<b>";
+							if($isSelect || $result)
+							{
+								if($isSelect)
+								{
+									$affected = sizeof($result);
+									echo "Showing ".$affected." row(s). ";
+								}
+								else
+								{
+									$affected = $db->getAffectedRows();
+									echo $affected." row(s) affected. ";
+								}
+								echo "(Query took ".$time." sec)</b><br/>";
+							}
+							else
+							{
+								echo "There is a problem with the syntax of your query ";
+								echo "(Query was not executed)</b><br/>";
+							}
+							echo "<span style='font-size:11px;'>".$query[$i]."</span>";
+							echo "</div><br/>";
+							if($isSelect)
+							{
+								if(sizeof($result)>0)
+								{
+									$headers = array_keys($result[0]);
+	
+									echo "<table border='0' cellpadding='2' cellspacing='1'>";
+									echo "<tr>";
+									for($j=0; $j<sizeof($headers); $j++)
+									{
+										echo "<td class='tdheader'>";
+										echo $headers[$j];
+										echo "</td>";
+									}
+									echo "</tr>";
+									for($j=0; $j<sizeof($result); $j++)
+									{
+										$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+										echo "<tr>";
+										for($z=0; $z<sizeof($headers); $z++)
+										{
+											echo $tdWithClass;
+											echo $result[$j][$headers[$z]];
+											echo "</td>";
+										}
+										echo "</tr>";
+									}
+									echo "</table><br/><br/>";	
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					$delimiter = ";";
+					$queryStr = "SELECT * FROM `".$_GET['table']."` WHERE 1";
+				}
+				
+				echo "<fieldset>";
+				echo "<legend><b>Run SQL query/queries on database '".$db->getName()."'</b></legend>";
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_sql' method='post'>";
+				echo "<div style='float:left; width:70%;'>";
+				echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval'>".$queryStr."</textarea>";
+				echo "</div>";
+				echo "<div style='float:left; width:28%; padding-left:10px;'>";
+				echo "Fields<br/>";
+				echo "<select multiple='multiple' style='width:100%;' id='fieldcontainer'>";
+				$query = "PRAGMA table_info('".$_GET['table']."')";
+				$result = $db->selectArray($query);
+				for($i=0; $i<sizeof($result); $i++)
+				{
+					echo "<option value='".$result[$i][1]."'>".$result[$i][1]."</option>";	
+				}
+				echo "</select>";
+				echo "<input type='button' value='<<' onclick='moveFields();'/>";
+				echo "</div>";
+				echo "<div style='clear:both;'></div>";
+				echo "Delimiter <input type='text' name='delimiter' value='".$delimiter."' style='width:50px;'/> ";
+				echo "<input type='submit' name='query' value='Go'/>";
+				echo "</form>";	
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
