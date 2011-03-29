@@ -1903,6 +1903,12 @@ else //user is authorized - display the main application
 		else
 			echo "class='tab'";
 		echo ">SQL</a>";
+		echo "<a href='".PAGE."?view=vacuum' ";
+		if($view=="vacuum")
+			echo "class='tab_pressed'";
+		else
+			echo "class='tab'";
+		echo ">Vacuum</a>";
 		echo "<div style='clear:both;'></div>";
 		echo "<div id='main'>";
 		
@@ -1912,8 +1918,17 @@ else //user is authorized - display the main application
 			echo "<b>Path to database</b>: ".$db->getPath()."<br/>";
 			echo "<b>Size of database</b>: ".$db->getSize()."<br/>";
 			echo "<b>Database last modified</b>: ".$db->getDate()."<br/>";
-			echo "<b>SQLite version of database</b>: ".$db->getVersion()."<br/>";
-			echo "<b>PHP extension used</b>: ".$db->getType()."<br/><br/>";
+			if($db->getType()=="SQLiteDatabase")
+			{
+				echo "<b>SQLite version</b>: ".sqlite_libversion()."<br/>";
+				echo "<b>SQLite encoding</b>: ".sqlite_libencoding()."<br/>";
+			}
+			if($db->getType()=="SQLite3")
+				echo "<b>SQLite version</b>: ".(SQLite3::version())."<br/>";
+			else
+				echo "<b>SQLite version</b>: ".$db->getVersion()."<br/>";
+			echo "<b>SQLite extension</b>: ".$db->getType()."<br/>";
+			echo "<b>PHP version</b>: ".phpversion()."<br/><br/>";
 			
 			$query = "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name";
 			$result = $db->selectArray($query);
@@ -2086,6 +2101,22 @@ else //user is authorized - display the main application
 			echo "Delimiter <input type='text' name='delimiter' value='".$delimiter."' style='width:50px;'/> ";
 			echo "<input type='submit' name='query' value='Go'/>";
 			echo "</form>";	
+		}
+		else if($view=="vacuum")
+		{
+			if(isset($_POST['vacuum']))
+			{
+				$query = "VACUUM";
+				$db->query($query);
+				echo "<div class='confirm'>";
+				echo "The database, '".$db->getName()."', has been VACUUMed.";
+				echo "</div><br/>";
+			}
+			echo "<form method='post' action='".PAGE."?view=vacuum'>";
+			echo "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database, '".$db->getName()."'.";
+			echo "<br/><br/>";
+			echo "<input type='submit' value='VACUUM' name='vacuum'/>";
+			echo "</form>";
 		}
 				
 		echo "</div>";
