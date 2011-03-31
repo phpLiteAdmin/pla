@@ -29,7 +29,6 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-
 //please report any bugs you encounter to http://code.google.com/p/phpliteadmin/issues/list
 
 //password to gain access (change this to something more secure than 'admin')
@@ -534,6 +533,23 @@ class Database
 		}
 	}
 	
+	//multiple query execution
+	public function multiQuery($query)
+	{
+		if($this->type=="PDO")
+		{
+			$this->db->exec($query);
+		}
+		else if($this->type=="SQLite3")
+		{
+			$this->db->exec($query);
+		}
+		else
+		{
+			$this->db->queryExec($query);
+		}
+	}
+	
 	//get number of rows in table
 	public function numRows($table)
 	{
@@ -564,8 +580,14 @@ class Database
 		return htmlspecialchars(stripslashes($value));	
 	}
 	
+	//import
+	public function import($query)
+	{
+		$this->multiQuery($query);	
+	}
+	
 	//export
-	public function export($tables, $structure, $data, $transaction, $comments)
+	public function export($tables, $drop, $structure, $data, $transaction, $comments)
 	{
 		if($comments)
 		{
@@ -590,6 +612,16 @@ class Database
 			}
 			if($valid)
 			{
+				if($drop)
+				{
+					if($comments)
+					{
+						echo "\r\n----\r\n";
+						echo "-- Drop table for ".$result[$i]['tbl_name']."\r\n";
+						echo "----\r\n";
+					}
+					echo "DROP TABLE '".$result[$i]['tbl_name']."';\r\n";
+				}
 				if($structure)
 				{
 					if($comments)
@@ -655,11 +687,6 @@ else if(isset($_POST['login'])) //user has attempted to log in
 //user is downloading the exported database file
 if(isset($_POST['export']))
 {
-	header('Pragma: public');
-	header('Expires: 0');
-	header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-	header('Cache-Control: private', false);
-	header('Content-Transfer-Encoding: binary');
 	header('Content-Type: text/sql');
 	header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
 	if(isset($_POST['tables']))
@@ -669,13 +696,22 @@ if(isset($_POST['export']))
 		$tables = array();
 		$tables[0] = $_POST['single_table'];
 	}
+	$drop = isset($_POST['drop']);
 	$structure = isset($_POST['structure']);
 	$data = isset($_POST['data']);
 	$transaction = isset($_POST['transaction']);
 	$comments = isset($_POST['comments']);
-	$db = new Database($databases[$_POST['database_num']]);
-	echo $db->export($tables, $structure, $data, $transaction, $comments);
+	$db = new Database($databases[$_SESSION['currentDB']]);
+	echo $db->export($tables, $drop, $structure, $data, $transaction, $comments);
 	exit();
+}
+
+//user is importing a file
+if(isset($_POST['import']))
+{
+	$data = file_get_contents($_FILES["file"]["tmp_name"]);
+	$db = new Database($databases[$_SESSION['currentDB']]);
+	$db->import($data);
 }
 
 // here begins the HTML.
@@ -871,6 +907,11 @@ fieldset
 	background-color:#FFF;
 	cursor:default;
 }
+/* tooltip styles */
+#tt {position:absolute; display:block;}
+#tttop {display:block; height:5px; margin-left:5px; overflow:hidden}
+#ttcont {display:block; padding:2px 12px 3px 7px; margin-left:5px; background:#f3cece; color:#333}
+#ttbot {display:block; height:5px; margin-left:5px; overflow:hidden}
 </style>
 <!-- end the customizable stylesheet/theme -->
 
@@ -951,6 +992,81 @@ function insertAtCaret(areaId,text)
 	}
 	txtarea.scrollTop = scrollPos;
 }
+//tooltip feature
+var tooltip=function(){
+	var id = 'tt';
+	var top = 3;
+	var left = 3;
+	var maxw = 300;
+	var speed = 10;
+	var timer = 20;
+	var endalpha = 95;
+	var alpha = 0;
+	var tt,t,c,b,h;
+	var ie = document.all ? true : false;
+	return{
+		show:function(v,w){
+			if(tt == null){
+				tt = document.createElement('div');
+				tt.setAttribute('id',id);
+				t = document.createElement('div');
+				t.setAttribute('id',id + 'top');
+				c = document.createElement('div');
+				c.setAttribute('id',id + 'cont');
+				b = document.createElement('div');
+				b.setAttribute('id',id + 'bot');
+				tt.appendChild(t);
+				tt.appendChild(c);
+				tt.appendChild(b);
+				document.body.appendChild(tt);
+				tt.style.opacity = 0;
+				tt.style.filter = 'alpha(opacity=0)';
+				document.onmousemove = this.pos;
+			}
+			tt.style.display = 'block';
+			c.innerHTML = v;
+			tt.style.width = w ? w + 'px' : 'auto';
+			if(!w && ie){
+				t.style.display = 'none';
+				b.style.display = 'none';
+				tt.style.width = tt.offsetWidth;
+				t.style.display = 'block';
+				b.style.display = 'block';
+			}
+			if(tt.offsetWidth > maxw){tt.style.width = maxw + 'px'}
+			h = parseInt(tt.offsetHeight) + top;
+			clearInterval(tt.timer);
+			tt.timer = setInterval(function(){tooltip.fade(1)},timer);
+		},
+		pos:function(e){
+			var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
+			var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
+			tt.style.top = (u - h) + 'px';
+			tt.style.left = (l + left) + 'px';
+		},
+		fade:function(d){
+			var a = alpha;
+			if((a != endalpha && d == 1) || (a != 0 && d == -1)){
+				var i = speed;
+				if(endalpha - a < speed && d == 1){
+					i = endalpha - a;
+				}else if(alpha < speed && d == -1){
+					i = a;
+				}
+				alpha = a + (i * d);
+				tt.style.opacity = alpha * .01;
+				tt.style.filter = 'alpha(opacity=' + alpha + ')';
+			}else{
+				clearInterval(tt.timer);
+				if(d == -1){tt.style.display = 'none'}
+			}
+		},
+		hide:function(){
+			clearInterval(tt.timer);
+			tt.timer = setInterval(function(){tooltip.fade(-1)},timer);
+		}
+	};
+}();
 </script>
 </head>
 <body>
@@ -1549,18 +1665,34 @@ else //user is authorized - display the main application
 				echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
 				echo "</fieldset>";
 				echo "<fieldset style='float:left;'><legend><b>Options</b></legend>";
-				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure<br/>";
-				echo "<input type='checkbox' checked='checked' name='data'/> Export with data<br/>";
-				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION<br/>";
-				echo "<input type='checkbox' checked='checked' name='comments'/> Comments<br/>";
+				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure [<a onmouseover='tooltip.show(\"Creates the queries to add the tables and their columns\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+				echo "<input type='checkbox' checked='checked' name='data'/> Export with data [<a onmouseover='tooltip.show(\"Creates the queries to insert the table rows\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+				echo "<input type='checkbox' name='drop'/> Add DROP TABLE [<a onmouseover='tooltip.show(\"Creates the queries to remove the tables before potentially adding them so that errors do not occur if they already exist\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION [<a onmouseover='tooltip.show(\"Performs queries within transactions so that if an error occurs, the table is not returned to a partially incomplete and unusable state\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+				echo "<input type='checkbox' checked='checked' name='comments'/> Comments [<a onmouseover='tooltip.show(\"Adds comments to the file to explain what is happening in each part of it\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
 				echo "</fieldset>";
 				echo "<div style='clear:both;'></div>";
 				echo "<br/><br/>";
 				echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
 				echo "<input type='hidden' name='database_num' value='".$_SESSION['currentDB']."'/>";
-				echo "<input type='text' name='filename' value='database_export_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export'/>";
+				echo "<input type='text' name='filename' value='".str_replace(" ", "_", $db->getName())."_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export'/>";
 				echo "</fieldset>";
 				echo "</form>";
+				break;
+			/////////////////////////////////////////////// import table
+			case "table_import":
+				if(isset($_POST['import']))
+				{
+					echo "<div class='confirm'>";
+					echo "Import was successful.";
+					echo "</div><br/>";
+				}
+				echo "<form method='post' action='".PAGE."?table=".$_GET['action']."&action=table_import' enctype='multipart/form-data'>";
+				echo "<fieldset><legend><b>File to import</b></legend>";
+				echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
+				echo "<br/><br/>";
+				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import'/>";
+				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
@@ -2454,18 +2586,34 @@ else //user is authorized - display the main application
 			echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
 			echo "</fieldset>";
 			echo "<fieldset style='float:left;'><legend><b>Options</b></legend>";
-			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure<br/>";
-			echo "<input type='checkbox' checked='checked' name='data'/> Export with data<br/>";
-			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION<br/>";
-			echo "<input type='checkbox' checked='checked' name='comments'/> Comments<br/>";
+			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure [<a onmouseover='tooltip.show(\"Creates the queries to add the tables and their columns\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+			echo "<input type='checkbox' checked='checked' name='data'/> Export with data [<a onmouseover='tooltip.show(\"Creates the queries to insert the table rows\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+			echo "<input type='checkbox' name='drop'/> Add DROP TABLE [<a onmouseover='tooltip.show(\"Creates the queries to remove the tables before potentially adding them so that errors do not occur if they already exist\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION [<a onmouseover='tooltip.show(\"Performs queries within transactions so that if an error occurs, the table is not returned to a partially incomplete and unusable state\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+			echo "<input type='checkbox' checked='checked' name='comments'/> Comments [<a onmouseover='tooltip.show(\"Adds comments to the file to explain what is happening in each part of it\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
 			echo "</fieldset>";
 			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
 			echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
 			echo "<input type='hidden' name='database_num' value='".$_SESSION['currentDB']."'/>";
-			echo "<input type='text' name='filename' value='database_export_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export'/>";
+			echo "<input type='text' name='filename' value='".str_replace(" ", "_", $db->getName())."_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export'/>";
 			echo "</fieldset>";
 			echo "</form>";
+		}
+		else if($view=="import")
+		{
+			if(isset($_POST['import']))
+			{
+				echo "<div class='confirm'>";
+				echo "Import was successful.";
+				echo "</div><br/>";
+			}
+			echo "<form method='post' action='".PAGE."?view=import' enctype='multipart/form-data'>";
+			echo "<fieldset><legend><b>File to import</b></legend>";
+			echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
+			echo "<br/><br/>";
+			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import'/>";
+			echo "</fieldset>";
 		}
 				
 		echo "</div>";
