@@ -68,6 +68,9 @@ define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.8");
 define("PAGE", $thisName);
 
+//data types array
+$types = array("INTEGER", "REAL", "TEXT", "BLOB");
+define("DATATYPES", serialize($types));
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
@@ -598,7 +601,7 @@ class Database
 			echo "-- Database file: ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
-		$query = "SELECT * FROM sqlite_master WHERE type='table'";	
+		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";	
 		$result = $this->selectArray($query);
 		
 		//iterate through each table
@@ -617,22 +620,31 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						echo "-- Drop table for ".$result[$i]['tbl_name']."\r\n";
+						if($result[$i]['type']=="table")
+							echo "-- Drop table for ".$result[$i]['tbl_name']."\r\n";
+						else
+							echo "-- Drop index for ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
-					echo "DROP TABLE '".$result[$i]['tbl_name']."';\r\n";
+					if($result[$i]['type']=="table")
+						echo "DROP TABLE '".$result[$i]['tbl_name']."';\r\n";
+					else
+						echo "DROP INDEX '".$result[$i]['name']."';\r\n";
 				}
 				if($structure)
 				{
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						echo "-- Table structure for ".$result[$i]['tbl_name']."\r\n";
+						if($result[$i]['type']=="table")
+							echo "-- Table structure for ".$result[$i]['tbl_name']."\r\n";
+						else
+							echo "-- Structure for index ".$result[$i]['name']." on table ".$result[$i]['tbl_name']."\r\n";
 						echo "----\r\n";
 					}
 					echo $result[$i]['sql'].";\r\n";
 				}
-				if($data)
+				if($data && $result[$i]['type']=="table")
 				{
 					$query = "SELECT * FROM ".$result[$i]['tbl_name'];
 					$arr = $this->selectArray($query, "assoc");
@@ -917,6 +929,19 @@ fieldset
 
 <!-- JavaScript Support -->
 <script type="text/javascript">
+//makes sure autoincrement can only be selected when integer type is selected
+function toggleAutoincrement(i)
+{
+	var type = document.getElementById(i+'_type');
+	var autoincrement = document.getElementById(i+'_autoincrement');
+	if(type.value=="INTEGER")
+		autoincrement.disabled = false;
+	else
+	{
+		autoincrement.disabled = true;
+		autoincrement.checked = false;
+	}
+}
 //finds and checks all checkboxes for all rows on the Browse or Structure tab for a table
 function checkAll(field)
 {
@@ -1316,6 +1341,35 @@ else //user is authorized - display the main application
 					$error = true;
 				$completed = "Table '".$_GET['table']."' has been altered successfully.";
 				break;
+			/////////////////////////////////////////////// delete index
+			case "index_delete":
+				$query = "DROP INDEX ".$_GET['pk'];
+				$result = $db->query($query);
+				if(!$result)
+					$error = true;
+				$completed = "Index '".$_GET['pk']."' deleted.<br/><span style='font-size:11px;'>".$query."</span>";
+				break;
+			/////////////////////////////////////////////// create index
+			case "index_create":
+				$num = $_POST['num'];
+				
+				$str = "CREATE ";
+				if($_POST['duplicate']=="no")
+					$str .= "UNIQUE ";
+				$str .= "INDEX ".$_POST['name']." ON ".$_GET['table']." (";
+				$str .= $_POST['0_field'].$_POST['0_order'];
+				for($i=1; $i<$num; $i++)
+				{
+					if($_POST[$i.'_field']!="--Ignore--")
+						$str .= ", ".$_POST[$i.'_field'].$_POST[$i.'_order'];	
+				}
+				$str .= ")";
+				$query = $str;
+				$result = $db->query($query);
+				if(!$result)
+					$error = true;
+				$completed = "Index created.<br/><span style='font-size:11px;'>".$query."</span>";
+				break;
 		}
 	}
 	
@@ -1390,7 +1444,7 @@ else //user is authorized - display the main application
 		echo "</div>";
 		if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
 			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Return</a>";
-		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit")
+		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete")
 			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Return</a>";
 		else
 			echo "<br/><br/><a href='".PAGE."'>Return</a>";
@@ -1493,19 +1547,17 @@ else //user is authorized - display the main application
 						echo "<input type='text' name='".$i."_field' style='width:200px;'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<select name='".$i."_type'>";
-						echo "<option value='INTEGER' selected='selected'>INTEGER</option>";
-						echo "<option value='REAL'>REAL</option>";
-						echo "<option value='TEXT'>TEXT</option>";
-						echo "<option value='BLOB'>BLOB</option>";
-						echo "<option value='NULL'>NULL</option>";
+						echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+						$types = unserialize(DATATYPES);
+						for($z=0; $z<sizeof($types); $z++)
+							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";	
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement'/> Yes";
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
@@ -2217,6 +2269,43 @@ else //user is authorized - display the main application
 				echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
 				echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields'/>";
 				echo "</form>";
+				echo "<br/><hr/><br/>";
+				$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
+				$result = $db->selectArray($query);
+				if(sizeof($result)>0)
+				{
+					echo "<h2>Indexes:</h2>";
+					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<tr>";
+					echo "<td colspan='1'>";
+					echo "</td>";
+					echo "<td class='tdheader'>Name</td>";
+					echo "<td class='tdheader'>SQL</td>";
+					echo "</tr>";
+					for($i=0; $i<sizeof($result); $i++)
+					{
+						$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
+						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						echo "<tr>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=index_delete&pk=".$result[$i]['name']."' style='color:red;'>delete</a>";
+						echo "</td>";
+						echo $tdWithClassLeft;
+						echo $result[$i]['name'];
+						echo "</td>";
+						echo $tdWithClassLeft;
+						echo $result[$i]['sql'];
+						echo "</td>";
+						echo "</tr>";	
+					}
+					echo "</table>";
+				}
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=index_create' method='post'>";
+				echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
+				echo "<br/><div class='tdheader'>";
+				echo "Create an index on <input type='text' name='numcolumns' style='width:30px;' value='1'/> columns <input type='submit' value='Go' name='addindex'/>";
+				echo "</div>";
+				echo "</form>";
 				break;
 			/////////////////////////////////////////////// create column
 			case "column_create":
@@ -2247,19 +2336,18 @@ else //user is authorized - display the main application
 						echo "<input type='text' name='".$i."_field' style='width:200px;'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<select name='".$i."_type'>";
+						echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
 						echo "<option value='INTEGER' selected='selected'>INTEGER</option>";
-						echo "<option value='REAL'>REAL</option>";
-						echo "<option value='TEXT'>TEXT</option>";
-						echo "<option value='BLOB'>BLOB</option>";
-						echo "<option value='NULL'>NULL</option>";
+						$types = unserialize(DATATYPES);
+						for($z=0; $z<sizeof($types); $z++)
+							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";	
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement'/> Yes";
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
@@ -2312,6 +2400,60 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
 				//this section will contain the code for editing a column
+				break;
+			/////////////////////////////////////////////// delete index
+			case "index_delete":
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=index_delete&pk=".$_GET['pk']."&confirm=1' method='post'>";
+				echo "<div class='confirm'>";
+				echo "Are you sure you want to delete index '".$_GET['pk']."'?<br/><br/>";
+				echo "<input type='submit' value='Confirm'/> ";
+				echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
+				echo "</div>";
+				echo "</form>";
+				break;
+			/////////////////////////////////////////////// create index
+			case "index_create":
+				echo "<h2>Creating new index on table '".$_POST['tablename']."'</h2>";
+				if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
+					echo "You must specify the number of table fields.";
+				else if($_POST['tablename']=="")
+					echo "You must specify a table name.";
+				else
+				{
+					echo "<form action='".PAGE."?table=".$_POST['tablename']."&action=index_create&confirm=1' method='post'>";
+					$num = intval($_POST['numcolumns']);
+					$query = "PRAGMA table_info('".$_POST['tablename']."')";
+					$result = $db->selectArray($query);
+					echo "<fieldset><legend>Define index properties</legend>";
+					echo "Index name: <input type='text' name='name'/><br/>";
+					echo "Duplicate values: ";
+					echo "<select name='duplicate'>";
+					echo "<option value='yes'>Allowed</option>";
+					echo "<option value='no'>Not Allowed</option>";
+					echo "</select><br/>";
+					echo "</fieldset>";
+					echo "<br/>";
+					echo "<fieldset><legend>Define index columns</legend>";
+					for($i=0; $i<$num; $i++)
+					{
+						echo "<select name='".$i."_field'>";
+						echo "<option value=''>--Ignore--</option>";
+						for($j=0; $j<sizeof($result); $j++)
+							echo "<option value='".$result[$j][1]."'>".$result[$j][1]."</option>";
+						echo "</select> ";
+						echo "<select name='".$i."_order'>";
+						echo "<option value=''></option>";
+						echo "<option value=' ASC'>Ascending</option>";
+						echo "<option value=' DESC'>Descending</option>";
+						echo "</select><br/>";
+					}
+					echo "</fieldset>";
+					echo "<br/><br/>";
+					echo "<input type='hidden' name='num' value='".$num."'/>";
+					echo "<input type='submit' value='Create Index'/> ";
+					echo "<a href='".PAGE."?table=".$_POST['tablename']."&action=column_view'>Cancel</a>";
+					echo "</form>";
+				}
 				break;
 		}
 		echo "</div>";
