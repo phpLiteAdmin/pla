@@ -2270,7 +2270,8 @@ else //user is authorized - display the main application
 				echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields'/>";
 				echo "</form>";
 				echo "<br/><hr/><br/>";
-				$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
+				//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
+				$query = "PRAGMA index_list(".$_GET['table'].")";
 				$result = $db->selectArray($query);
 				if(sizeof($result)>0)
 				{
@@ -2280,23 +2281,51 @@ else //user is authorized - display the main application
 					echo "<td colspan='1'>";
 					echo "</td>";
 					echo "<td class='tdheader'>Name</td>";
-					echo "<td class='tdheader'>SQL</td>";
+					echo "<td class='tdheader'>Unique</td>";
+					echo "<td class='tdheader'>Seq. No.</td>";
+					echo "<td class='tdheader'>Column #</td>";
+					echo "<td class='tdheader'>Field</td>";
 					echo "</tr>";
 					for($i=0; $i<sizeof($result); $i++)
 					{
-						$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
+						if($result[$i]['unique']==0)
+							$unique = "no";
+						else
+							$unique = "yes";
+							
+						$query = "PRAGMA index_info(".$result[$i]['name'].")";
+						$info = $db->selectArray($query);
+						$span = sizeof($info);
+						
+						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						$tdWithClassSpan = "<td class='td".($i%2 ? "1" : "2")."' rowspan='".$span."'>";
+						$tdWithClassLeftSpan = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;' rowspan='".$span."'>";
 						echo "<tr>";
-						echo $tdWithClass;
+						echo $tdWithClassSpan;
 						echo "<a href='".PAGE."?table=".$_GET['table']."&action=index_delete&pk=".$result[$i]['name']."' style='color:red;'>delete</a>";
 						echo "</td>";
-						echo $tdWithClassLeft;
+						echo $tdWithClassLeftSpan;
 						echo $result[$i]['name'];
 						echo "</td>";
-						echo $tdWithClassLeft;
-						echo $result[$i]['sql'];
+						echo $tdWithClassLeftSpan;
+						echo $unique;
 						echo "</td>";
-						echo "</tr>";	
+						for($j=0; $j<$span; $j++)
+						{
+							if($j!=0)
+								echo "<tr>";
+							echo $tdWithClassLeft;
+							echo $info[$j]['seqno'];
+							echo "</td>";
+							echo $tdWithClassLeft;
+							echo $info[$j]['cid'];
+							echo "</td>";
+							echo $tdWithClassLeft;
+							echo $info[$j]['name'];
+							echo "</td>";
+							echo "</tr>";
+						}	
 					}
 					echo "</table>";
 				}
