@@ -51,7 +51,9 @@ $databases = array
 	)
 );
 
-
+// What should the name of the cookie be which contains the current password?
+// Changing this allows multiple phpLiteAdmin installs to work under the same domain.
+$cookie_name = 'pla3412';
 
 
 //end of the variables you may need to edit
@@ -65,9 +67,10 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.8.1");
+define("VERSION", "1.8.2");
 define("PAGE", $thisName);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
+define("COOKIENAME", $cookie_name);
 
 //data types array
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
@@ -83,22 +86,22 @@ class Authorization
 		if($remember) //user wants to be remembered, so set a cookie
 		{
 			$expire = time()+60*60*24*30; //set expiration to 1 month from now
-			setcookie("user", SYSTEMPASSWORD, $expire);
+			setcookie(COOKIENAME, SYSTEMPASSWORD, $expire);
 		}
 
 		$_SESSION['password'] = SYSTEMPASSWORD;
 	}
 	public function revoke()
 	{
-		setcookie("user", "", time()-86400);
-		unset($_COOKIE['user']);
+		setcookie(COOKIENAME, "", time()-86400);
+		unset($_COOKIE[COOKIENAME]);
 		session_unset();
 		session_destroy();
 	}
 	public function isAuthorized()
 	{
     // Is this just session long?
-    if((isset($_SESSION['password']) && $_SESSION['password'] == SYSTEMPASSWORD) || (isset($_COOKIE['user']) && $_COOKIE['user'] == SYSTEMPASSWORD))
+    if((isset($_SESSION['password']) && $_SESSION['password'] == SYSTEMPASSWORD) || (isset($_COOKIE[COOKIENAME]) && $_COOKIE[COOKIENAME] == SYSTEMPASSWORD))
     {
       return true;
     }
@@ -693,9 +696,11 @@ class Database
 $auth = new Authorization(); //create authorization object
 if(isset($_POST['logout'])) //user has attempted to log out
 	$auth->revoke();
-else if(isset($_POST['login'])) //user has attempted to log in
+else if(isset($_POST['login']) || isset($_POST['proc_login'])) //user has attempted to log in
 {
-	if($_POST['password']==$password) //make sure passwords match before granting authorization
+	$_POST['login'] = true;
+
+	if($_POST['password']==SYSTEMPASSWORD) //make sure passwords match before granting authorization
 	{
 		if(isset($_POST['remember']))
 			$auth->grant(true);
@@ -1115,6 +1120,7 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "Password: <input type='password' name='password'/><br/>";
 	echo "<input type='checkbox' name='remember' value='yes' checked='checked'/> Remember me<br/><br/>";
 	echo "<input type='submit' value='Log In' name='login'/>";
+	echo "<input type='hidden' name='proc_login' value='true' />";
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
