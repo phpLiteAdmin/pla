@@ -2,9 +2,9 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.8
+//  Version: 1.8.3
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 3/26/11
+//  Last updated: 4/21/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -51,9 +51,7 @@ $databases = array
 	)
 );
 
-// What should the name of the cookie be which contains the current password?
-// Changing this allows multiple phpLiteAdmin installs to work under the same domain.
-$cookie_name = 'pla3412';
+
 
 
 //end of the variables you may need to edit
@@ -61,16 +59,28 @@ $cookie_name = 'pla3412';
 session_start(); //don't mess with this - required for the login session
 $startTimeTot = microtime(true); //start the timer to record page load time
 
+//the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
+//create a random salt for this session if a cookie doesn't already exist for it
+if(!isset($_SESSION['salt']) && !isset($_COOKIE['salt']))
+{
+	$n = rand(10e16, 10e20);
+	$_SESSION['salt'] = base_convert($n, 10, 36);
+}
+else if(!isset($_SESSION['salt']) && isset($_COOKIE['salt'])) //session doesn't exist, but cookie does so grab it
+{
+	$_SESSION['salt'] = $_COOKIE['salt'];
+}
+
 //build the basename of this file for later reference
 $info = pathinfo($_SERVER['PHP_SELF']);
 $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.8.2");
+define("VERSION", "1.8.3");
 define("PAGE", $thisName);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
-define("COOKIENAME", $cookie_name);
+define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION['salt'])); //extra security - salted and encrypted password used for checking
 
 //data types array
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
@@ -86,29 +96,39 @@ class Authorization
 		if($remember) //user wants to be remembered, so set a cookie
 		{
 			$expire = time()+60*60*24*30; //set expiration to 1 month from now
-			setcookie(COOKIENAME, SYSTEMPASSWORD, $expire);
+			setcookie("user", SYSTEMPASSWORD, $expire);
+			setcookie("salt", $_SESSION['salt'], $expire);
+		}
+		else
+		{
+			//user does not want to be remembered, so destroy any potential cookies
+			setcookie("user", "", time()-86400);
+			setcookie("salt", "", time()-86400);
+			unset($_COOKIE['user']);
+			unset($_COOKIE['salt']);
 		}
 
-		$_SESSION['password'] = SYSTEMPASSWORD;
+		$_SESSION['password'] = SYSTEMPASSWORDENCRYPTED;
 	}
 	public function revoke()
 	{
-		setcookie(COOKIENAME, "", time()-86400);
-		unset($_COOKIE[COOKIENAME]);
+		//destroy everything - cookies and session vars
+		setcookie("user", "", time()-86400);
+		setcookie("salt", "", time()-86400);
+		unset($_COOKIE['user']);
+		unset($_COOKIE['salt']);
 		session_unset();
 		session_destroy();
 	}
 	public function isAuthorized()
 	{
-    // Is this just session long?
-    if((isset($_SESSION['password']) && $_SESSION['password'] == SYSTEMPASSWORD) || (isset($_COOKIE[COOKIENAME]) && $_COOKIE[COOKIENAME] == SYSTEMPASSWORD))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+		// Is this just session long?
+		if((isset($_SESSION['password']) && $_SESSION['password'] == SYSTEMPASSWORDENCRYPTED) || (isset($_COOKIE['user']) && isset($_COOKIE['salt']) && md5($_COOKIE['user']."_".$_COOKIE['salt']) == SYSTEMPASSWORDENCRYPTED))
+			return true;
+		else
+		{
+			return false;
+		}
 	}
 }
 
@@ -696,11 +716,9 @@ class Database
 $auth = new Authorization(); //create authorization object
 if(isset($_POST['logout'])) //user has attempted to log out
 	$auth->revoke();
-else if(isset($_POST['login']) || isset($_POST['proc_login'])) //user has attempted to log in
+else if(isset($_POST['login'])) //user has attempted to log in
 {
-	$_POST['login'] = true;
-
-	if($_POST['password']==SYSTEMPASSWORD) //make sure passwords match before granting authorization
+	if($_POST['password']==$password) //make sure passwords match before granting authorization
 	{
 		if(isset($_POST['remember']))
 			$auth->grant(true);
@@ -1030,8 +1048,9 @@ function insertAtCaret(areaId,text)
 	}
 	txtarea.scrollTop = scrollPos;
 }
-//tooltip feature
-var tooltip=function(){
+//tooltip help feature
+var tooltip=function()
+{
 	var id = 'tt';
 	var top = 3;
 	var left = 3;
@@ -1043,8 +1062,10 @@ var tooltip=function(){
 	var tt,t,c,b,h;
 	var ie = document.all ? true : false;
 	return{
-		show:function(v,w){
-			if(tt == null){
+		show:function(v,w)
+		{
+			if(tt == null)
+			{
 				tt = document.createElement('div');
 				tt.setAttribute('id',id);
 				t = document.createElement('div');
@@ -1064,44 +1085,55 @@ var tooltip=function(){
 			tt.style.display = 'block';
 			c.innerHTML = v;
 			tt.style.width = w ? w + 'px' : 'auto';
-			if(!w && ie){
+			if(!w && ie)
+			{
 				t.style.display = 'none';
 				b.style.display = 'none';
 				tt.style.width = tt.offsetWidth;
 				t.style.display = 'block';
 				b.style.display = 'block';
 			}
-			if(tt.offsetWidth > maxw){tt.style.width = maxw + 'px'}
+			if(tt.offsetWidth > maxw)
+				tt.style.width = maxw + 'px'
 			h = parseInt(tt.offsetHeight) + top;
 			clearInterval(tt.timer);
 			tt.timer = setInterval(function(){tooltip.fade(1)},timer);
 		},
-		pos:function(e){
+		pos:function(e)
+		{
 			var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
 			var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
 			tt.style.top = (u - h) + 'px';
 			tt.style.left = (l + left) + 'px';
 		},
-		fade:function(d){
+		fade:function(d)
+		{
 			var a = alpha;
-			if((a != endalpha && d == 1) || (a != 0 && d == -1)){
+			if((a != endalpha && d == 1) || (a != 0 && d == -1))
+			{
 				var i = speed;
-				if(endalpha - a < speed && d == 1){
+				if(endalpha - a < speed && d == 1)
 					i = endalpha - a;
-				}else if(alpha < speed && d == -1){
+				else if(alpha < speed && d == -1)
 					i = a;
-				}
 				alpha = a + (i * d);
 				tt.style.opacity = alpha * .01;
 				tt.style.filter = 'alpha(opacity=' + alpha + ')';
-			}else{
+			}
+			else
+			{
 				clearInterval(tt.timer);
-				if(d == -1){tt.style.display = 'none'}
+				if(d == -1)
+					tt.style.display = 'none';
 			}
 		},
-		hide:function(){
+		hide:function()
+		{
 			clearInterval(tt.timer);
-			tt.timer = setInterval(function(){tooltip.fade(-1)},timer);
+			tt.timer = setInterval(function()
+			{
+				tooltip.fade(-1)
+			},timer);
 		}
 	};
 }();
@@ -1120,7 +1152,6 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "Password: <input type='password' name='password'/><br/>";
 	echo "<input type='checkbox' name='remember' value='yes' checked='checked'/> Remember me<br/><br/>";
 	echo "<input type='submit' value='Log In' name='login'/>";
-	echo "<input type='hidden' name='proc_login' value='true' />";
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
@@ -1930,13 +1961,69 @@ else //user is authorized - display the main application
 
 				if(!isset($_SESSION['numRows']))
 					$_SESSION['numRows'] = 30;
-
+				
+				$query = "SELECT Count(*) FROM ".$_GET['table'];
+				$rowCount = $db->select($query);
+				$rowCount = intval($rowCount[0]);
+				$lastPage = intval($rowCount / $_SESSION['numRows']);
+				$remainder = intval($rowCount % $_SESSION['numRows']);
+				if($remainder==0)
+					$remainder = $_SESSION['numRows'];
+				
+				echo "<div style='overflow:hidden;'>";
+				//previous button
+				if($_SESSION['startRow']>0)
+				{
+					echo "<div style='float:left; overflow:hidden;'>";
+					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
+					echo "<input type='hidden' name='startRow' value='0'/>";
+					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
+					echo "<input type='submit' value='&larr;&larr;' name='previous'/> ";
+					echo "</form>";
+					echo "</div>";
+					echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
+					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
+					echo "<input type='hidden' name='startRow' value='".intval($_SESSION['startRow']-$_SESSION['numRows'])."'/>";
+					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
+					echo "<input type='submit' value='&larr;' name='previous_full'/> ";
+					echo "</form>";
+					echo "</div>";
+				}
+				
+				//show certain number buttons
+				echo "<div style='float:left; overflow:hidden;'>";
 				echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
 				echo "<input type='submit' value='Show : ' name='show'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION['numRows']."'/> ";
 				echo "row(s) starting from record # ";
-				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
+				if(intval($_SESSION['startRow']+$_SESSION['numRows']) < $rowCount)
+					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
+				else
+					echo "<input type='text' name='startRow' style='width:90px;' value='0'/>";
 				echo "</form>";
+				echo "</div>";
+				
+				//next button
+				if(intval($_SESSION['startRow']+$_SESSION['numRows'])<$rowCount)
+				{
+					echo "<div style='float:left; overflow:hidden; margin-left:20px; '>";
+					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
+					echo "<input type='hidden' name='startRow' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
+					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
+					echo "<input type='submit' value='&rarr;' name='next'/> ";
+					echo "</form>";
+					echo "</div>";
+					echo "<div style='float:left; overflow:hidden;'>";
+					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
+					echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
+					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
+					echo "<input type='submit' value='&rarr;&rarr;' name='next_full'/> ";
+					echo "</form>";
+					echo "</div>";
+				}
+				echo "<div style='clear:both;'></div>";
+				echo "</div>";
+				
 				if(!isset($_GET['sort']))
 					$_GET['sort'] = NULL;
 				if(!isset($_GET['order']))
