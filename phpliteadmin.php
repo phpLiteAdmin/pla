@@ -1956,17 +1956,20 @@ else //user is authorized - display the main application
 			//row actions
 			/////////////////////////////////////////////// view row
 			case "row_view":
-				if(isset($_POST['startRow']))
-					$_SESSION['startRow'] = $_POST['startRow'];
+				if(!isset($_POST['startRow']))
+					$_POST['startRow'] = 0;
 
 				if(isset($_POST['numRows']))
 					$_SESSION['numRows'] = $_POST['numRows'];
 
-				if(!isset($_SESSION['startRow']))
-					$_SESSION['startRow'] = 0;
-
 				if(!isset($_SESSION['numRows']))
 					$_SESSION['numRows'] = 30;
+				
+				if(isset($_SESSION['currentTable']) && $_SESSION['currentTable']!=$_GET['table'])
+				{
+					unset($_SESSION['sort']);
+					unset($_SESSION['order']);	
+				}
 				
 				$query = "SELECT Count(*) FROM ".$_GET['table'];
 				$rowCount = $db->select($query);
@@ -1978,7 +1981,7 @@ else //user is authorized - display the main application
 				
 				echo "<div style='overflow:hidden;'>";
 				//previous button
-				if($_SESSION['startRow']>0)
+				if($_POST['startRow']>0)
 				{
 					echo "<div style='float:left; overflow:hidden;'>";
 					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
@@ -1989,7 +1992,7 @@ else //user is authorized - display the main application
 					echo "</div>";
 					echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
 					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
-					echo "<input type='hidden' name='startRow' value='".intval($_SESSION['startRow']-$_SESSION['numRows'])."'/>";
+					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']-$_SESSION['numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
 					echo "<input type='submit' value='&larr;' name='previous_full'/> ";
 					echo "</form>";
@@ -2002,19 +2005,19 @@ else //user is authorized - display the main application
 				echo "<input type='submit' value='Show : ' name='show'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION['numRows']."'/> ";
 				echo "row(s) starting from record # ";
-				if(intval($_SESSION['startRow']+$_SESSION['numRows']) < $rowCount)
-					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
+				if(intval($_POST['startRow']+$_SESSION['numRows']) < $rowCount)
+					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_POST['startRow']+$_SESSION['numRows'])."'/>";
 				else
 					echo "<input type='text' name='startRow' style='width:90px;' value='0'/>";
 				echo "</form>";
 				echo "</div>";
 				
 				//next button
-				if(intval($_SESSION['startRow']+$_SESSION['numRows'])<$rowCount)
+				if(intval($_POST['startRow']+$_SESSION['numRows'])<$rowCount)
 				{
 					echo "<div style='float:left; overflow:hidden; margin-left:20px; '>";
 					echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
-					echo "<input type='hidden' name='startRow' value='".intval($_SESSION['startRow']+$_SESSION['numRows'])."'/>";
+					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']+$_SESSION['numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION['numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;' name='next'/> ";
 					echo "</form>";
@@ -2037,18 +2040,25 @@ else //user is authorized - display the main application
 
 				$table = $_GET['table'];
 				$numRows = $_SESSION['numRows'];
-				$startRow = $_SESSION['startRow'];
-				$sort = $_GET['sort'];
-				$order = $_GET['order'];
+				$startRow = $_POST['startRow'];
+				if(isset($_GET['sort']))
+				{
+					$_SESSION['sort'] = $_GET['sort'];
+					$_SESSION['currentTable'] = $_GET['table'];
+				}
+				if(isset($_GET['order']))
+				{
+					$_SESSION['order'] = $_GET['order'];
+					$_SESSION['currentTable'] = $_GET['table'];
+				}
 				$_SESSION['numRows'] = $numRows;
-				$_SESSION['startRow'] = $startRow;
 				$query = "SELECT *, ROWID FROM ".$table;
 				$queryDisp = "SELECT * FROM ".$table;
 				$queryAdd = "";
-				if($sort!=NULL)
-					$queryAdd .= " ORDER BY ".$sort;
-				if($order!=NULL)
-					$queryAdd .= " ".$order;
+				if(isset($_SESSION['sort']))
+					$queryAdd .= " ORDER BY ".$_SESSION['sort'];
+				if(isset($_SESSION['order']))
+					$queryAdd .= " ".$_SESSION['order'];
 				$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
 				$query .= $queryAdd;
 				$queryDisp .= $queryAdd;
@@ -2079,11 +2089,11 @@ else //user is authorized - display the main application
 					{
 						echo "<td class='tdheader'>";
 						echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
-						$orderTag = ($sort==$result[$i][1] && $order=="ASC") ? "DESC" : "ASC";
+						$orderTag = ($_SESSION['sort']==$result[$i][1] && $_SESSION['order']=="ASC") ? "DESC" : "ASC";
 						echo "&order=".$orderTag;
 						echo "'>".$result[$i][1]."</a>";
-						if($sort==$result[$i][1])
-							echo (($order=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+						if(isset($_SESSION['sort']) && $_SESSION['sort']==$result[$i][1])
+							echo (($_SESSION['order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 						echo "</td>";
 					}
 					echo "</tr>";
