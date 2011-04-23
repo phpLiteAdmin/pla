@@ -1482,7 +1482,7 @@ else //user is authorized - display the main application
 	{
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
-		if($error) //an error occured during the action, so show an error message
+		if(isset($error)) //an error occured during the action, so show an error message
 			echo "An error occured. This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
 		else //action was performed successfully - show success message
 			echo $completed;
