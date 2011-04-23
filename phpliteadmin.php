@@ -1480,7 +1480,7 @@ else //user is authorized - display the main application
 	//breadcrumb navigation
 	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
 	if(isset($_GET['table']))
-		echo " > <a href='".PAGE."?table=".$_GET['table']."&action=row_view'>".$_GET['table']."</a>";
+		echo " &rarr; <a href='".PAGE."?table=".$_GET['table']."&action=row_view'>".$_GET['table']."</a>";
 	echo "<br/><br/>";
 
 	//user has performed some action so show the resulting message
@@ -1488,7 +1488,7 @@ else //user is authorized - display the main application
 	{
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
-		if($error) //an error occured during the action, so show an error message
+		if(isset($error)) //an error occured during the action, so show an error message
 			echo "An error occured. This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
 		else //action was performed successfully - show success message
 			echo $completed;
