@@ -59,6 +59,12 @@ $cookie_name = 'pla3412';
 //end of the variables you may need to edit
 
 session_start(); //don't mess with this - required for the login session
+date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
+
+//toggle error reporting
+//ini_set("display_errors", 1);
+//error_reporting(E_STRICT | E_ALL);
+
 $startTimeTot = microtime(true); //start the timer to record page load time
 
 //the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
@@ -1488,7 +1494,7 @@ else //user is authorized - display the main application
 	{
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
-		if(isset($error)) //an error occured during the action, so show an error message
+		if(isset($error) && $error) //an error occured during the action, so show an error message
 			echo "An error occured. This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
 		else //action was performed successfully - show success message
 			echo $completed;
@@ -2685,19 +2691,19 @@ else //user is authorized - display the main application
 				echo "<td class='tdheader' colspan='10'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
 				echo "</tr>";
-
+				
+				$totalRecords = 0;
 				for($i=0; $i<sizeof($result); $i++)
 				{
 					if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 					{
 						$records = $db->numRows($result[$i]['name']);
-
-						$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
+						$totalRecords += $records;
+						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						
 						echo "<tr>";
-						if($i%2)
-							echo "<td class='td1' style='text-align:left;'>";
-						else
-							echo "<td class='td2' style='text-align:left;'>";
+						echo $tdWithClassLeft;
 						echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=row_view'>".$result[$i]['name']."</a><br/>";
 						echo "</td>";
 						echo $tdWithClass;
@@ -2736,6 +2742,10 @@ else //user is authorized - display the main application
 						echo "</tr>";
 					}
 				}
+				echo "<tr>";
+				echo "<td class='tdheader' colspan='11'>".sizeof($result)." table(s) total</td>";
+				echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords."</td>";
+				echo "</tr>";
 				echo "</table>";
 				echo "<br/>";
 			}
