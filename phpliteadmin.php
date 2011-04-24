@@ -854,7 +854,9 @@ input, select, textarea
 	margin:5px;
 	border-radius:5px;
 	-moz-border-radius:5px;
+	padding:3px;
 }
+/* just input buttons */
 input.btn
 {
 	cursor:pointer;	
@@ -973,8 +975,9 @@ fieldset
 .tab
 {
 	display:block;
-	width:70px;
 	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
@@ -994,8 +997,9 @@ fieldset
 .tab_pressed
 {
 	display:block;
-	width:70px;
 	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
