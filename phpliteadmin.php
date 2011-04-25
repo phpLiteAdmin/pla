@@ -2,9 +2,9 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.8.3
+//  Version: 1.8.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 4/21/11
+//  Last updated: 4/24/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -85,7 +85,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.8.3");
+define("VERSION", "1.8.4");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
@@ -874,6 +874,7 @@ fieldset
 	border-style:solid;
 	border-radius:5px;
 	-moz-border-radius:5px;
+	background-color:#f9f9f9;
 }
 /* outer div that holds everything */
 #container
@@ -2978,7 +2979,7 @@ else //user is authorized - display the main application
 	echo "<br/>";
 	$endTimeTot = microtime(true); //get the current time at this point in the execution
 	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> and <a href='http://www.danedesigns.com' target='_blank' style='font-size:11px;'>Dane Designs</a> | Page generated in ".$timeTot." seconds.</span>";
+	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
 	echo "</div>";
 	echo "</div>";
 	$db->close(); //close the database
