@@ -4,14 +4,14 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.8.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 4/24/11
+//  Last updated: 4/26/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
 //
 //
-//  Copyright (C) 2011  Dane Iracleous
+//  Copyright (C) 2011  phpLiteAdmin
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -41,8 +41,8 @@ $databases = array
 (
 	array
 	(
-		"path"=> "database1.sqlite", //path to database file on server relative to phpliteadmin.php (this file you are editing)
-		"name"=> "Database 1" //name of database to appear in application
+		"path"=> "database1.sqlite",
+		"name"=> "Database 1"
 	),
 	array
 	(
@@ -90,10 +90,16 @@ define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION['salt'])); //extra security - salted and encrypted password used for checking
+define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 
 //data types array
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
 define("DATATYPES", serialize($types));
+
+//available SQLite functions array
+$functions = array("abs", "date", "datetime", "hex", "julianday", "length", "lower", "ltrim", "random", "round", "rtrim", "soundex", "time", "trim", "typeof", "upper");
+define("FUNCTIONS", serialize($functions));
+
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
@@ -161,6 +167,9 @@ class Database
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				echo "The database, '".$this->data["path"]."', is not writable. The application is unusable until you make it writable.";
+				echo "<form action='".PAGE."' method='post'/>";
+				echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
+				echo "</form>";
 				echo "</div><br/>";
 				exit();
 			}
@@ -169,6 +178,9 @@ class Database
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				echo "The database, '".$this->data["path"]."', does not exist and cannot be created because the containing directory, '".dirname($this->data["path"])."', is not writable. The application is unusable until you make it writable.";
+				echo "<form action='".PAGE."' method='post'/>";
+				echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
+				echo "</form>";
 				echo "</div><br/>";
 				exit();
 			}
@@ -177,21 +189,21 @@ class Database
 
 			switch(true)
 			{
-				case class_exists("PDO") && ($ver==-1 || $ver==3):
+				case (FORCETYPE=="PDO" || ((FORCETYPE==false || $ver!=-1) && class_exists("PDO") && ($ver==-1 || $ver==3))):
 					$this->db = new PDO("sqlite:".$this->data['path']);
 					if($this->db!=NULL)
 					{
 						$this->type = "PDO";
 						break;
 					}
-				case class_exists("SQLite3") && ($ver==-1 || $ver==3):
+				case (FORCETYPE=="SQLite3" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLite3") && ($ver==-1 || $ver==3))):
 					$this->db = new SQLite3($this->data['path']);
 					if($this->db!=NULL)
 					{
 						$this->type = "SQLite3";
 						break;
 					}
-				case class_exists("SQLiteDatabase") && ($ver==-1 || $ver==2):
+				case (FORCETYPE=="SQLiteDatabase" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLiteDatabase") && ($ver==-1 || $ver==2))):
 					$this->db = new SQLiteDatabase($this->data['path']);
 					if($this->db!=NULL)
 					{
@@ -1016,6 +1028,11 @@ fieldset
 	-moz-border-radius-topleft:5px;
 	-moz-border-radius-topright:5px;
 }
+/* table */
+.viewTable
+{
+	
+}
 /* tooltip styles */
 #tt {position:absolute; display:block;}
 #tttop {display:block; height:5px; margin-left:5px; overflow:hidden}
@@ -1226,7 +1243,7 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<div style='text-align:center;'>";
 	$endTimeTot = microtime(true);
 	$timeTot = round(($endTimeTot - $startTimeTot), 4);
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> and <a href='http://www.danedesigns.com' target='_blank' style='font-size:11px;'>Dane Designs</a> | Page generated in ".$timeTot." seconds.</span>";
+	echo "<span style='font-size:11px;'>Powered by <a href='http://phpliteadmin.googlecode.com' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
 	echo "</div>";
 }
 else //user is authorized - display the main application
@@ -1344,10 +1361,16 @@ else //user is authorized - display the main application
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$value = $_POST[$i.":".$fields[$j]];
+							$function = $_POST["function_".$i."_".$fields[$j]];
+							if($function!="")
+								$query .= $function."(";
 							if($value=="")
-								$query .= "NULL,";
+								$query .= "NULL";
 							else
-								$query .= $db->quote($value).",";
+								$query .= $db->quote($value);
+							if($function!="")
+								$query .= ")";
+							$query .= ",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ")";
@@ -1387,7 +1410,14 @@ else //user is authorized - display the main application
 					$query = "UPDATE ".$_GET['table']." SET ";
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						$query .= $fields[$j]."=".$db->quote($_POST[$pks[$i].":".$fields[$j]]).", ";
+						$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
+						$query .= $fields[$j]."=";
+						if($function!="")
+							$query .= $function."(";
+						$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
+						if($function!="")
+							$query .= ")";
+						$query .= ", ";
 					}
 					$query = substr($query, 0, sizeof($query)-3);
 					$query .= " WHERE ROWID = ".$pks[$i];
@@ -1644,7 +1674,7 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?action=table_create&confirm=1' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".$name."'/>";
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
       			for($k=0; $k<count($headings); $k++)
@@ -1745,7 +1775,7 @@ else //user is authorized - display the main application
 								{
 									$headers = array_keys($result[0]);
 
-									echo "<table border='0' cellpadding='2' cellspacing='1'>";
+									echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 									echo "<tr>";
 									for($j=0; $j<sizeof($headers); $j++)
 									{
@@ -1922,7 +1952,7 @@ else //user is authorized - display the main application
 					{
 						$headers = array_keys($result[0]);
 
-						echo "<table border='0' cellpadding='2' cellspacing='1'>";
+						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						for($j=0; $j<sizeof($headers); $j++)
 						{
@@ -1953,7 +1983,7 @@ else //user is authorized - display the main application
 					$result = $db->selectArray($query);
 
 					echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_search&done=1' method='post'>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td class='tdheader'>Field</td>";
 					echo "<td class='tdheader'>Type</td>";
@@ -2137,7 +2167,7 @@ else //user is authorized - display the main application
 					echo "</div><br/>";
 
 					echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					$query = "PRAGMA table_info('".$table."')";
 					$result = $db->selectArray($query);
 					$rowidColumn = sizeof($result);
@@ -2236,10 +2266,11 @@ else //user is authorized - display the main application
 				{
 					if($j>0)
 						echo "<input type='checkbox' value='ignore' name='".$j.":ignore' id='".$j."_ignore' checked='checked'/> Ignore<br/>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td class='tdheader'>Field</td>";
 					echo "<td class='tdheader'>Type</td>";
+					echo "<td class='tdheader'>Function</td>";
 					echo "<td class='tdheader'>Value</td>";
 					echo "</tr>";
 
@@ -2259,6 +2290,16 @@ else //user is authorized - display the main application
 						echo $type;
 						echo "</td>";
 						echo $tdWithClassLeft;
+						echo "<select name='function_".$j."_".$field."'>";
+						echo "<option value=''></option>";
+						$functions = unserialize(FUNCTIONS);
+						for($z=0; $z<sizeof($functions); $z++)
+						{
+							echo "<option value='".$functions[$z]."'>".$functions[$z]."</option>";
+						}
+						echo "</select>";
+						echo "</td>";
+						echo $tdWithClassLeft;
 						if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 							echo "<input type='text' name='".$j.":".$field."' onblur='changeIgnore(this, \"".$j."_ignore\")'/>";
 						else
@@ -2267,7 +2308,7 @@ else //user is authorized - display the main application
 						echo "</tr>";
 					}
 					echo "<tr>";
-					echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
 					echo "<input type='submit' value='Insert' class='btn'/>";
 					echo "</td>";
 					echo "</tr>";
@@ -2317,10 +2358,11 @@ else //user is authorized - display the main application
 							$query = "SELECT * FROM ".$_GET['table']." WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
-							echo "<table border='0' cellpadding='2' cellspacing='1'>";
+							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 							echo "<tr>";
 							echo "<td class='tdheader'>Field</td>";
 							echo "<td class='tdheader'>Type</td>";
+							echo "<td class='tdheader'>Function</td>";
 							echo "<td class='tdheader'>Value</td>";
 							echo "</tr>";
 
@@ -2339,6 +2381,16 @@ else //user is authorized - display the main application
 								echo $type;
 								echo "</td>";
 								echo $tdWithClassLeft;
+								echo "<select name='function_".$pks[$j]."_".$field."'>";
+								echo "<option value=''></option>";
+								$functions = unserialize(FUNCTIONS);
+								for($z=0; $z<sizeof($functions); $z++)
+								{
+									echo "<option value='".$functions[$z]."'>".$functions[$z]."</option>";
+								}
+								echo "</select>";
+								echo "</td>";
+								echo $tdWithClassLeft;
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 									echo "<input type='text' name='".$pks[$j].":".$field."' value='".$db->formatString($value)."'/>";
 								else
@@ -2347,7 +2399,7 @@ else //user is authorized - display the main application
 								echo "</tr>";
 							}
 							echo "<tr>";
-							echo "<td class='tdheader' style='text-align:right;' colspan='3'>";
+							echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
 							echo "<input type='submit' value='Save Changes' class='btn'/> ";
 							echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
 							echo "</td>";
@@ -2375,7 +2427,7 @@ else //user is authorized - display the main application
 				$result = $db->selectArray($query);
 
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete' method='post' name='checkForm'>";
-				echo "<table border='0' cellpadding='2' cellspacing='1'>";
+				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
 				echo "<td colspan='2'>";
 				echo "</td>";
@@ -2458,7 +2510,7 @@ else //user is authorized - display the main application
 				if(sizeof($result)>0)
 				{
 					echo "<h2>Indexes:</h2>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td colspan='1'>";
 					echo "</td>";
@@ -2532,7 +2584,7 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".$_POST['tablename']."&action=column_create&confirm=1' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".$name."'/>";
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
-					echo "<table border='0' cellpadding='2' cellspacing='1'>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
       			for($k=0; $k<count($headings); $k++)
@@ -2712,19 +2764,15 @@ else //user is authorized - display the main application
 
 		if($view=="structure") //database structure - view of all the tables
 		{
+			$query = "SELECT sqlite_version() AS sqlite_version";
+			$queryVersion = $db->select($query);
+			$realVersion = $queryVersion['sqlite_version'];
+			
 			echo "<b>Database name</b>: ".$db->getName()."<br/>";
 			echo "<b>Path to database</b>: ".$db->getPath()."<br/>";
 			echo "<b>Size of database</b>: ".$db->getSize()."<br/>";
 			echo "<b>Database last modified</b>: ".$db->getDate()."<br/>";
-			if($db->getType()=="SQLiteDatabase")
-			{
-				echo "<b>SQLite version</b>: ".sqlite_libversion()."<br/>";
-				echo "<b>SQLite encoding</b>: ".sqlite_libencoding()."<br/>";
-			}
-			if($db->getType()=="SQLite3")
-				echo "<b>SQLite version</b>: ".(SQLite3::version())."<br/>";
-			else
-				echo "<b>SQLite version</b>: ".$db->getVersion()."<br/>";
+			echo "<b>SQLite version</b>: ".$realVersion."<br/>";
 			echo "<b>SQLite extension</b>: ".$db->getType()."<br/>";
 			echo "<b>PHP version</b>: ".phpversion()."<br/><br/>";
 
@@ -2740,7 +2788,7 @@ else //user is authorized - display the main application
 				echo "No tables in database.<br/><br/>";
 			else
 			{
-				echo "<table border='0' cellpadding='2' cellspacing='1'>";
+				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
 				echo "<td class='tdheader'>Table</td>";
 				echo "<td class='tdheader' colspan='10'>Action</td>";
@@ -2869,7 +2917,7 @@ else //user is authorized - display the main application
 							{
 								$headers = array_keys($result[0]);
 
-								echo "<table border='0' cellpadding='2' cellspacing='1'>";
+								echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 								echo "<tr>";
 								for($j=0; $j<sizeof($headers); $j++)
 								{
