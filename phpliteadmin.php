@@ -1869,7 +1869,7 @@ else //user is authorized - display the main application
 				echo "<br/><br/>";
 				echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
 				echo "<input type='hidden' name='database_num' value='".$_SESSION['currentDB']."'/>";
-				echo "<input type='text' name='filename' value='".str_replace(" ", "_", $db->getName())."_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
+				echo "<input type='text' name='filename' value='".$db->getPath().".".$_GET['table'].".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
 				break;
@@ -2600,7 +2600,6 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
-						echo "<option value='INTEGER' selected='selected'>INTEGER</option>";
 						$types = unserialize(DATATYPES);
 						for($z=0; $z<sizeof($types); $z++)
 							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";
@@ -3001,7 +3000,7 @@ else //user is authorized - display the main application
 			echo "<br/><br/>";
 			echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
 			echo "<input type='hidden' name='database_num' value='".$_SESSION['currentDB']."'/>";
-			echo "<input type='text' name='filename' value='".str_replace(" ", "_", $db->getName())."_".date("n-j-y")."' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
+			echo "<input type='text' name='filename' value='".$db->getPath().".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
 			echo "</fieldset>";
 			echo "</form>";
 		}
