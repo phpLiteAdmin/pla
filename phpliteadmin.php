@@ -62,8 +62,8 @@ session_start(); //don't mess with this - required for the login session
 date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
 
 //toggle error reporting
-ini_set("display_errors", 1);
-error_reporting(E_STRICT | E_ALL);
+//ini_set("display_errors", 1);
+//error_reporting(E_STRICT | E_ALL);
 
 $startTimeTot = microtime(true); //start the timer to record page load time
 
@@ -2180,7 +2180,10 @@ else //user is authorized - display the main application
 					{
 						echo "<td class='tdheader'>";
 						echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
-						$orderTag = ($_SESSION['sort']==$result[$i][1] && $_SESSION['order']=="ASC") ? "DESC" : "ASC";
+						if(isset($_SESSION['sort']))
+							$orderTag = ($_SESSION['sort']==$result[$i][1] && $_SESSION['order']=="ASC") ? "DESC" : "ASC";
+						else
+							$orderTag = "ASC";
 						echo "&order=".$orderTag;
 						echo "'>".$result[$i][1]."</a>";
 						if(isset($_SESSION['sort']) && $_SESSION['sort']==$result[$i][1])
@@ -2239,6 +2242,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create row
 			case "row_create":
+				$fieldStr = "";
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=row_create' method='post'>";
 				echo "Restart insertion with ";
 				echo "<select name='num'>";
