@@ -1224,6 +1224,14 @@ var tooltip=function()
 </head>
 <body>
 <?php
+if(ini_get("register_globals")) //check whether register_globals is turned on - if it is, we need to not continue
+{
+	echo "<div class='confirm' style='margin:20px;'>";
+	echo "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.";
+	echo "</div>";
+	exit();
+}
+
 if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 {
 	echo "<div id='loginBox'>";
