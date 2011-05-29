@@ -91,7 +91,7 @@ define("VERSION", "1.8.5");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
-define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION['salt'])); //extra security - salted and encrypted password used for checking
+define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[$cookie_name.'_salt'])); //extra security - salted and encrypted password used for checking
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 
 //data types array
