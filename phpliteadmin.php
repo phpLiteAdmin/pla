@@ -34,7 +34,10 @@
 //password to gain access (change this to something more secure than 'admin')
 $password = "admin";
 
-//an array of databases that will appear in the application
+//directory relative to this file to search for SQLite databases (if false, manually list databases below)
+$directory = ".";
+
+//an array of databases that will appear in the application (if $directory is anything but false, $databases will be ignored)
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically if possible
 //the SQLite version of each database is determined automatically
 $databases = array
@@ -54,7 +57,6 @@ $databases = array
 // What should the name of the cookie be which contains the current password?
 // Changing this allows multiple phpLiteAdmin installs to work under the same domain.
 $cookie_name = 'pla3412';
-
 
 //end of the variables you may need to edit
 
@@ -100,6 +102,34 @@ define("DATATYPES", serialize($types));
 $functions = array("abs", "date", "datetime", "hex", "julianday", "length", "lower", "ltrim", "random", "round", "rtrim", "soundex", "time", "trim", "typeof", "upper");
 define("FUNCTIONS", serialize($functions));
 
+//if the user wants to scan a directory for databases, do so
+if($directory!==false)
+{
+	if(is_dir($directory)) //make sure the directory is valid
+	{
+		$arr = scandir($directory);
+		$databases = array();
+		$j = 0;
+		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
+		{
+			$file = pathinfo($arr[$i]);
+			$ext = strtolower($file['extension']);
+			if($ext=="sqlite" || $ext=="db" || $ext=="sqlite3" || $ext=="db3") //make sure the file is a valid SQLite database by checking its extension
+			{
+				$databases[$j]['path'] = $arr[$i];
+				$databases[$j]['name'] = $arr[$i];
+				$j++;
+			}
+		}
+	}
+	else //the directory is not valid - display error and exit
+	{
+		echo "<div class='confirm' style='margin:20px;'>";
+		echo "The directory you specified to scan for databases does not exist or is not a directory.";
+		echo "</div>";
+		exit();
+	}
+}
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
