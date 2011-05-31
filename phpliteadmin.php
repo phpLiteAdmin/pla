@@ -827,6 +827,10 @@ if(isset($_POST['import']))
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <title><?php echo PROJECT ?></title>
 
+<?php
+if(!file_exists("phpliteadmin.css")) //only use the inline stylesheet if an external one does not exist
+{
+?>
 <!-- begin the customizable stylesheet/theme -->
 <style type="text/css">
 /* overall styles for entire page */
@@ -1073,7 +1077,9 @@ fieldset
 #ttbot {display:block; height:5px; margin-left:5px; overflow:hidden}
 </style>
 <!-- end the customizable stylesheet/theme -->
-
+<?php
+}
+?>
 <!-- JavaScript Support -->
 <script type="text/javascript">
 //makes sure autoincrement can only be selected when integer type is selected
