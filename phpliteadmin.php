@@ -1065,19 +1065,41 @@ fieldset
 	-moz-border-radius-topleft:5px;
 	-moz-border-radius-topright:5px;
 }
-/* table */
-.viewTable
-{
-	
-}
 /* tooltip styles */
-#tt {position:absolute; display:block;}
-#tttop {display:block; height:5px; margin-left:5px; overflow:hidden}
-#ttcont {display:block; padding:2px 12px 3px 7px; margin-left:5px; background:#f3cece; color:#333}
-#ttbot {display:block; height:5px; margin-left:5px; overflow:hidden}
+#tt
+{
+	position:absolute;
+	display:block;
+}
+#tttop
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+#ttcont
+{
+	display:block;
+	padding:2px 12px 3px 7px;
+	margin-left:5px;
+	background:#f3cece;
+	color:#333
+}
+#ttbot
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
 </style>
 <!-- end the customizable stylesheet/theme -->
 <?php
+}
+else //an external stylesheet exists - import it
+{
+	echo 	"<link href='phpliteadmin.css' rel='stylesheet' type='text/css' />";
 }
 ?>
 <!-- JavaScript Support -->
