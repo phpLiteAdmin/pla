@@ -105,6 +105,9 @@ define("FUNCTIONS", serialize($functions));
 //if the user wants to scan a directory for databases, do so
 if($directory!==false)
 {
+	if($directory[strlen($directory)-1]=="/") //if user has a trailing slash in the directory, remove it
+		$directory = substr($directory, 0, strlen($directory)-1);
+		
 	if(is_dir($directory)) //make sure the directory is valid
 	{
 		$arr = scandir($directory);
@@ -118,7 +121,7 @@ if($directory!==false)
 				$ext = strtolower($file['extension']);
 				if($ext=="sqlite" || $ext=="db" || $ext=="sqlite3" || $ext=="db3") //make sure the file is a valid SQLite database by checking its extension
 				{
-					$databases[$j]['path'] = $arr[$i];
+					$databases[$j]['path'] = $directory."/".$arr[$i];
 					$databases[$j]['name'] = $arr[$i];
 					$j++;
 				}
@@ -2280,10 +2283,10 @@ else //user is authorized - display the main application
 						echo "</td>";
 						for($j=0; $j<sizeof($result); $j++)
 						{
-							if($result[$j][2]=="TEXT")
-								echo $tdWithClassLeft;
-							else
+							if(strtolower($result[$j][2])=="integer" || strtolower($result[$j][2])=="float" || strtolower($result[$j][2])=="real")
 								echo $tdWithClass;
+							else
+								echo $tdWithClassLeft;
 							// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
 							echo $db->formatString($arr[$i][$j]);
 							echo "</td>";
