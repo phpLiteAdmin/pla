@@ -18,6 +18,15 @@ INSTALLATION:
 	
 	7. Open a web browser and navigate to the uploaded phpliteadmin.php file. You will be prompted to enter a password. Use the same password you set in step 4.
 
+INSTALLING A THEME:
+	
+	1. Download the themes package from the project Downloads page.
+	
+	2. Unzip the file and choose your desired theme.
+	
+	3. Upload phpliteadmin.css from the theme's directory alongside phpliteadmin.php.
+	
+	4. Your theme will automatically override the default. 
 
 REQUIREMENTS:
 
