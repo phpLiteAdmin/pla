@@ -64,8 +64,8 @@ session_start(); //don't mess with this - required for the login session
 date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
 
 //toggle error reporting
-ini_set("display_errors", 1);
-error_reporting(E_STRICT | E_ALL);
+//ini_set("display_errors", 1);
+//error_reporting(E_STRICT | E_ALL);
 
 $startTimeTot = microtime(true); //start the timer to record page load time
 
