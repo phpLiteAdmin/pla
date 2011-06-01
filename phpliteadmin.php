@@ -886,6 +886,11 @@ h1 #version
 	color: #000000;
 	font-size: 16px;
 }
+/* logo text within logo */
+h1 #logo
+{
+	color:#000;
+}
 /* general header for various views */
 h2
 {
@@ -1299,7 +1304,7 @@ if(ini_get("register_globals")) //check whether register_globals is turned on - 
 if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 {
 	echo "<div id='loginBox'>";
-	echo "<h1>".PROJECT." <span id='version'>v".VERSION."</span></h1>";
+	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px; text-align:center;'>";
 	if(isset($_POST['login']))
 		echo "<span style='color:red;'>Incorrect password.</span><br/><br/>";
@@ -1590,8 +1595,8 @@ else //user is authorized - display the main application
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
 	echo "<h1>";
-	echo "<a href='".PAGE."' style='color:#000;'>";
-	echo PROJECT." <span id='version'>v".VERSION."</span>";
+	echo "<a href='".PAGE."'>";
+	echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
 	echo "</a>";
 	echo "</h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
