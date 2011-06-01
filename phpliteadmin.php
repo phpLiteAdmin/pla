@@ -1343,6 +1343,11 @@ else //user is authorized - display the main application
 		$_SESSION[COOKIENAME."currentDB"] = $_POST['database_switch'];
 		$currentDB = $databases[$_SESSION[COOKIENAME.'currentDB']];
 	}
+	else if(isset($_GET['switchdb']))
+	{
+		$_SESSION[COOKIENAME."currentDB"] = $_GET['switchdb'];
+		$currentDB = $databases[$_SESSION[COOKIENAME.'currentDB']];
+	}
 	if(isset($_SESSION[COOKIENAME.'currentDB']))
 		$currentDB = $databases[$_SESSION[COOKIENAME.'currentDB']];
 
@@ -1600,18 +1605,33 @@ else //user is authorized - display the main application
 	echo "</a>";
 	echo "</h1>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
-	echo "<form action='".PAGE."' method='post'>";
-	echo "<select name='database_switch'>";
-	for($i=0; $i<sizeof($databases); $i++)
+	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 	{
-		if($i==$_SESSION[COOKIENAME.'currentDB'])
-			echo "<option value='".$i."' selected='selected'>".$databases[$i]['name']."</option>";
-		else
-			echo "<option value='".$i."'>".$databases[$i]['name']."</option>";
+		for($i=0; $i<sizeof($databases); $i++)
+		{
+			if($i==$_SESSION[COOKIENAME.'currentDB'])
+				echo "<a href='".PAGE."?switchdb=".$i."' style='text-decoration:underline;'>".$databases[$i]['name']."</a>";
+			else
+				echo "<a href='".PAGE."?switchdb=".$i."'>".$databases[$i]['name']."</a>";
+			if($i<sizeof($databases)-1)
+				echo "<br/>";
+		}
 	}
-	echo "</select> ";
-	echo "<input type='submit' value='Go' class='btn'>";
-	echo "</form>";
+	else //there are a lot of databases - show a drop down menu
+	{
+		echo "<form action='".PAGE."' method='post'>";
+		echo "<select name='database_switch'>";
+		for($i=0; $i<sizeof($databases); $i++)
+		{
+			if($i==$_SESSION[COOKIENAME.'currentDB'])
+				echo "<option value='".$i."' selected='selected'>".$databases[$i]['name']."</option>";
+			else
+				echo "<option value='".$i."'>".$databases[$i]['name']."</option>";
+		}
+		echo "</select> ";
+		echo "<input type='submit' value='Go' class='btn'>";
+		echo "</form>";
+	}
 	echo "</fieldset>";
 	echo "<fieldset style='margin:15px;'><legend>";
 	echo "<a href='".PAGE."'";
