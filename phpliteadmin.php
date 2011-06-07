@@ -37,9 +37,11 @@ $password = "admin";
 //directory relative to this file to search for SQLite databases (if false, manually list databases below)
 $directory = ".";
 
-//an array of databases that will appear in the application (if $directory is anything but false, $databases will be ignored)
+//whether or not (true or false) to scan the subdirectories of the above directory infinitely deep
+$subdirectories = false;
+
+//if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically if possible
-//the SQLite version of each database is determined automatically
 $databases = array
 (
 	array
@@ -102,6 +104,39 @@ define("DATATYPES", serialize($types));
 $functions = array("abs", "date", "datetime", "hex", "julianday", "length", "lower", "ltrim", "random", "round", "rtrim", "soundex", "time", "trim", "typeof", "upper");
 define("FUNCTIONS", serialize($functions));
 
+//function to scan entire directory tree and subdirectories
+function dir_tree($dir)
+{
+	$path = '';
+	$stack[] = $dir;
+	while($stack)
+	{
+		$thisdir = array_pop($stack);
+		if($dircont = scandir($thisdir))
+		{
+			$i=0;
+			while(isset($dircont[$i]))
+			{
+				if($dircont[$i] !== '.' && $dircont[$i] !== '..')
+				{
+					$current_file = "{$thisdir}/{$dircont[$i]}";
+					if(is_file($current_file))
+					{
+						$path[] = "{$thisdir}/{$dircont[$i]}";
+					}
+					elseif (is_dir($current_file))
+					{
+						$path[] = "{$thisdir}/{$dircont[$i]}";
+						$stack[] = $current_file;
+					}
+				}
+				$i++;
+			}
+		}
+	}
+	return $path;
+}
+
 //if the user wants to scan a directory for databases, do so
 if($directory!==false)
 {
@@ -110,7 +145,10 @@ if($directory!==false)
 		
 	if(is_dir($directory)) //make sure the directory is valid
 	{
-		$arr = scandir($directory);
+		if($subdirectories===true)
+			$arr = dir_tree($directory);
+		else
+			$arr = scandir($directory);
 		$databases = array();
 		$j = 0;
 		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
@@ -635,15 +673,23 @@ class Database
 	{
 		if($this->type=="PDO")
 		{
-			$this->db->exec($query);
+			$success = $this->db->exec($query, $error);
 		}
 		else if($this->type=="SQLite3")
 		{
-			$this->db->exec($query);
+			$success = $this->db->exec($query, $error);
 		}
 		else
 		{
-			$this->db->queryExec($query);
+			$success = $this->db->queryExec($query, $error);
+		}
+		if(!$success)
+		{
+			return "Error in query: '".$error."'";
+		}
+		else
+		{
+			return true;	
 		}
 	}
 
@@ -680,7 +726,7 @@ class Database
 	//import
 	public function import($query)
 	{
-		$this->multiQuery($query);
+		return $this->multiQuery($query);
 	}
 
 	//export
@@ -819,7 +865,7 @@ if(isset($_POST['import']))
 {
 	$data = file_get_contents($_FILES["file"]["tmp_name"]);
 	$db = new Database($databases[$_SESSION[COOKIENAME.'currentDB']]);
-	$db->import($data);
+	$importSuccess = $db->import($data);
 }
 
 // here begins the HTML.
@@ -942,7 +988,7 @@ fieldset
 #leftNav
 {
 	float:left;
-	width:250px;
+	min-width:250px;
 	padding:0px;
 	border-color:#03F;
 	border-width:1px;
@@ -2007,7 +2053,10 @@ else //user is authorized - display the main application
 				if(isset($_POST['import']))
 				{
 					echo "<div class='confirm'>";
-					echo "Import was successful.";
+					if($importSuccess===true)
+						echo "Import was successful.";
+					else
+						echo $importSuccess;
 					echo "</div><br/>";
 				}
 				echo "<form method='post' action='".PAGE."?table=".$_GET['action']."&action=table_import' enctype='multipart/form-data'>";
