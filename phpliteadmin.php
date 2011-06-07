@@ -1564,10 +1564,14 @@ else //user is authorized - display the main application
 					for($j=0; $j<sizeof($fields); $j++)
 					{
 						$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
+						$null = $_POST[$pks[$i].":".$fields[$j]."_null"];
 						$query .= $fields[$j]."=";
 						if($function!="")
 							$query .= $function."(";
-						$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
+						if(isset($null))
+							$query .= "NULL";
+						else
+							$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
 						if($function!="")
 							$query .= ")";
 						$query .= ", ";
@@ -2564,6 +2568,7 @@ else //user is authorized - display the main application
 							echo "<td class='tdheader'>Field</td>";
 							echo "<td class='tdheader'>Type</td>";
 							echo "<td class='tdheader'>Function</td>";
+							echo "<td class='tdheader'>Null</td>";
 							echo "<td class='tdheader'>Value</td>";
 							echo "</tr>";
 
@@ -2592,15 +2597,24 @@ else //user is authorized - display the main application
 								echo "</select>";
 								echo "</td>";
 								echo $tdWithClassLeft;
+								if($result[$i][3]==0)
+								{
+									if($value==NULL)
+										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null' checked='checked'/>";
+									else
+										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null'/>";
+								}
+								echo "</td>";
+								echo $tdWithClassLeft;
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-									echo "<input type='text' name='".$pks[$j].":".$field."' value='".$db->formatString($value)."'/>";
+									echo "<input type='text' name='".$pks[$j].":".$field."' value='".$db->formatString($value)."' onblur='changeIgnore(this, \"".$j."\", \"".$pks[$j].":".$field."_null\")' />";
 								else
-									echo "<textarea name='".$pks[$j].":".$field."' wrap='hard' rows='1' cols='60'>".$db->formatString($value)."</textarea>";
+									echo "<textarea name='".$pks[$j].":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".$pks[$j].":".$field."_null\")'>".$db->formatString($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
 							echo "<tr>";
-							echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
+							echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
 							echo "<input type='submit' value='Save Changes' class='btn'/> ";
 							echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
 							echo "</td>";
