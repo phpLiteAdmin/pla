@@ -1494,6 +1494,10 @@ else //user is authorized - display the main application
 				$num = $_POST['numRows'];
 				$fields = explode(":", $_POST['fields']);
 				$z = 0;
+				
+				$query = "PRAGMA table_info('".$_GET['table']."')";
+				$result = $db->selectArray($query);
+				
 				for($i=0; $i<$num; $i++)
 				{
 					if(!isset($_POST[$i.":ignore"]))
@@ -1508,10 +1512,12 @@ else //user is authorized - display the main application
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$value = $_POST[$i.":".$fields[$j]];
+							$null = $_POST[$i.":".$fields[$j]."_null"];
+							$type = $result[$j][2];
 							$function = $_POST["function_".$i."_".$fields[$j]];
 							if($function!="")
 								$query .= $function."(";
-							if($value=="")
+							if(($type=="TEXT" && isset($null)) || ($type!="TEXT" && $value==""))
 								$query .= "NULL";
 							else
 								$query .= $db->quote($value);
