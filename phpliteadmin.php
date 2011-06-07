@@ -1783,11 +1783,19 @@ else //user is authorized - display the main application
 			//table actions
 			/////////////////////////////////////////////// create table
 			case "table_create":
+				$query = "SELECT name FROM sqlite_master WHERE type='table' AND name='".$_POST['tablename']."'";
+				$results = $db->selectArray($query);
+				if(sizeof($results)>0)
+					$exists = true;
+				else
+					$exists = false;
 				echo "<h2>Creating new table: '".$_POST['tablename']."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
 					echo "You must specify a table name.";
+				else if($exists)
+					echo "Table of the same name already exists.";
 				else
 				{
 					$num = intval($_POST['tablefields']);
