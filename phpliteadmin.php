@@ -1206,10 +1206,15 @@ function uncheckAll(field)
 	}
 }
 //unchecks the ignore checkbox if user has typed something into one of the fields for adding new rows
-function changeIgnore(area, e)
+function changeIgnore(area, e, u)
 {
 	if(area.value!="")
-		document.getElementById(e).checked = false;
+	{
+		if(document.getElementById(e)!=undefined)
+			document.getElementById(e).checked = false;
+		if(document.getElementById(u)!=undefined)
+			document.getElementById(u).checked = false;
+	}
 }
 //moves fields from select menu into query textarea for SQL tab
 function moveFields()
@@ -1432,8 +1437,8 @@ else //user is authorized - display the main application
 						$query .= $_POST[$i.'_field']." ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
-							$query .= "PRIMARY KEY ";
-						if(isset($_POST[$i.'_notnull']))
+							$query .= "PRIMARY KEY NOT NULL ";
+						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
 						if($_POST[$i.'_defaultvalue']!="")
 						{
@@ -2394,7 +2399,10 @@ else //user is authorized - display the main application
 							else
 								echo $tdWithClassLeft;
 							// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-							echo $db->formatString($arr[$i][$j]);
+							if($arr[$i][$j]==NULL)
+								echo "<i>NULL</i>";
+							else
+								echo $db->formatString($arr[$i][$j]);
 							echo "</td>";
 						}
 						echo "</tr>";
@@ -2453,6 +2461,7 @@ else //user is authorized - display the main application
 					echo "<td class='tdheader'>Field</td>";
 					echo "<td class='tdheader'>Type</td>";
 					echo "<td class='tdheader'>Function</td>";
+					echo "<td class='tdheader'>Null</td>";
 					echo "<td class='tdheader'>Value</td>";
 					echo "</tr>";
 
@@ -2482,15 +2491,19 @@ else //user is authorized - display the main application
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClassLeft;
+						if($result[$i][3]==0)
+							echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' checked='checked'/>";
+						echo "</td>";
+						echo $tdWithClassLeft;
 						if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-							echo "<input type='text' name='".$j.":".$field."' onblur='changeIgnore(this, \"".$j."_ignore\")'/>";
+							echo "<input type='text' name='".$j.":".$field."' onblur='changeIgnore(this, \"".$j."_ignore\", \"".$j.":".$field."_null\")'/>";
 						else
-							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."_ignore\")'></textarea>";
+							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."_ignore\", \"".$j.":".$field."_null\")'></textarea>";
 						echo "</td>";
 						echo "</tr>";
 					}
 					echo "<tr>";
-					echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
 					echo "<input type='submit' value='Insert' class='btn'/>";
 					echo "</td>";
 					echo "</tr>";
