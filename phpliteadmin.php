@@ -159,7 +159,10 @@ if($directory!==false)
 				$ext = strtolower($file['extension']);
 				if($ext=="sqlite" || $ext=="db" || $ext=="sqlite3" || $ext=="db3") //make sure the file is a valid SQLite database by checking its extension
 				{
-					$databases[$j]['path'] = $directory."/".$arr[$i];
+					if($subdirectories===true)
+						$databases[$j]['path'] = $arr[$i];
+					else
+						$databases[$j]['path'] = $directory."/".$arr[$i];
 					$databases[$j]['name'] = $arr[$i];
 					$j++;
 				}
