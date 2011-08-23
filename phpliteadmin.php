@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.8.7
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 6/5/11
+//  Last updated: 8/23/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -164,10 +164,24 @@ if($directory!==false)
 					else
 						$databases[$j]['path'] = $directory."/".$arr[$i];
 					$databases[$j]['name'] = $arr[$i];
+					// 22 August 2011: gkf fixed bug 49.
+					$perms = 0;
+					$perms += is_readable($databases[$j]['path']) ? 4 : 0;
+					$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
+					switch($perms)
+					{
+						case 6: $perms = "[rw] "; break;
+						case 4: $perms = "[r ] "; break;
+						case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
+						default: $perms = "[  ] "; break;
+					}
+					$databases[$j]['perms'] = $perms;
 					$j++;
 				}
 			}
 		}
+		// 22 August 2011: gkf fixed bug #50.
+		sort($databases);
 	}
 	else //the directory is not valid - display error and exit
 	{
@@ -177,6 +191,14 @@ if($directory!==false)
 		exit();
 	}
 }
+
+// 22 August 2011: gkf added this function to support display of
+//                 default values in the form used to INSERT new data.
+function deQuoteSQL($s)
+{
+	return trim(trim($s), "'");
+}
+
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
@@ -1697,6 +1719,8 @@ else //user is authorized - display the main application
 	{
 		for($i=0; $i<sizeof($databases); $i++)
 		{
+			// 22 August 2011: gkf fixed bug #49
+			echo $databases[$i]['perms'];
 			if($i==$_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".$i."' style='text-decoration:underline;'>".$databases[$i]['name']."</a>";
 			else
@@ -1709,12 +1733,13 @@ else //user is authorized - display the main application
 	{
 		echo "<form action='".PAGE."' method='post'>";
 		echo "<select name='database_switch'>";
+		// 22 August 2011: gkf fixed bug #49
 		for($i=0; $i<sizeof($databases); $i++)
 		{
 			if($i==$_SESSION[COOKIENAME.'currentDB'])
-				echo "<option value='".$i."' selected='selected'>".$databases[$i]['name']."</option>";
+				echo "<option value='".$i."' selected='selected'>".$databases[$i]['perms'].$databases[$i]['name']."</option>";
 			else
-				echo "<option value='".$i."'>".$databases[$i]['name']."</option>";
+				echo "<option value='".$i."'>".$databases[$i]['perms'].$databases[$i]['name']."</option>";
 		}
 		echo "</select> ";
 		echo "<input type='submit' value='Go' class='btn'>";
@@ -2485,7 +2510,8 @@ else //user is authorized - display the main application
 						$field = $result[$i][1];
 						if($j==0)
 							$fieldStr .= ":".$field;
-						$type = $result[$i][2];
+						$type = strtolower($result[$i][2]);
+						$scalarField = $type=="integer" || $type=="real" || $type=="null";
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 						echo "<tr>";
@@ -2506,16 +2532,16 @@ else //user is authorized - display the main application
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClassLeft;
-						if($result[$i][3]==0)
-							echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' checked='checked'/>";
-						echo "</td>";
-						echo $tdWithClassLeft;
-						if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-							echo "<input type='text' name='".$j.":".$field."' onblur='changeIgnore(this, \"".$j."_ignore\", \"".$j.":".$field."_null\")'/>";
+						// 22 August 2011: gkf fixed bug #55. The form is now prepopulated with the default values
+						//                 so that the insert proceeds normally.
+						// 22 August 2011: gkf fixed bug #53. The form now displays more of the text.
+						$type = strtolower($type);
+						if($scalarField)
+							echo "<input type='text' name='".$j.":".$field."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"".$j."_ignore\")'/>";
 						else
-							echo "<textarea name='".$j.":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."_ignore\", \"".$j.":".$field."_null\")'></textarea>";
-						echo "</td>";
-						echo "</tr>";
+							echo "<textarea name='".$j.":".$field."' rows='5' cols='60' onblur='changeIgnore(this, \"".$j."_ignore\")'>".deQuoteSQL($result[$i][4])."</textarea>";
+            		echo "</td>";
+            		echo "</tr>";
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
@@ -3109,7 +3135,8 @@ else //user is authorized - display the main application
 
 						echo "<div class='confirm'>";
 						echo "<b>";
-						if($isSelect && $result)
+						// 22 August 2011: gkf fixed bugs 46, 51 and 52.
+						if($isSelect && $result >= 0)
 						{
 							if($isSelect)
 							{
