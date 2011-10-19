@@ -1611,11 +1611,11 @@ else //user is authorized - display the main application
 					for($j=0; $j<sizeof($fields); $j++)
 					{
 						$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
-						$null = $_POST[$pks[$i].":".$fields[$j]."_null"];
+						$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
 						$query .= $fields[$j]."=";
 						if($function!="")
 							$query .= $function."(";
-						if(isset($null))
+						if($null)
 							$query .= "NULL";
 						else
 							$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
