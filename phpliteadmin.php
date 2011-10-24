@@ -793,7 +793,7 @@ class Database
 		}
 		else
 		{
-			return "'".$value."'";
+			return sqlite_escape_string($value);
 		}
 	}
 
