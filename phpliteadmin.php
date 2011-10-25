@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.8.9
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 10/19/11
+//  Last updated: 10/25/11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -28,20 +28,23 @@
 //
 ///////////////////////////////////////////////////////////////////////////
 
-
 //please report any bugs you encounter to http://code.google.com/p/phpliteadmin/issues/list
 
-//password to gain access (change this to something more secure than 'admin')
+
+//BEGIN USER-DEFINED VARIABLES
+//////////////////////////////
+
+//password to gain access
 $password = "admin";
 
-//directory relative to this file to search for SQLite databases (if false, manually list databases below)
+//directory relative to this file to search for SQLite databases (if false, manually list databases in the $databases variable)
 $directory = ".";
 
-//whether or not (true or false) to scan the subdirectories of the above directory infinitely deep
+//whether or not to scan the subdirectories of the above directory infinitely deep
 $subdirectories = false;
 
 //if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
-//if any of the databases do not exist as they are referenced by their path, they will be created automatically if possible
+//if any of the databases do not exist as they are referenced by their path, they will be created automatically
 $databases = array
 (
 	array
@@ -56,18 +59,24 @@ $databases = array
 	)
 );
 
-// What should the name of the cookie be which contains the current password?
-// Changing this allows multiple phpLiteAdmin installs to work under the same domain.
+//Changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
 $cookie_name = 'pla3412';
 
-//end of the variables you may need to edit
+//whether or not to put the app in debug mode where errors are outputted
+$debug = false;
+
+////////////////////////////
+//END USER-DEFINED VARIABLES
+
 
 session_start(); //don't mess with this - required for the login session
 date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
 
-//toggle error reporting
-ini_set("display_errors", 1);
-error_reporting(E_STRICT | E_ALL);
+if($debug==true)
+{
+	ini_set("display_errors", 1);
+	error_reporting(E_STRICT | E_ALL);
+}
 
 $startTimeTot = microtime(true); //start the timer to record page load time
 
@@ -810,9 +819,51 @@ class Database
 	}
 	
 	//export csv
-	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $line_terminated, $null, $fields_in_first_row)
+	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $line_terminated, $null, $crlf, $fields_in_first_row)
 	{
-		//to-do: write code to export the table(s) in csv format
+		$field_enclosed = stripslashes($field_enclosed);
+		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";
+		$result = $this->selectArray($query);
+		for($i=0; $i<sizeof($result); $i++)
+		{
+			$valid = false;
+			for($j=0; $j<sizeof($tables); $j++)
+			{
+				if($result[$i]['tbl_name']==$tables[$j])
+					$valid = true;
+			}
+			if($valid)
+			{
+				$query = "PRAGMA table_info('".$result[$i]['tbl_name']."')";
+				$temp = $this->selectArray($query);
+				$cols = array();
+				for($z=0; $z<sizeof($temp); $z++)
+					$cols[$z] = $temp[$z][1];
+				if($fields_in_first_row)
+				{
+					for($z=0; $z<sizeof($cols); $z++)
+					{
+						echo $field_enclosed.$cols[$z].$field_enclosed.$field_terminate;
+					}
+					echo "\r\n";	
+				}
+				$query = "SELECT * FROM ".$result[$i]['tbl_name'];
+				$arr = $this->selectArray($query, "assoc");
+				for($z=0; $z<sizeof($arr); $z++)
+				{
+					for($y=0; $y<sizeof($cols); $y++)
+					{
+						if($arr[$z][$cols[$y]]==NULL)
+							$arr[$z][$cols[$y]] = $null;
+						echo $field_enclosed.$arr[$z][$cols[$y]].$field_enclosed.$field_terminate;
+					}
+					if($z<sizeof($arr)-1)
+						echo "\r\n";	
+				}
+			}
+			if($i<sizeof($result)-1)
+				echo "\r\n";
+		}
 	}
 	
 	//export sql
@@ -959,8 +1010,15 @@ if(isset($_POST['export']))
 			$tables = array();
 			$tables[0] = $_POST['single_table'];
 		}
+		$field_terminate = $_POST['export_csv_fieldsterminated'];
+		$field_enclosed = $_POST['export_csv_fieldsenclosed'];
+		$field_escaped = $_POST['export_csv_fieldsescaped'];
+		$line_terminated = $_POST['export_csv_linesterminated'];
+		$null = $_POST['export_csv_replacenull'];
+		$crlf = isset($_POST['export_csv_crlf']);
+		$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
 		$db = new Database($databases[$_SESSION[COOKIENAME.'currentDB']]);
-		echo $db->export_csv($tables, NULL, NULL, NULL, NULL, NULL, NULL);
+		echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $line_terminated, $null, $crlf, $fields_in_first_row);
 	}
 	exit();
 }
@@ -2197,8 +2255,23 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
-				//add options for csv
-				echo "Sorry, but this feature does not exist yet. We don't know whether or not it is something important enough to invest time into developing, so convince us by creating an issue report on the phpLiteAdmin project page!";
+				echo "<div style='float:left;'>Fields terminated by</div>";
+				echo "<input type='text' value=';' name='export_csv_fieldsterminated' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Fields enclosed by</div>";
+				echo "<input type='text' value='\"' name='export_csv_fieldsenclosed' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Fields escaped by</div>";
+				echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Lines terminated by</div>";
+				echo "<input type='text' value='AUTO' name='export_csv_linesterminated' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Replace NULL by</div>";
+				echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<input type='checkbox' name='export_csv_crlf'/> Remove CRLF characters within fields<br/>";
+				echo "<input type='checkbox' checked='checked' name='export_csv_fieldnames'/> Put field names in first row";
 				echo "</fieldset>";
 				
 				echo "<div style='clear:both;'></div>";
@@ -3377,8 +3450,23 @@ else //user is authorized - display the main application
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
-			//add options for csv
-			echo "Sorry, but this feature does not exist yet. We don't know whether or not it is something important enough to invest time into developing, so convince us by creating an issue report on the phpLiteAdmin project page!";
+			echo "<div style='float:left;'>Fields terminated by</div>";
+			echo "<input type='text' value=';' name='export_csv_fieldsterminated' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Fields enclosed by</div>";
+			echo "<input type='text' value='\"' name='export_csv_fieldsenclosed' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Fields escaped by</div>";
+			echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Lines terminated by</div>";
+			echo "<input type='text' value='AUTO' name='export_csv_linesterminated' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Replace NULL by</div>";
+			echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<input type='checkbox' name='export_csv_crlf'/> Remove CRLF characters within fields<br/>";
+			echo "<input type='checkbox' checked='checked' name='export_csv_fieldnames'/> Put field names in first row";
 			echo "</fieldset>";
 			
 			echo "<div style='clear:both;'></div>";
