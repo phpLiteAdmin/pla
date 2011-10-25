@@ -37,7 +37,7 @@
 //password to gain access
 $password = "admin";
 
-//directory relative to this file to search for SQLite databases (if false, manually list databases in the $databases variable)
+//directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
 $directory = ".";
 
 //whether or not to scan the subdirectories of the above directory infinitely deep
@@ -201,6 +201,25 @@ function dir_tree($dir)
 	return $path;
 }
 
+//uuser is deleting a database
+if(isset($_GET['database_delete']))
+{
+	$dbpath = $_POST['database_delete'];
+	unlink($dbpath);
+	$_SESSION[COOKIENAME.'currentDB'] = 0;
+}
+
+//user is creating a new Database
+if(isset($_POST['new_dbname']))
+{
+	$dbname = $_POST['new_dbname'];
+	$dbpath = $_POST['new_dbname'];
+	$tdata = array();	
+	$tdata['name'] = $directory."/".$dbname;
+	$tdata['path'] = $directory."/".$dbpath;
+	$td = new Database($tdata);
+}
+
 //if the user wants to scan a directory for databases, do so
 if($directory!==false)
 {
@@ -246,6 +265,17 @@ if($directory!==false)
 		}
 		// 22 August 2011: gkf fixed bug #50.
 		sort($databases);
+		if(isset($tdata))
+		{
+			for($i=0; $i<sizeof($databases); $i++)
+			{
+				if($tdata['path'] == $databases[$i]['path'])
+				{
+					$_SESSION[COOKIENAME.'currentDB'] = $i;
+					break;
+				}
+			}
+		}
 	}
 	else //the directory is not valid - display error and exit
 	{
@@ -1585,9 +1615,23 @@ else //user is authorized - display the main application
 		$currentDB = $databases[0];
 	else //the database array is empty - show error and halt execution
 	{
-		echo "<div class='confirm' style='margin:20px;'>";
-		echo "Error: you have not specified any databases to manage.";
-		echo "</div><br/>";
+		if($directory!==false && is_writable($directory))
+		{
+			echo "<div class='confirm' style='margin:20px;'>";
+			echo "Welcome to phpLiteAdmin. It appears that you have selected to scan a directory for databases to manage. However, phpLiteAdmin could not find any valid SQLite databases. You may use the form below to create your first database.";
+			echo "</div>";	
+			echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b></legend>";
+			echo "<form name='create_database' method='post' action='".$_SERVER['PHP_SELF']."'>";
+			echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
+			echo "</form>";
+			echo "</fieldset>";
+		}
+		else
+		{
+			echo "<div class='confirm' style='margin:20px;'>";
+			echo "Error: The directory you specified does not contain any existing databases to manage, and the directory is not writable. This means you can't create any new databases using phpLiteAdmin. Either make the directory writable or manually upload databases to the directory.";
+			echo "</div><br/>";	
+		}
 		exit();
 	}
 
@@ -1938,6 +1982,16 @@ else //user is authorized - display the main application
 	if($j==0)
 		echo "No tables in database.";
 	echo "</fieldset>";
+	
+	if($directory!==false && is_writable($directory))
+	{
+		echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b></legend>";
+		echo "<form name='create_database' method='post' action='".$_SERVER['PHP_SELF']."'>";
+		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
+		echo "</form>";
+		echo "</fieldset>";
+	}
+	
 	echo "<div style='text-align:center;'>";
 	echo "<form action='".PAGE."' method='post'/>";
 	echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
@@ -3207,6 +3261,15 @@ else //user is authorized - display the main application
 		else
 			echo "class='tab'";
 		echo ">Vacuum</a>";
+		if($directory!==false && is_writable($directory))
+		{
+			echo "<a href='".PAGE."?view=delete' style='color:red;' ";
+			if($view=="delete")
+				echo "class='tab_pressed'";
+			else
+				echo "class='tab'";
+			echo ">Delete Database</a>";
+		}
 		echo "<div style='clear:both;'></div>";
 		echo "<div id='main'>";
 
@@ -3493,6 +3556,17 @@ else //user is authorized - display the main application
 			echo "<br/><br/>";
 			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
 			echo "</fieldset>";
+		}
+		else if($view=="delete")
+		{
+			echo "<form action='".PAGE."?database_delete=1' method='post'>";
+			echo "<div class='confirm'>";
+			echo "Are you sure you want to delete the database '".$db->getPath()."'?<br/><br/>";
+			echo "<input name='database_delete' value='".$db->getPath()."' type='hidden'/>";
+			echo "<input type='submit' value='Confirm' class='btn'/> ";
+			echo "<a href='".PAGE."'>Cancel</a>";
+			echo "</div>";
+			echo "</form>";	
 		}
 
 		echo "</div>";
