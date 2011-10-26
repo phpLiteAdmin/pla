@@ -109,6 +109,10 @@ define("FORCETYPE", false); //force the extension that will be used (set to fals
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
 define("DATATYPES", serialize($types));
 
+//accepted db extensions
+$exts = array("sqlite", "sqlite3", "db", "db3");
+define("EXTENSIONS", serialize($exts));
+
 //available SQLite functions array
 $functions = array("abs", "date", "datetime", "hex", "julianday", "length", "lower", "ltrim", "random", "round", "rtrim", "soundex", "time", "trim", "typeof", "upper");
 define("FUNCTIONS", serialize($functions));
@@ -214,8 +218,18 @@ if(isset($_POST['new_dbname']))
 {
 	$dbname = $_POST['new_dbname'];
 	$dbpath = $_POST['new_dbname'];
+	$info = pathinfo($dbpath);
+	if(!isset($info['extension']))
+		$dbpath = $dbpath.".db";
+	else
+	{
+		if(!in_array(strtolower($info['extension']), $exts))
+		{
+			$dbpath = $dbpath.".db";
+		}
+	}
 	$tdata = array();	
-	$tdata['name'] = $directory."/".$dbname;
+	$tdata['name'] = $dbname;
 	$tdata['path'] = $directory."/".$dbpath;
 	$td = new Database($tdata);
 }
@@ -240,7 +254,7 @@ if($directory!==false)
 			if(isset($file['extension']))
 			{
 				$ext = strtolower($file['extension']);
-				if($ext=="sqlite" || $ext=="db" || $ext=="sqlite3" || $ext=="db3") //make sure the file is a valid SQLite database by checking its extension
+				if(in_array(strtolower($ext), $exts)) //make sure the file is a valid SQLite database by checking its extension
 				{
 					if($subdirectories===true)
 						$databases[$j]['path'] = $arr[$i];
