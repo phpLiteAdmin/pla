@@ -1885,7 +1885,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['field_old']." ".$_POST['field']." ".$_POST['type'];
+				$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2946,7 +2946,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete' method='post' name='checkForm'>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				echo "<td colspan='2'>";
+				echo "<td colspan='3'>";
 				echo "</td>";
 				echo "<td class='tdheader'>Column #</td>";
 				echo "<td class='tdheader'>Field</td>";
@@ -2979,6 +2979,9 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					echo $tdWithClass;
 					echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
+					echo "</td>";
+					echo $tdWithClass;
+					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_edit&pk=".$fieldVal."'>edit</a>";
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_delete&pk=".$fieldVal."' style='color:red;'>delete</a>";
@@ -3178,7 +3181,92 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				//this section will contain the code for editing a column
+			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				echo "<h2>Editing column '".$_GET['pk']."' on table '".$_GET['table']."'</h2>";
+				if(!isset($_GET['pk']))
+					echo "You must specify a column.";
+				else if(!isset($_GET['table']) || $_GET['table']=="")
+					echo "You must specify a table name.";
+				else
+				{
+					$query = "PRAGMA table_info('".$_GET['table']."')";
+					$result = $db->selectArray($query);
+
+					for($i=0; $i<sizeof($result); $i++)
+					{
+						if($result[$i][1]==$_GET['pk'])
+						{
+							$colVal = $result[$i][0];
+							$fieldVal = $result[$i][1];
+							$typeVal = $result[$i][2];
+							$notnullVal = $result[$i][3];
+							$defaultVal = $result[$i][4];
+							$primarykeyVal = $result[$i][5];
+							break;
+						}
+					}
+					
+					$name = $_GET['table'];
+					echo "<form action='".PAGE."?table=".$name."&action=column_edit&confirm=1' method='post'>";
+					echo "<input type='hidden' name='tablename' value='".$name."'/>";
+					echo "<input type='hidden' name='oldvalue' value='".$_GET['pk']."'/>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+					echo "<tr>";
+					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
+      			for($k=0; $k<count($headings); $k++)
+						echo "<td class='tdheader'>".$headings[$k]."</td>";
+					echo "</tr>";
+				
+					$i = 0;
+					$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
+					echo "<tr>";
+					echo $tdWithClass;
+					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".$fieldVal."'/>";
+					echo "</td>";
+					echo $tdWithClass;
+					echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+					$types = unserialize(DATATYPES);
+					for($z=0; $z<sizeof($types); $z++)
+					{
+						if($types[$z]==$typeVal)
+							echo "<option value='".$types[$z]."' selected='selected'>".$types[$z]."</option>";
+						else
+							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";
+					}
+					echo "</select>";
+					echo "</td>";
+					echo $tdWithClass;
+					if($primarykeyVal)
+						echo "<input type='checkbox' name='".$i."_primarykey' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					if(1==2)
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					if($notnullVal)
+						echo "<input type='checkbox' name='".$i."_notnull' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					echo "<input type='text' name='".$i."_defaultvalue' value='".$defaultVal."' style='width:100px;'/>";
+					echo "</td>";
+					echo "</tr>";
+
+					echo "<tr>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
+					echo "<input type='submit' value='Edit' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
+					echo "</td>";
+					echo "</tr>";
+					echo "</table>";
+					echo "</form>";
+				}
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
