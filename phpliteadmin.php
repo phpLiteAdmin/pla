@@ -205,12 +205,29 @@ function dir_tree($dir)
 	return $path;
 }
 
-//uuser is deleting a database
+//user is deleting a database
 if(isset($_GET['database_delete']))
 {
 	$dbpath = $_POST['database_delete'];
 	unlink($dbpath);
 	$_SESSION[COOKIENAME.'currentDB'] = 0;
+}
+
+//user is renaming a database
+if(isset($_GET['database_rename']))
+{
+	$oldpath = $_POST['oldname'];
+	$newpath = $_POST['newname'];
+	if(!file_exists($newpath))
+	{
+		copy($oldpath, $newpath);
+		unlink($oldpath);
+		$justrenamed = true;
+	}
+	else
+	{
+		$dbexists = true;	
+	}
 }
 
 //user is creating a new Database
@@ -289,6 +306,18 @@ if($directory!==false)
 					break;
 				}
 			}
+		}
+		
+		if(isset($justrenamed))
+		{
+			for($i=0; $i<sizeof($databases); $i++)
+			{
+				if($newpath == $databases[$i]['path'])
+				{
+					$_SESSION[COOKIENAME.'currentDB'] = $i;
+					break;
+				}
+			}	
 		}
 	}
 	else //the directory is not valid - display error and exit
@@ -3181,8 +3210,8 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-			/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				echo "<h2>Editing column '".$_GET['pk']."' on table '".$_GET['table']."'</h2>";
+				echo "Due to the limitations of SQLite, only the field name and data type can be modified.<br/><br/>";
 				if(!isset($_GET['pk']))
 					echo "You must specify a column.";
 				else if(!isset($_GET['table']) || $_GET['table']=="")
@@ -3212,7 +3241,8 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='oldvalue' value='".$_GET['pk']."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
+					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
+					$headings = array("Field", "Type");
       			for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>".$headings[$k]."</td>";
 					echo "</tr>";
@@ -3235,6 +3265,7 @@ else //user is authorized - display the main application
 					}
 					echo "</select>";
 					echo "</td>";
+					/*
 					echo $tdWithClass;
 					if($primarykeyVal)
 						echo "<input type='checkbox' name='".$i."_primarykey' checked='checked'/> Yes";
@@ -3256,11 +3287,12 @@ else //user is authorized - display the main application
 					echo $tdWithClass;
 					echo "<input type='text' name='".$i."_defaultvalue' value='".$defaultVal."' style='width:100px;'/>";
 					echo "</td>";
+					*/
 					echo "</tr>";
 
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
-					echo "<input type='submit' value='Edit' class='btn'/> ";
+					echo "<input type='submit' value='Save Changes' class='btn'/> ";
 					echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
 					echo "</td>";
 					echo "</tr>";
@@ -3325,7 +3357,9 @@ else //user is authorized - display the main application
 		}
 		echo "</div>";
 	}
+	
 	$view = "structure";
+		
 	if(!isset($_GET['table']) && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create"))) //the absence of these fields means we are viewing the database homepage
 	{
 		if(isset($_GET['view']))
@@ -3365,6 +3399,13 @@ else //user is authorized - display the main application
 		echo ">Vacuum</a>";
 		if($directory!==false && is_writable($directory))
 		{
+			echo "<a href='".PAGE."?view=rename' ";
+			if($view=="rename")
+				echo "class='tab_pressed'";
+			else
+				echo "class='tab'";
+			echo ">Rename Database</a>";
+			
 			echo "<a href='".PAGE."?view=delete' style='color:red;' ";
 			if($view=="delete")
 				echo "class='tab_pressed'";
@@ -3658,6 +3699,17 @@ else //user is authorized - display the main application
 			echo "<br/><br/>";
 			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
 			echo "</fieldset>";
+		}
+		else if($view=="rename")
+		{
+			if(isset($dbexists))
+			{
+				echo "A database of that name already exists.<br/><br/>";	
+			}
+			echo "<form action='".PAGE."?view=rename&database_rename=1' method='post'>";
+			echo "<input type='hidden' name='oldname' value='".$db->getPath()."'/>";
+			echo "Rename database '".$db->getPath()."' to <input type='text' name='newname' style='width:200px;' value='".$db->getPath()."'/> <input type='submit' value='Rename' name='rename' class='btn'/>";
+			echo "</form>";	
 		}
 		else if($view=="delete")
 		{
