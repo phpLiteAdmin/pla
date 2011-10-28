@@ -1978,6 +1978,14 @@ else //user is authorized - display the main application
 					$error = true;
 				$completed = "Table '".$_GET['table']."' has been altered successfully.";
 				break;
+			/////////////////////////////////////////////// delete trigger
+			case "trigger_delete":
+				$query = "DROP TRIGGER ".$_GET['pk'];
+				$result = $db->query($query);
+				if(!$result)
+					$error = true;
+				$completed = "Trigger '".$_GET['pk']."' deleted.<br/><span style='font-size:11px;'>".$query."</span>";
+				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
 				$query = "DROP INDEX ".$_GET['pk'];
@@ -1985,6 +1993,25 @@ else //user is authorized - display the main application
 				if(!$result)
 					$error = true;
 				$completed = "Index '".$_GET['pk']."' deleted.<br/><span style='font-size:11px;'>".$query."</span>";
+				break;
+			/////////////////////////////////////////////// create trigger
+			case "trigger_create":
+				$str = "CREATE TRIGGER ".$_POST['trigger_name'];
+				if($_POST['beforeafter']!="")
+					$str .= " ".$_POST['beforeafter'];
+				$str .= " ".$_POST['event']." ON ".$_GET['table'];
+				if(isset($_POST['foreachrow']))
+					$str .= " FOR EACH ROW";
+				if($_POST['whenexpression']!="")
+					$str .= " WHEN ".$_POST['whenexpression'];
+				$str .= " BEGIN";
+				$str .= " ".$_POST['triggersteps'];
+				$str .= " END";
+				$query = $str;
+				$result = $db->query($query);
+				if(!$result)
+					$error = true;
+				$completed = "Trigger created.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
@@ -2127,7 +2154,7 @@ else //user is authorized - display the main application
 	}
 
 	//show the various tab views for a table
-	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search"))
+	if(!isset($_GET['confirm']) && isset($_GET['table']) && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search" || $_GET['action']=="table_triggers"))
 	{
 		echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view' ";
 		if($_GET['action']=="row_view")
@@ -3168,12 +3195,45 @@ else //user is authorized - display the main application
 							echo "</tr>";
 						}
 					}
-					echo "</table>";
+					echo "</table><br/><br/>";
 				}
+				
+				$query = "SELECT name FROM sqlite_master WHERE type='trigger' ORDER BY name";
+				$result = $db->selectArray($query);
+				if(sizeof($result)>0)
+				{
+					echo "<h2>Triggers:</h2>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+					echo "<tr>";
+					echo "<td colspan='1'>";
+					echo "</td>";
+					echo "<td class='tdheader'>Name</td>";
+					echo "</tr>";
+					for($i=0; $i<sizeof($result); $i++)
+					{
+						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+						echo "<tr>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=trigger_delete&pk=".$result[$i]['name']."' style='color:red;'>delete</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo $result[$i]['name'];
+						echo "</td>";
+					}
+					echo "</table><br/><br/>";
+				}
+				
 				echo "<form action='".PAGE."?table=".$_GET['table']."&action=index_create' method='post'>";
 				echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
 				echo "<br/><div class='tdheader'>";
 				echo "Create an index on <input type='text' name='numcolumns' style='width:30px;' value='1'/> columns <input type='submit' value='Go' name='addindex' class='btn'/>";
+				echo "</div>";
+				echo "</form>";
+				
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=trigger_create' method='post'>";
+				echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
+				echo "<br/><div class='tdheader'>";
+				echo "Create a new trigger <input type='submit' value='Go' name='addindex' class='btn'/>";
 				echo "</div>";
 				echo "</form>";
 				break;
@@ -3367,6 +3427,54 @@ else //user is authorized - display the main application
 				echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
 				echo "</div>";
 				echo "</form>";
+				break;
+			/////////////////////////////////////////////// delete trigger
+			case "trigger_delete":
+				echo "<form action='".PAGE."?table=".$_GET['table']."&action=trigger_delete&pk=".$_GET['pk']."&confirm=1' method='post'>";
+				echo "<div class='confirm'>";
+				echo "Are you sure you want to delete trigger '".$_GET['pk']."'?<br/><br/>";
+				echo "<input type='submit' value='Confirm' class='btn'/> ";
+				echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Cancel</a>";
+				echo "</div>";
+				echo "</form>";
+				break;
+			/////////////////////////////////////////////// create trigger
+			case "trigger_create":
+				echo "<h2>Creating new trigger on table '".$_POST['tablename']."'</h2>";
+				if($_POST['tablename']=="")
+					echo "You must specify a table name.";
+				else
+				{
+					echo "<form action='".PAGE."?table=".$_POST['tablename']."&action=trigger_create&confirm=1' method='post'>";
+					echo "Trigger name: <input type='text' name='trigger_name'/><br/><br/>";
+					echo "<fieldset><legend>Database Event</legend>";
+					echo "Before/After: ";
+					echo "<select name='beforeafter'>";
+					echo "<option value=''></option>";
+					echo "<option value='BEFORE'>BEFORE</option>";
+					echo "<option value='AFTER'>AFTER</option>";
+					echo "<option value='INSTEAD OF'>INSTEAD OF</option>";
+					echo "</select>";
+					echo "<br/><br/>";
+					echo "Event: ";
+					echo "<select name='event'>";
+					echo "<option value='DELETE'>DELETE</option>";
+					echo "<option value='INSERT'>INSERT</option>";
+					echo "<option value='UPDATE'>UPDATE</option>";
+					echo "</select>";
+					echo "</fieldset><br/><br/>";
+					echo "<fieldset><legend>Trigger Action</legend>";
+					echo "<input type='checkbox' name='foreachrow'/> For Each Row<br/><br/>";
+					echo "WHEN expression (type expression without 'WHEN'):<br/>";
+					echo "<textarea name='whenexpression' style='width:500px; height:100px;'></textarea>";
+					echo "<br/><br/>";
+					echo "Trigger Steps (semicolon terminated):<br/>";
+					echo "<textarea name='triggersteps' style='width:500px; height:100px;'></textarea>";
+					echo "</fieldset><br/><br/>";
+					echo "<input type='submit' value='Create Trigger' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".$_POST['tablename']."&action=column_view'>Cancel</a>";
+					echo "</form>";
+				}
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
