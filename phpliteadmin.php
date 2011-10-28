@@ -91,6 +91,11 @@ $debug = false;
 //END USER-DEFINED VARIABLES
 
 
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//there is no reason for the average user to edit anything below this comment
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 session_start(); //don't mess with this - required for the login session
 date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
 
