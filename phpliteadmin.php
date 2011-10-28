@@ -2864,7 +2864,7 @@ else //user is authorized - display the main application
 						echo $type;
 						echo "</td>";
 						echo $tdWithClassLeft;
-						echo "<select name='function_".$j."_".$field."'>";
+						echo "<select name='function_".$j."_".$field."' onchange='notNull(\"".$j.":".$field."_null\");'>";
 						echo "<option value=''></option>";
 						$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
 						for($z=0; $z<sizeof($functions); $z++)
@@ -2971,7 +2971,7 @@ else //user is authorized - display the main application
 								echo $type;
 								echo "</td>";
 								echo $tdWithClassLeft;
-								echo "<select name='function_".$pks[$j]."_".$field."'>";
+								echo "<select name='function_".$pks[$j]."_".$field."' onchange='notNull(\"".$pks[$j].":".$field."_null\");'>";
 								echo "<option value=''></option>";
 								$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
 								for($z=0; $z<sizeof($functions); $z++)
