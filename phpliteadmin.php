@@ -67,9 +67,9 @@ $debug = false;
 
 //a list of custom functions that can be applied to columns in the databases
 //make sure to define every function below if it is not a core PHP function
-$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime');
+$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
 
-//define the custom functions
+//define all the non-core custom functions
 function md5rev($string)
 {
 	return strrev(md5($string));
@@ -81,6 +81,10 @@ function sha1rev($value)
 function mydate($value)
 {
 	return date("g:ia n/j/y", intval($value));
+}
+function myreplace($value)
+{
+	return ereg_replace("[^A-Za-z0-9]", "", strval($value));	
 }
 
 ////////////////////////////
