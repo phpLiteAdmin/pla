@@ -59,24 +59,18 @@ $databases = array
 	)
 );
 
-//Changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
-$cookie_name = 'pla3412';
-
-//whether or not to put the app in debug mode where errors are outputted
-$debug = false;
-
 //a list of custom functions that can be applied to columns in the databases
 //make sure to define every function below if it is not a core PHP function
 $custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
 
 //define all the non-core custom functions
-function md5rev($string)
+function md5rev($value)
 {
-	return strrev(md5($string));
+	return strrev(md5($value));
 }
 function sha1rev($value)
 {
-	return strrev(sha1($string));
+	return strrev(sha1($value));
 }
 function mydate($value)
 {
@@ -86,6 +80,12 @@ function myreplace($value)
 {
 	return ereg_replace("[^A-Za-z0-9]", "", strval($value));	
 }
+
+//changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
+$cookie_name = 'pla3412';
+
+//whether or not to put the app in debug mode where errors are outputted
+$debug = false;
 
 ////////////////////////////
 //END USER-DEFINED VARIABLES
