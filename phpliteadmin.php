@@ -516,6 +516,23 @@ class Database
 		array_push($this->fns, $name);	
 	}
 	
+	public function getError()
+	{
+		if($this->type=="PDO")
+		{
+			$e = $this->db->errorInfo();
+			return $e[2];	
+		}
+		else if($this->type=="SQLite3")
+		{
+			return $this->db->lastErrorMsg();
+		}
+		else
+		{
+			return sqlite_error_string($this->db->lastError());
+		}
+	}
+	
 	public function showError()
 	{
 		$classPDO = class_exists("PDO");
@@ -2003,9 +2020,9 @@ else //user is authorized - display the main application
 				if(isset($_POST['foreachrow']))
 					$str .= " FOR EACH ROW";
 				if($_POST['whenexpression']!="")
-					$str .= " WHEN ".$_POST['whenexpression'];
+					$str .= " WHEN ".stripslashes($_POST['whenexpression']);
 				$str .= " BEGIN";
-				$str .= " ".$_POST['triggersteps'];
+				$str .= " ".stripslashes($_POST['triggersteps']);
 				$str .= " END";
 				$query = $str;
 				$result = $db->query($query);
@@ -2140,13 +2157,13 @@ else //user is authorized - display the main application
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
 		if(isset($error) && $error) //an error occured during the action, so show an error message
-			echo "An error occured. This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
+			echo "Error: ".$db->getError().".<br/>This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
 		else //action was performed successfully - show success message
 			echo $completed;
 		echo "</div>";
 		if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
 			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Return</a>";
-		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete")
+		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
 			echo "<br/><br/><a href='".PAGE."?table=".$_GET['table']."&action=column_view'>Return</a>";
 		else
 			echo "<br/><br/><a href='".PAGE."'>Return</a>";
@@ -3198,8 +3215,9 @@ else //user is authorized - display the main application
 					echo "</table><br/><br/>";
 				}
 				
-				$query = "SELECT name FROM sqlite_master WHERE type='trigger' ORDER BY name";
+				$query = "SELECT * FROM sqlite_master WHERE type='trigger' AND tbl_name='".$_GET['table']."' ORDER BY name";
 				$result = $db->selectArray($query);
+				//print_r($result);
 				if(sizeof($result)>0)
 				{
 					echo "<h2>Triggers:</h2>";
@@ -3208,6 +3226,7 @@ else //user is authorized - display the main application
 					echo "<td colspan='1'>";
 					echo "</td>";
 					echo "<td class='tdheader'>Name</td>";
+					echo "<td class='tdheader'>SQL</td>";
 					echo "</tr>";
 					for($i=0; $i<sizeof($result); $i++)
 					{
@@ -3218,6 +3237,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo $result[$i]['name'];
+						echo "</td>";
+						echo $tdWithClass;
+						echo $result[$i]['sql'];
 						echo "</td>";
 					}
 					echo "</table><br/><br/>";
