@@ -2280,12 +2280,6 @@ else //user is authorized - display the main application
 			else
 				echo "class='tab'";
 			echo ">Export</a>";
-			echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_rename&view=1' ";
-			if($_GET['action']=="table_rename")
-				echo "class='tab_pressed'";
-			else
-				echo "class='tab'";
-			echo ">Rename</a>";
 			echo "<a href='".PAGE."?action=view_drop&table=".$_GET['table']."&view=1' ";
 			echo "class='tab' style='color:red;'";
 			echo ">Drop</a>";
@@ -3718,7 +3712,7 @@ else //user is authorized - display the main application
 			{
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				echo "<td class='tdheader'>Type</td>";
+				echo "<td class='tdheader'>Type <span style='font-size:11px; font-weight:normal;'>[<a onmouseover='tooltip.show(\"In the list below, there is a combination of tables and views\");' onmouseout='tooltip.hide();'>?</a>]</span></td>";
 				echo "<td class='tdheader'>Name</td>";
 				echo "<td class='tdheader' colspan='10'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
@@ -3809,7 +3803,7 @@ else //user is authorized - display the main application
 							echo "";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".$result[$i]['name']."&action=table_rename&view=1'>Rename</a>";
+							echo "";
 							echo "</td>";
 							echo $tdWithClass;
 							echo "";
@@ -3843,9 +3837,9 @@ else //user is authorized - display the main application
 			echo "<fieldset>";
 			echo "<legend><b>Create new view on database '".$db->getName()."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&confirm=1' method='post'>";
-			echo "Name: <input type='text' name='viewname' style='width:200px;'/><br/><br/>";
-			echo "Select Statement:<br/><textarea name='select' style='width:500px; height:50px;'></textarea><br/><br/>";
-			echo "<input type='submit' name='createtable' value='Create View' class='btn'/>";
+			echo "Name: <input type='text' name='viewname' style='width:200px;'/> ";
+			echo "Select Statement <span style='font-size:11px; font-weight:normal;'>[<a onmouseover='tooltip.show(\"When creating a view, you must write a SELECT SQL query that will be treated as a read-only table\");' onmouseout='tooltip.hide();'>?</a>]</span>: <input type='text' name='select' style='width:400px;'/> ";
+			echo "<input type='submit' name='createtable' value='Go' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
 		}
