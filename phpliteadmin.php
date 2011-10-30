@@ -95,7 +95,6 @@ $debug = false;
 //there is no reason for the average user to edit anything below this comment
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
 session_start(); //don't mess with this - required for the login session
 date_default_timezone_set(date_default_timezone_get()); //needed to fix STRICT warnings about timezone issues
 
@@ -1447,6 +1446,58 @@ fieldset
 	margin-left:5px;
 	overflow:hidden
 }
+/* help section */
+#helpq
+{
+	font-size:11px;
+	font-weight:normal;	
+}
+#help_container
+{
+	padding:0px;
+	font-size:16px;
+	margin-left:auto;
+	margin-right:auto;
+	background-color:#ffffff;
+}
+.help_outer
+{
+	background-color:#FFF;
+	padding:0px;
+	height:300px;
+	overflow:hidden;
+	position:relative;
+}
+.help_list
+{
+	padding:10px;
+	height:auto;	
+}
+
+.headd
+{
+	font-size:16px;
+	font-weight:bold;	
+	display:block;
+	padding:10px;
+	background-color:#e0ebf6;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	border-left-style:none;
+	border-right-style:none;
+}
+.help_inner
+{
+	padding:10px;	
+}
+.help_top
+{
+	display:block;
+	position:absolute;
+	right:10px;
+	bottom:10px;	
+}
 </style>
 <!-- end the customizable stylesheet/theme -->
 <?php
@@ -1454,6 +1505,56 @@ fieldset
 else //an external stylesheet exists - import it
 {
 	echo 	"<link href='phpliteadmin.css' rel='stylesheet' type='text/css' />";
+}
+if(isset($_GET['help'])) //this page is used as the popup help section
+{
+	//help section array
+	$help = array
+	(
+		'Tables vs. Views' => 
+			'On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href="http://en.wikipedia.org/wiki/View_(database)" target="_blank">http://en.wikipedia.org/wiki/View_(database)</a>',
+		'Writing a Select Statement for a New View' => 
+			'When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.',
+		'Export Structure to SQL File' => 
+			'During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.',
+		'Export Data to SQL File' => 
+			'During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).',
+		'Add Drop Table to Exported SQL File' => 
+			'During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.',
+		'Add Transaction to Exported SQL File' => 
+			'During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.',
+		'Add Comments to Exported SQL File' => 
+			'During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening.',
+	);
+	?>
+	</head>
+	<body>
+	<div id='help_container'>
+	<?php
+	echo "<div class='help_list'>";
+	echo "<span style='font-size:20px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";
+	foreach((array)$help as $key => $val)
+	{
+		echo "<a href='#".$key."'>".$key."</a><br/>";
+	}
+	echo "</div>";
+	echo "<br/><br/>";
+	foreach((array)$help as $key => $val)
+	{
+		echo "<div class='help_outer'>";
+		echo "<a class='headd' name='".$key."'>".$key."</a>";
+		echo "<div class='help_inner'>";
+		echo $val;
+		echo "</div>";
+		echo "<a class='help_top' href='#top'>Back to Top</a>";
+		echo "</div>";
+	}
+	?>
+	</div>
+	</body>
+	</html>
+	<?php
+	exit();		
 }
 ?>
 <!-- JavaScript Support -->
@@ -1679,6 +1780,17 @@ function toggleExports(val)
 	
 	document.getElementById("exportoptions_"+val).style.display = "block";	
 }
+
+function openHelp(section)
+{
+	PopupCenter('<?php echo PAGE."?help=1"; ?>#'+section, "Help Section");	
+}
+var helpsec = false;
+function PopupCenter(pageURL, title)
+{
+	helpsec = window.open(pageURL, title, "toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=0,width=400,height=300");
+} 
+
 </script>
 </head>
 <body>
@@ -2505,11 +2617,11 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure [<a onmouseover='tooltip.show(\"Creates the queries to add the tables and their columns\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-				echo "<input type='checkbox' checked='checked' name='data'/> Export with data [<a onmouseover='tooltip.show(\"Creates the queries to insert the table rows\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-				echo "<input type='checkbox' name='drop'/> Add DROP TABLE [<a onmouseover='tooltip.show(\"Creates the queries to remove the tables before potentially adding them so that errors do not occur if they already exist\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION [<a onmouseover='tooltip.show(\"Performs queries within transactions so that if an error occurs, the table is not returned to a partially incomplete and unusable state\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-				echo "<input type='checkbox' checked='checked' name='comments'/> Comments [<a onmouseover='tooltip.show(\"Adds comments to the file to explain what is happening in each part of it\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure <a href='javascript:openHelp(\"Export Structure to SQL File\");' class='helpq'>[?]</a><br/>";
+				echo "<input type='checkbox' checked='checked' name='data'/> Export with data <a href='javascript:openHelp(\"Export Data to SQL File\");' class='helpq'>[?]</a><br/>";
+				echo "<input type='checkbox' name='drop'/> Add DROP TABLE <a href='javascript:openHelp(\"Add Drop Table to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION <a href='javascript:openHelp(\"Add Transaction to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+				echo "<input type='checkbox' checked='checked' name='comments'/> Comments <a href='javascript:openHelp(\"Add Comments to Exported SQL File\");' class='helpq'>[?]</a><br/>";
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
@@ -3736,7 +3848,7 @@ else //user is authorized - display the main application
 			{
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				echo "<td class='tdheader'>Type <span style='font-size:11px; font-weight:normal;'>[<a onmouseover='tooltip.show(\"In the list below, there is a combination of tables and views\");' onmouseout='tooltip.hide();'>?</a>]</span></td>";
+				echo "<td class='tdheader'>Type <a href='javascript:openHelp(\"Tables vs. Views\");' class='helpq'>[?]</a></td>";
 				echo "<td class='tdheader'>Name</td>";
 				echo "<td class='tdheader' colspan='10'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
@@ -3862,7 +3974,7 @@ else //user is authorized - display the main application
 			echo "<legend><b>Create new view on database '".$db->getName()."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&confirm=1' method='post'>";
 			echo "Name: <input type='text' name='viewname' style='width:200px;'/> ";
-			echo "Select Statement <span style='font-size:11px; font-weight:normal;'>[<a onmouseover='tooltip.show(\"When creating a view, you must write a SELECT SQL query that will be treated as a read-only table\");' onmouseout='tooltip.hide();'>?</a>]</span>: <input type='text' name='select' style='width:400px;'/> ";
+			echo "Select Statement <a class='helpq' href='javascript:openHelp(\"Select Statement\")'>[?]</a>: <input type='text' name='select' style='width:400px;'/> ";
 			echo "<input type='submit' name='createtable' value='Go' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
@@ -4000,11 +4112,11 @@ else //user is authorized - display the main application
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure [<a onmouseover='tooltip.show(\"Creates the queries to add the tables and their columns\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-			echo "<input type='checkbox' checked='checked' name='data'/> Export with data [<a onmouseover='tooltip.show(\"Creates the queries to insert the table rows\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-			echo "<input type='checkbox' name='drop'/> Add DROP TABLE [<a onmouseover='tooltip.show(\"Creates the queries to remove the tables before potentially adding them so that errors do not occur if they already exist\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION [<a onmouseover='tooltip.show(\"Performs queries within transactions so that if an error occurs, the table is not returned to a partially incomplete and unusable state\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
-			echo "<input type='checkbox' checked='checked' name='comments'/> Comments [<a onmouseover='tooltip.show(\"Adds comments to the file to explain what is happening in each part of it\");' onmouseout='tooltip.hide();'>?</a>]<br/>";
+			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure <a href='javascript:openHelp(\"Export Structure to SQL File\");' class='helpq'>[?]</a><br/>";
+			echo "<input type='checkbox' checked='checked' name='data'/> Export with data <a href='javascript:openHelp(\"Export Data to SQL File\");' class='helpq'>[?]</a><br/>";
+			echo "<input type='checkbox' name='drop'/> Add DROP TABLE <a href='javascript:openHelp(\"Add Drop Table to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION <a href='javascript:openHelp(\"Add Transaction to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+			echo "<input type='checkbox' checked='checked' name='comments'/> Comments <a href='javascript:openHelp(\"Add Comments to Exported SQL File\");' class='helpq'>[?]</a><br/>";
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
