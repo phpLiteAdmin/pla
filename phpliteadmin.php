@@ -429,17 +429,6 @@ class Database
 		$this->fns = array();
 		try
 		{
-			if(file_exists($this->data["path"]) && !is_writable($this->data["path"])) //make sure the actual database file is writable
-			{
-				echo "<div class='confirm' style='margin:20px;'>";
-				echo "The database, '".$this->data["path"]."', is not writable. The application is unusable until you make it writable.";
-				echo "<form action='".PAGE."' method='post'/>";
-				echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
-				echo "</form>";
-				echo "</div><br/>";
-				exit();
-			}
-
 			if(!file_exists($this->data["path"]) && !is_writable(dirname($this->data["path"]))) //make sure the containing directory is writable if the database does not exist
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
@@ -2390,7 +2379,7 @@ else //user is authorized - display the main application
 
 							echo "<div class='confirm'>";
 							echo "<b>";
-							if($result)
+							if($result!==false)
 							{
 								if($isSelect)
 								{
@@ -2452,7 +2441,10 @@ else //user is authorized - display the main application
 
 				echo "<fieldset>";
 				echo "<legend><b>Run SQL query/queries on database '".$db->getName()."'</b></legend>";
-				echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_sql' method='post'>";
+				if(!isset($_GET['view']))
+					echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_sql' method='post'>";
+				else
+					echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_sql&view=1' method='post'>";
 				echo "<div style='float:left; width:70%;'>";
 				echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval'>".$queryStr."</textarea>";
 				echo "</div>";
@@ -2614,7 +2606,7 @@ else //user is authorized - display the main application
 
 					echo "<div class='confirm'>";
 					echo "<b>";
-					if($result)
+					if($result!==false)
 					{
 						$affected = sizeof($result);
 						echo "Showing ".$affected." row(s). ";
@@ -2654,15 +2646,23 @@ else //user is authorized - display the main application
 							echo "</tr>";
 						}
 						echo "</table><br/><br/>";
-						echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search'>Do Another Search</a>";
 					}
+					
+					if(!isset($_GET['view']))
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search'>Do Another Search</a>";
+					else
+						echo "<a href='".PAGE."?table=".$_GET['table']."&action=table_search&view=1'>Do Another Search</a>";
 				}
 				else
 				{
 					$query = "PRAGMA table_info('".$_GET['table']."')";
 					$result = $db->selectArray($query);
-
-					echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_search&done=1' method='post'>";
+					
+					if(!isset($_GET['view']))
+						echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_search&done=1' method='post'>";
+					else
+						echo "<form action='".PAGE."?table=".$_GET['table']."&action=table_search&view=1&done=1' method='post'>";
+						
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td class='tdheader'>Field</td>";
@@ -2845,7 +2845,13 @@ else //user is authorized - display the main application
 					echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
 					echo "<span style='font-size:11px;'>".$queryDisp."</span>";
 					echo "</div><br/>";
-
+					
+					if(isset($_GET['view']))
+					{
+						echo "'".$_GET['table']."' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records. <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo "<br/><br/>";	
+					}
+					
 					echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					$query = "PRAGMA table_info('".$table."')";
@@ -3233,6 +3239,24 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
 					echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields' class='btn'/>";
 					echo "</form>";
+				}
+				
+				$query = "SELECT sql FROM sqlite_master WHERE name='".$_GET['table']."'";
+				$master = $db->selectArray($query);
+				
+				echo "<br/>";
+				if(!isset($_GET['view']))
+					$typ = "table";
+				else
+					$typ = "view";
+				echo "<br/>";
+				echo "<div class='confirm'>";
+				echo "<b>Query used to create this ".$typ."</b><br/>";
+				echo "<span style='font-size:11px;'>".$master[0]['sql']."</span>";
+				echo "</div>";
+				echo "<br/>";
+				if(!isset($_GET['view']))
+				{
 					echo "<br/><hr/><br/>";
 					//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
 					$query = "PRAGMA index_list(".$_GET['table'].")";
