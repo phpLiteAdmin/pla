@@ -2293,9 +2293,9 @@ else //user is authorized - display the main application
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
 			if($result[$i]['type']=="table")
-				echo "[table] <a href='".PAGE."?action=row_view&table=".$result[$i]['name']."'";
+				echo "<span style='font-size:11px;'>[table]</span> <a href='".PAGE."?action=row_view&table=".$result[$i]['name']."'";
 			else
-				echo "[view] <a href='".PAGE."?action=row_view&table=".$result[$i]['name']."&view=1'";
+				echo "<span style='font-size:11px;'>[view]</span> <a href='".PAGE."?action=row_view&table=".$result[$i]['name']."&view=1'";
 			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
 				echo " style='text-decoration:underline;'";
 			echo ">".$result[$i]['name']."</a><br/>";
