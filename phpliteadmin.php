@@ -232,6 +232,12 @@ function dir_tree($dir)
 	return $path;
 }
 
+//the function echo the help [?] links to the documentation
+function helpLink($name)
+{
+	return "<a href='javascript:openHelp(\"".$name."\");' class='helpq' title='Help: ".$name."'>[?]</a>";	
+}
+
 //user is deleting a database
 if(isset($_GET['database_delete']))
 {
@@ -1447,7 +1453,7 @@ fieldset
 	overflow:hidden
 }
 /* help section */
-#helpq
+.helpq
 {
 	font-size:11px;
 	font-weight:normal;	
@@ -1455,7 +1461,7 @@ fieldset
 #help_container
 {
 	padding:0px;
-	font-size:16px;
+	font-size:12px;
 	margin-left:auto;
 	margin-right:auto;
 	background-color:#ffffff;
@@ -1476,7 +1482,7 @@ fieldset
 
 .headd
 {
-	font-size:16px;
+	font-size:14px;
 	font-weight:bold;	
 	display:block;
 	padding:10px;
@@ -1511,6 +1517,10 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	//help section array
 	$help = array
 	(
+		'SQLite Library Extensions' => 
+			'phpLiteAdmin uses PHP library extensions that allow interaction with SQLite databases. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.',
+		'Creating a New Database' => 
+			'When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the $directory variable.',
 		'Tables vs. Views' => 
 			'On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href="http://en.wikipedia.org/wiki/View_(database)" target="_blank">http://en.wikipedia.org/wiki/View_(database)</a>',
 		'Writing a Select Statement for a New View' => 
@@ -1532,7 +1542,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	<div id='help_container'>
 	<?php
 	echo "<div class='help_list'>";
-	echo "<span style='font-size:20px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";
+	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";
 	foreach((array)$help as $key => $val)
 	{
 		echo "<a href='#".$key."'>".$key."</a><br/>";
@@ -2025,36 +2035,86 @@ else //user is authorized - display the main application
 			case "row_edit":
 				$pks = explode(":", $_GET['pk']);
 				$fields = explode(":", $_POST['fieldArray']);
-
-				$completed = sizeof($pks)." row(s) affected.<br/><br/>";
+				
+				$z = 0;
+				
+				$query = "PRAGMA table_info('".$_GET['table']."')";
+				$result = $db->selectArray($query);
+				
+				if(isset($_POST['new_row']))
+					$completed = "";
+				else
+					$completed = sizeof($pks)." row(s) affected.<br/><br/>";
 
 				for($i=0; $i<sizeof($pks); $i++)
 				{
-					$query = "UPDATE ".$_GET['table']." SET ";
-					for($j=0; $j<sizeof($fields); $j++)
+					if(isset($_POST['new_row']))
 					{
-						$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
-						$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
-						$query .= $fields[$j]."=";
-						if($function!="")
-							$query .= $function."(";
-						if($null)
-							$query .= "NULL";
-						else
-							$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
-						if($function!="")
-							$query .= ")";
-						$query .= ", ";
+						$query = "INSERT INTO ".$_GET['table']." (";
+						for($j=0; $j<sizeof($fields); $j++)
+						{
+							$query .= $fields[$j].",";
+						}
+						$query = substr($query, 0, sizeof($query)-2);
+						$query .= ") VALUES (";
+						for($j=0; $j<sizeof($fields); $j++)
+						{
+							$value = $_POST[$pks[$i].":".$fields[$j]];
+							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
+							$type = $result[$j][2];
+							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
+							if($function!="")
+								$query .= $function."(";
+								//di - messed around with this logic for null values
+							if(($type=="TEXT" || $type=="BLOB") && $null==false)
+								$query .= $db->quote($value);
+							else if(($type=="INTEGER" || $type=="REAL") && $null==false && $value=="")
+								$query .= "NULL";
+							else if($null==true)
+								$query .= "NULL";
+							else
+								$query .= $db->quote($value);
+							if($function!="")
+								$query .= ")";
+							$query .= ",";
+						}
+						$query = substr($query, 0, sizeof($query)-2);
+						$query .= ")";
+						$result1 = $db->query($query);
+						if(!$result1)
+							$error = true;
+						$z++;
 					}
-					$query = substr($query, 0, sizeof($query)-3);
-					$query .= " WHERE ROWID = ".$pks[$i];
-					$result = $db->query($query);
-					if(!$result)
+					else
 					{
-						$error = true;
+						$query = "UPDATE ".$_GET['table']." SET ";
+						for($j=0; $j<sizeof($fields); $j++)
+						{
+							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
+							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
+							$query .= $fields[$j]."=";
+							if($function!="")
+								$query .= $function."(";
+							if($null)
+								$query .= "NULL";
+							else
+								$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
+							if($function!="")
+								$query .= ")";
+							$query .= ", ";
+						}
+						$query = substr($query, 0, sizeof($query)-3);
+						$query .= " WHERE ROWID = ".$pks[$i];
+						$result1 = $db->query($query);
+						if(!$result1)
+						{
+							$error = true;
+						}
 					}
 					$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
 				}
+				if(isset($_POST['new_row']))
+					$completed = $z." row(s) inserted.<br/><br/>".$completed;
 				break;
 			//column actions
 			/////////////////////////////////////////////// create column
@@ -2248,7 +2308,7 @@ else //user is authorized - display the main application
 	
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b></legend>";
+		echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b> ".helpLink("Creating a New Database")."</legend>";
 		echo "<form name='create_database' method='post' action='".$_SERVER['PHP_SELF']."'>";
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
 		echo "</form>";
@@ -2617,11 +2677,11 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure <a href='javascript:openHelp(\"Export Structure to SQL File\");' class='helpq'>[?]</a><br/>";
-				echo "<input type='checkbox' checked='checked' name='data'/> Export with data <a href='javascript:openHelp(\"Export Data to SQL File\");' class='helpq'>[?]</a><br/>";
-				echo "<input type='checkbox' name='drop'/> Add DROP TABLE <a href='javascript:openHelp(\"Add Drop Table to Exported SQL File\");' class='helpq'>[?]</a><br/>";
-				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION <a href='javascript:openHelp(\"Add Transaction to Exported SQL File\");' class='helpq'>[?]</a><br/>";
-				echo "<input type='checkbox' checked='checked' name='comments'/> Comments <a href='javascript:openHelp(\"Add Comments to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure ".helpLink("Export Structure to SQL File")."<br/>";
+				echo "<input type='checkbox' checked='checked' name='data'/> Export with data ".helpLink("Export Data to SQL File")."<br/>";
+				echo "<input type='checkbox' name='drop'/> Add DROP TABLE ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
+				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION ".helpLink("Add Transaction to Exported SQL File")."<br/>";
+				echo "<input type='checkbox' checked='checked' name='comments'/> Comments ".helpLink("Add Comments to Exported SQL File")."<br/>";
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
@@ -2977,7 +3037,10 @@ else //user is authorized - display the main application
 					for($i=0; $i<sizeof($result); $i++)
 					{
 						echo "<td class='tdheader'>";
-						echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
+						if(!isset($_GET['view']))
+							echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
+						else
+							echo "<a href='".PAGE."?action=row_view&table=".$table."&view=1&sort=".$result[$i][1];
 						if(isset($_SESSION[COOKIENAME.'sort']))
 							$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i][1] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
 						else
@@ -3239,6 +3302,7 @@ else //user is authorized - display the main application
 							}
 							echo "<tr>";
 							echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
+							echo "<input type='submit' name='new_row' value='Insert As New Row' class='btn'/> ";
 							echo "<input type='submit' value='Save Changes' class='btn'/> ";
 							echo "<a href='".PAGE."?table=".$_GET['table']."&action=row_view'>Cancel</a>";
 							echo "</td>";
@@ -3831,10 +3895,25 @@ else //user is authorized - display the main application
 			echo "<b>Size of database</b>: ".$db->getSize()."<br/>";
 			echo "<b>Database last modified</b>: ".$db->getDate()."<br/>";
 			echo "<b>SQLite version</b>: ".$realVersion."<br/>";
-			echo "<b>SQLite extension</b>: ".$db->getType()."<br/>";
+			echo "<b>SQLite extension</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";
 			echo "<b>PHP version</b>: ".phpversion()."<br/><br/>";
-
-			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
+			
+			if(isset($_GET['sort']))
+				$_SESSION[COOKIENAME.'sort'] = $_GET['sort'];
+			else
+				unset($_SESSION[COOKIENAME.'sort']);
+			if(isset($_GET['order']))
+				$_SESSION[COOKIENAME.'order'] = $_GET['order'];
+			else
+				unset($_SESSION[COOKIENAME.'order']);
+					
+			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view'";
+			$queryAdd = "";
+			if(isset($_SESSION[COOKIENAME.'sort']))
+				$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
+			if(isset($_SESSION[COOKIENAME.'order']))
+				$queryAdd .= " ".$_SESSION[COOKIENAME.'order'];
+			$query .= $queryAdd;
 			$result = $db->selectArray($query);
 
 			$j = 0;
@@ -3848,8 +3927,31 @@ else //user is authorized - display the main application
 			{
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				echo "<td class='tdheader'>Type <a href='javascript:openHelp(\"Tables vs. Views\");' class='helpq'>[?]</a></td>";
-				echo "<td class='tdheader'>Name</td>";
+				
+				echo "<td class='tdheader'>";
+				echo "<a href='".PAGE."?sort=type";
+				if(isset($_SESSION[COOKIENAME.'sort']))
+					$orderTag = ($_SESSION[COOKIENAME.'sort']=="type" && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+				else
+					$orderTag = "ASC";
+				echo "&order=".$orderTag;
+				echo "'>Type</a> ".helpLink("Tables vs. Views");
+				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="type")
+					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+				echo "</td>";
+				
+				echo "<td class='tdheader'>";
+				echo "<a href='".PAGE."?sort=name";
+				if(isset($_SESSION[COOKIENAME.'sort']))
+					$orderTag = ($_SESSION[COOKIENAME.'sort']=="name" && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+				else
+					$orderTag = "ASC";
+				echo "&order=".$orderTag;
+				echo "'>Name</a>";
+				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="name")
+					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+				echo "</td>";
+				
 				echo "<td class='tdheader' colspan='10'>Action</td>";
 				echo "<td class='tdheader'>Records</td>";
 				echo "</tr>";
@@ -3974,7 +4076,7 @@ else //user is authorized - display the main application
 			echo "<legend><b>Create new view on database '".$db->getName()."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&confirm=1' method='post'>";
 			echo "Name: <input type='text' name='viewname' style='width:200px;'/> ";
-			echo "Select Statement <a class='helpq' href='javascript:openHelp(\"Select Statement\")'>[?]</a>: <input type='text' name='select' style='width:400px;'/> ";
+			echo "Select Statement ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";
 			echo "<input type='submit' name='createtable' value='Go' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
@@ -4112,11 +4214,11 @@ else //user is authorized - display the main application
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure <a href='javascript:openHelp(\"Export Structure to SQL File\");' class='helpq'>[?]</a><br/>";
-			echo "<input type='checkbox' checked='checked' name='data'/> Export with data <a href='javascript:openHelp(\"Export Data to SQL File\");' class='helpq'>[?]</a><br/>";
-			echo "<input type='checkbox' name='drop'/> Add DROP TABLE <a href='javascript:openHelp(\"Add Drop Table to Exported SQL File\");' class='helpq'>[?]</a><br/>";
-			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION <a href='javascript:openHelp(\"Add Transaction to Exported SQL File\");' class='helpq'>[?]</a><br/>";
-			echo "<input type='checkbox' checked='checked' name='comments'/> Comments <a href='javascript:openHelp(\"Add Comments to Exported SQL File\");' class='helpq'>[?]</a><br/>";
+			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure ".helpLink("Export Structure to SQL File")."<br/>";
+			echo "<input type='checkbox' checked='checked' name='data'/> Export with data ".helpLink("Export Data to SQL File")."<br/>";
+			echo "<input type='checkbox' name='drop'/> Add DROP TABLE ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
+			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION ".helpLink("Add Transaction to Exported SQL File")."<br/>";
+			echo "<input type='checkbox' checked='checked' name='comments'/> Comments ".helpLink("Add Comments to Exported SQL File")."<br/>";
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
