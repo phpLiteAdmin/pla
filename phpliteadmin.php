@@ -1224,12 +1224,26 @@ h1
 	font-size: 24px;
 	background-color: #f3cece;
 	text-align: center;
-	margin-bottom: 10px;
 	color: #000;
 	border-top-left-radius:5px;
 	border-top-right-radius:5px;
 	-moz-border-radius-topleft:5px;
 	-moz-border-radius-topright:5px;
+}
+/* the div container for the links */
+#headerlinks
+{
+	text-align:center;
+	margin-bottom:10px;
+	padding:5px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	border-left-style:none;
+	border-right-style:none;
+	font-size:12px;
+	background-color:#e0ebf6;
+	font-weight:bold;
 }
 /* version text within the logo */
 h1 #version
@@ -1933,7 +1947,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
-				$query = "CREATE VIEW ".$_POST['viewname']." AS ".$_POST['select'];
+				$query = "CREATE VIEW ".$_POST['viewname']." AS ".stripslashes($_POST['select']);
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2246,6 +2260,11 @@ else //user is authorized - display the main application
 	echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
 	echo "</a>";
 	echo "</h1>";
+	echo "<div id='headerlinks'>";
+	echo "<a href='javascript:openHelp(\"top\");'>Documentation</a> | ";
+	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>License</a> | ";
+	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank'>Project Site</a>";
+	echo "</div>";
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 	{
