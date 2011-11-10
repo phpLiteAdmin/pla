@@ -3097,7 +3097,7 @@ else //user is authorized - display the main application
 							chart.draw(data, options);
 						}
 						</script>
-						<div id="chart_div" style="float:left;"></div>
+						<div id="chart_div" style="float:left;">If you can read this, it means the chart could not be generated. The data you are trying to view may not be appropriate for a chart.</div>
 						<?php
 						echo "<fieldset style='float:right; text-align:center;'><legend><b>Chart Settings</b></legend>";
 						echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
