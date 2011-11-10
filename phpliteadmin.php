@@ -3045,12 +3045,12 @@ else //user is authorized - display the main application
 							}
 						}
 						
-						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'charttype']))
-							$_SESSION[COOKIENAME.$_GET['table'].'charttype'] = "bar";
+						if(!isset($_SESSION[COOKIENAME.'charttype']))
+							$_SESSION[COOKIENAME.'charttype'] = "bar";
 							
 						if(isset($_POST['chartsettings']))
 						{
-							$_SESSION[COOKIENAME.$_GET['table'].'charttype'] = $_POST['charttype'];	
+							$_SESSION[COOKIENAME.'charttype'] = $_POST['charttype'];	
 							$_SESSION[COOKIENAME.$_GET['table'].'chartlabels'] = $_POST['chartlabels'];
 							$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $_POST['chartvalues'];
 						}
@@ -3084,12 +3084,13 @@ else //user is authorized - display the main application
 							var options = 
 							{
 								'width':700,
-								'height':700
+								'height':700,
+								'title':'<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']][1]." vs ".$result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']][1]; ?>'
 							};
 							<?php
-							if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="bar")
+							if($_SESSION[COOKIENAME.'charttype']=="bar")
 								echo "var chart = new google.visualization.BarChart(document.getElementById('chart_div'));";
-							else if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="pie")
+							else if($_SESSION[COOKIENAME.'charttype']=="pie")
 								echo "var chart = new google.visualization.PieChart(document.getElementById('chart_div'));";
 							else
 								echo "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));";
@@ -3103,15 +3104,15 @@ else //user is authorized - display the main application
 						echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
 						echo "Chart Type: <select name='charttype'>";
 						echo "<option value='bar'";
-						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="bar")
+						if($_SESSION[COOKIENAME.'charttype']=="bar")
 							echo " selected='selected'";
 						echo ">Bar Chart</option>";
 						echo "<option value='pie'";
-						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="pie")
+						if($_SESSION[COOKIENAME.'charttype']=="pie")
 							echo " selected='selected'";
 						echo ">Pie Chart</option>";
 						echo "<option value='line'";
-						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="line")
+						if($_SESSION[COOKIENAME.'charttype']=="line")
 							echo " selected='selected'";
 						echo ">Line Chart</option>";
 						echo "</select>";
