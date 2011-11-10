@@ -3045,7 +3045,7 @@ else //user is authorized - display the main application
 							}
 						}
 						
-						if(!isset($_SESSION[COOKIENAME.'charttype']))
+						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'charttype']))
 							$_SESSION[COOKIENAME.$_GET['table'].'charttype'] = "bar";
 							
 						if(isset($_POST['chartsettings']))
