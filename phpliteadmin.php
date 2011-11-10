@@ -1905,8 +1905,8 @@ else //user is authorized - display the main application
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ")";
-						$result = $db->query($query);
-						if(!$result)
+						$result1 = $db->query($query);
+						if(!$result1)
 							$error = true;
 						$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
 						$z++;
@@ -2816,6 +2816,10 @@ else //user is authorized - display the main application
 					unset($_SESSION[COOKIENAME.'sort']);
 					unset($_SESSION[COOKIENAME.'order']);	
 				}
+				if(isset($_POST['viewtype']))
+				{
+					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
+				}
 				
 				$query = "SELECT Count(*) FROM ".$_GET['table'];
 				$rowCount = $db->select($query);
@@ -2855,6 +2859,19 @@ else //user is authorized - display the main application
 					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 				else
 					echo "<input type='text' name='startRow' style='width:90px;' value='0'/>";
+				echo " as a ";
+				echo "<select name='viewtype'>";
+				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
+				{
+					echo "<option value='table' selected='selected'>Table</option>";
+					echo "<option value='chart'>Chart</option>";
+				}
+				else
+				{
+					echo "<option value='table'>Table</option>";
+					echo "<option value='chart' selected='selected'>Chart</option>";
+				}
+				echo "</select>";
 				echo "</form>";
 				echo "</div>";
 				
@@ -2927,82 +2944,207 @@ else //user is authorized - display the main application
 						echo "<br/><br/>";	
 					}
 					
-					echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
-					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					$query = "PRAGMA table_info('".$table."')";
 					$result = $db->selectArray($query);
 					$rowidColumn = sizeof($result);
-
-					echo "<tr>";
-					if(!isset($_GET['view']))
-						echo "<td colspan='3'></td>";
-
-					for($i=0; $i<sizeof($result); $i++)
+					
+					if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 					{
-						echo "<td class='tdheader'>";
-						if(!isset($_GET['view']))
-							echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
-						else
-							echo "<a href='".PAGE."?action=row_view&table=".$table."&view=1&sort=".$result[$i][1];
-						if(isset($_SESSION[COOKIENAME.'sort']))
-							$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i][1] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
-						else
-							$orderTag = "ASC";
-						echo "&order=".$orderTag;
-						echo "'>".$result[$i][1]."</a>";
-						if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']==$result[$i][1])
-							echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
-						echo "</td>";
-					}
-					echo "</tr>";
-
-					for($i=0; $i<sizeof($arr); $i++)
-					{
-						// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
-						$pk = $arr[$i][$rowidColumn];
-						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
-						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+						echo "<form action='".PAGE."?action=row_editordelete&table=".$table."' method='post' name='checkForm'>";
+						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						if(!isset($_GET['view']))
+							echo "<td colspan='3'></td>";
+	
+						for($i=0; $i<sizeof($result); $i++)
 						{
-							echo $tdWithClass;
-							echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
-							echo "</td>";
-							echo $tdWithClass;
-							// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-							echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=edit'>edit</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=delete' style='color:red;'>delete</a>";
-							echo "</td>";
-						}
-						for($j=0; $j<sizeof($result); $j++)
-						{
-							if(strtolower($result[$j][2])=="integer" || strtolower($result[$j][2])=="float" || strtolower($result[$j][2])=="real")
-								echo $tdWithClass;
+							echo "<td class='tdheader'>";
+							if(!isset($_GET['view']))
+								echo "<a href='".PAGE."?action=row_view&table=".$table."&sort=".$result[$i][1];
 							else
-								echo $tdWithClassLeft;
-							// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-							// di - i don't understand how SQLite returns null values. I played around with the conditional here and couldn't get empty strings to differeniate from actual null values...
-							if($arr[$i][$j]==NULL)
-								echo "<i>NULL</i>";
+								echo "<a href='".PAGE."?action=row_view&table=".$table."&view=1&sort=".$result[$i][1];
+							if(isset($_SESSION[COOKIENAME.'sort']))
+								$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i][1] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
 							else
-								echo $db->formatString($arr[$i][$j]);
+								$orderTag = "ASC";
+							echo "&order=".$orderTag;
+							echo "'>".$result[$i][1]."</a>";
+							if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']==$result[$i][1])
+								echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 							echo "</td>";
 						}
 						echo "</tr>";
+	
+						for($i=0; $i<sizeof($arr); $i++)
+						{
+							// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
+							$pk = $arr[$i][$rowidColumn];
+							$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+							$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+							echo "<tr>";
+							if(!isset($_GET['view']))
+							{
+								echo $tdWithClass;
+								echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
+								echo "</td>";
+								echo $tdWithClass;
+								// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
+								echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=edit'>edit</a>";
+								echo "</td>";
+								echo $tdWithClass;
+								echo "<a href='".PAGE."?table=".$table."&action=row_editordelete&pk=".$pk."&type=delete' style='color:red;'>delete</a>";
+								echo "</td>";
+							}
+							for($j=0; $j<sizeof($result); $j++)
+							{
+								if(strtolower($result[$j][2])=="integer" || strtolower($result[$j][2])=="float" || strtolower($result[$j][2])=="real")
+									echo $tdWithClass;
+								else
+									echo $tdWithClassLeft;
+								// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
+								// di - i don't understand how SQLite returns null values. I played around with the conditional here and couldn't get empty strings to differeniate from actual null values...
+								if($arr[$i][$j]==NULL)
+									echo "<i>NULL</i>";
+								else
+									echo $db->formatString($arr[$i][$j]);
+								echo "</td>";
+							}
+							echo "</tr>";
+						}
+						echo "</table>";
+						if(!isset($_GET['view']))
+						{
+							echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
+							echo "<select name='type'>";
+							echo "<option value='edit'>Edit</option>";
+							echo "<option value='delete'>Delete</option>";
+							echo "</select> ";
+							echo "<input type='submit' value='Go' name='massGo' class='btn'/>";
+						}
+						echo "</form>";
 					}
-					echo "</table>";
-					if(!isset($_GET['view']))
+					else
 					{
-						echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
-						echo "<select name='type'>";
-						echo "<option value='edit'>Edit</option>";
-						echo "<option value='delete'>Delete</option>";
-						echo "</select> ";
-						echo "<input type='submit' value='Go' name='massGo' class='btn'/>";
+						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']))
+						{
+							for($i=0; $i<sizeof($result); $i++)
+							{
+								if(strtolower($result[$i][2])=="text")
+									$_SESSION[COOKIENAME.$_GET['table'].'chartlabels'] = $i;
+							}
+						}
+						if(!isset($_SESSION[COOKIENAME.'chartlabels']))
+							$_SESSION[COOKIENAME.'chartlabels'] = 0;
+							
+						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']))
+						{
+							for($i=0; $i<sizeof($result); $i++)
+							{
+								if(strtolower($result[$i][2])=="integer" || strtolower($result[$i][2])=="float" || strtolower($result[$i][2])=="real")
+									$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $i;
+							}
+						}
+						
+						if(!isset($_SESSION[COOKIENAME.'charttype']))
+							$_SESSION[COOKIENAME.$_GET['table'].'charttype'] = "bar";
+							
+						if(isset($_POST['chartsettings']))
+						{
+							$_SESSION[COOKIENAME.$_GET['table'].'charttype'] = $_POST['charttype'];	
+							$_SESSION[COOKIENAME.$_GET['table'].'chartlabels'] = $_POST['chartlabels'];
+							$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $_POST['chartvalues'];
+						}
+						//begin chart view
+						?>
+						<script type='text/javascript' src='https://www.google.com/jsapi'></script>
+						<script type='text/javascript'>
+						google.load('visualization', '1.0', {'packages':['corechart']});
+						google.setOnLoadCallback(drawChart);
+						function drawChart()
+						{
+							var data = new google.visualization.DataTable();
+							data.addColumn('string', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']][1]; ?>');
+							data.addColumn('number', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']][1]; ?>');
+							data.addRows([
+							<?php
+							for($i=0; $i<sizeof($arr); $i++)
+							{
+								$label = str_replace("'", "", $db->formatString($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']]));
+								$value = $db->formatString($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']]);
+								
+								if($value==NULL || $value=="")
+									$value = 0;
+									
+								echo "['".$label."', ".$value."]";
+								if($i<sizeof($arr)-1)
+									echo ",";
+							}
+							?>
+							]);
+							var options = 
+							{
+								'width':700,
+								'height':700
+							};
+							<?php
+							if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="bar")
+								echo "var chart = new google.visualization.BarChart(document.getElementById('chart_div'));";
+							else if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="pie")
+								echo "var chart = new google.visualization.PieChart(document.getElementById('chart_div'));";
+							else
+								echo "var chart = new google.visualization.LineChart(document.getElementById('chart_div'));";
+							?>
+							chart.draw(data, options);
+						}
+						</script>
+						<div id="chart_div" style="float:left;"></div>
+						<?php
+						echo "<fieldset style='float:right; text-align:center;'><legend><b>Chart Settings</b></legend>";
+						echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
+						echo "Chart Type: <select name='charttype'>";
+						echo "<option value='bar'";
+						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="bar")
+							echo " selected='selected'";
+						echo ">Bar Chart</option>";
+						echo "<option value='pie'";
+						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="pie")
+							echo " selected='selected'";
+						echo ">Pie Chart</option>";
+						echo "<option value='line'";
+						if($_SESSION[COOKIENAME.$_GET['table'].'charttype']=="line")
+							echo " selected='selected'";
+						echo ">Line Chart</option>";
+						echo "</select>";
+						echo "<br/><br/>";
+						echo "Labels: <select name='chartlabels'>";
+						for($i=0; $i<sizeof($result); $i++)
+						{
+							if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']) && $_SESSION[COOKIENAME.$_GET['table'].'chartlabels']==$i)
+								echo "<option value='".$i."' selected='selected'>".$result[$i][1]."</option>";
+							else
+								echo "<option value='".$i."'>".$result[$i][1]."</option>";
+						}
+						echo "</select>";
+						echo "<br/><br/>";
+						echo "Values: <select name='chartvalues'>";
+						for($i=0; $i<sizeof($result); $i++)
+						{
+							if(strtolower($result[$i][2])=="integer" || strtolower($result[$i][2])=="float" || strtolower($result[$i][2])=="real")
+							{
+								if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']) && $_SESSION[COOKIENAME.$_GET['table'].'chartvalues']==$i)
+									echo "<option value='".$i."' selected='selected'>".$result[$i][1]."</option>";
+								else
+									echo "<option value='".$i."'>".$result[$i][1]."</option>";
+							}
+						}
+						echo "</select>";
+						echo "<br/><br/>";
+						echo "<input type='submit' name='chartsettings' value='Update' class='btn'/>";
+						echo "</form>";
+						echo "</fieldset>";
+						echo "<div style='clear:both;'></div>";
+						//end chart view
 					}
-					echo "</form>";
 				}
 				else if($rowCount>0)//no rows - do nothing
 				{
