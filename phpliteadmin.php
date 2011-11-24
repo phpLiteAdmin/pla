@@ -270,12 +270,12 @@ if(isset($_POST['new_dbname']))
 	$dbpath = $_POST['new_dbname'];
 	$info = pathinfo($dbpath);
 	if(!isset($info['extension']))
-		$dbpath = $dbpath.".db";
+		$dbpath = $dbpath.".".$exts[0];
 	else
 	{
 		if(!in_array(strtolower($info['extension']), $exts))
 		{
-			$dbpath = $dbpath.".db";
+			$dbpath = $dbpath.".".$exts[0];
 		}
 	}
 	$tdata = array();	
@@ -3079,12 +3079,23 @@ else //user is authorized - display the main application
 								if($i<sizeof($arr)-1)
 									echo ",";
 							}
+							$height = (sizeof($arr)+1) * 30;
+							if($height>1000)
+								$height = 1000;
+							else if($height<300)
+								$height = 300;
+							if($_SESSION[COOKIENAME.'charttype']=="pie")
+								$height = 800;
 							?>
 							]);
+							var chartWidth = document.getElementById("content").offsetWidth - document.getElementById("chartsettingsbox").offsetWidth - 100;
+							if(chartWidth>1000)
+								chartWidth = 1000;
+								
 							var options = 
 							{
-								'width':700,
-								'height':700,
+								'width':chartWidth,
+								'height':<?php echo $height; ?>,
 								'title':'<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']][1]." vs ".$result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']][1]; ?>'
 							};
 							<?php
@@ -3100,7 +3111,7 @@ else //user is authorized - display the main application
 						</script>
 						<div id="chart_div" style="float:left;">If you can read this, it means the chart could not be generated. The data you are trying to view may not be appropriate for a chart.</div>
 						<?php
-						echo "<fieldset style='float:right; text-align:center;'><legend><b>Chart Settings</b></legend>";
+						echo "<fieldset style='float:right; text-align:center;' id='chartsettingsbox'><legend><b>Chart Settings</b></legend>";
 						echo "<form action='".PAGE."?action=row_view&table=".$_GET['table']."' method='post'>";
 						echo "Chart Type: <select name='charttype'>";
 						echo "<option value='bar'";
