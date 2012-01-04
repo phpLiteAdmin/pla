@@ -266,8 +266,9 @@ if(isset($_GET['database_rename']))
 //user is creating a new Database
 if(isset($_POST['new_dbname']))
 {
-	$dbname = $_POST['new_dbname'];
-	$dbpath = $_POST['new_dbname'];
+	$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
+	$dbname = $str;
+	$dbpath = $str;
 	$info = pathinfo($dbpath);
 	if(!isset($info['extension']))
 		$dbpath = $dbpath.".".$exts[0];
@@ -902,9 +903,10 @@ class Database
 	//multiple query execution
 	public function multiQuery($query)
 	{
+		$error = "Unknown error.";
 		if($this->type=="PDO")
 		{
-			$success = $this->db->exec($query, $error);
+			$success = $this->db->exec($query);
 		}
 		else if($this->type=="SQLite3")
 		{
@@ -954,10 +956,17 @@ class Database
 		return htmlspecialchars(stripslashes($value));
 	}
 
-	//import
-	public function import($query)
+	//import sql
+	public function import_sql($query)
 	{
 		return $this->multiQuery($query);
+	}
+	
+	//import csv
+	public function import_csv($filename, $separator, $table)
+	{
+		//to do: CSV import - someone do it!!!!!!
+		return "CSV import not implemented yet. Anyone up for the task?";
 	}
 	
 	//export csv
@@ -1168,9 +1177,16 @@ if(isset($_POST['export']))
 //user is importing a file
 if(isset($_POST['import']))
 {
-	$data = file_get_contents($_FILES["file"]["tmp_name"]);
 	$db = new Database($databases[$_SESSION[COOKIENAME.'currentDB']]);
-	$importSuccess = $db->import($data);
+	if($_POST['import_type']=="sql")
+	{
+		$data = file_get_contents($_FILES["file"]["tmp_name"]);
+		$importSuccess = $db->import_sql($data);
+	}
+	else
+	{
+		$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['import_csv_separator'], $_POST['single_table']);
+	}
 }
 
 // here begins the HTML.
@@ -1687,6 +1703,14 @@ function toggleExports(val)
 	document.getElementById("exportoptions_csv").style.display = "none";	
 	
 	document.getElementById("exportoptions_"+val).style.display = "block";	
+}
+
+function toggleImports(val)
+{
+	document.getElementById("importoptions_sql").style.display = "none";	
+	document.getElementById("importoptions_csv").style.display = "none";	
+	
+	document.getElementById("importoptions_"+val).style.display = "block";	
 }
 
 function openHelp(section)
@@ -2628,10 +2652,27 @@ else //user is authorized - display the main application
 						echo $importSuccess;
 					echo "</div><br/>";
 				}
-				echo "<form method='post' action='".PAGE."?table=".$_GET['action']."&action=table_import' enctype='multipart/form-data'>";
-				echo "<fieldset><legend><b>File to import</b></legend>";
-				echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
+				echo "<form method='post' action='".PAGE."?table=".$_GET['table']."&action=table_import' enctype='multipart/form-data'>";
+				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import into ".$_GET['table']."</b></legend>";
+				echo "<input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> SQL";
+				echo "<br/><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> CSV";
+				echo "</fieldset>";
+				
+				echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>Options</b></legend>";
+				echo "No options";
+				echo "</fieldset>";
+				
+				echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
+				echo "<input type='hidden' value='".$_GET['table']."' name='single_table'/>";
+				echo "<div style='float:left;'>Separator</div>";
+				echo "<input type='text' value=',' name='import_csv_separator' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "</fieldset>";
+				
+				echo "<div style='clear:both;'></div>";
 				echo "<br/><br/>";
+				
+				echo "<fieldset><legend><b>File to import</b></legend>";
 				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
 				echo "</fieldset>";
 				break;
@@ -4313,13 +4354,44 @@ else //user is authorized - display the main application
 			if(isset($_POST['import']))
 			{
 				echo "<div class='confirm'>";
-				echo "Import was successful.";
+				if($importSuccess===true)
+					echo "Import was successful.";
+				else
+					echo $importSuccess;
 				echo "</div><br/>";
 			}
+			
 			echo "<form method='post' action='".PAGE."?view=import' enctype='multipart/form-data'>";
-			echo "<fieldset><legend><b>File to import</b></legend>";
-			echo "<input type='radio' name='export_type' checked='checked' value='sql'/> SQL";
+			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import</b></legend>";
+			echo "<input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> SQL";
+			echo "<br/><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> CSV";
+			echo "</fieldset>";
+			
+			echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>Options</b></legend>";
+			echo "No options";
+			echo "</fieldset>";
+			
+			echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
+			echo "<div style='float:left;'>Table that CSV pertains to</div>";
+			echo "<select name='single_table' style='float:right;'>";
+			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
+			$result = $db->selectArray($query);
+			for($i=0; $i<sizeof($result); $i++)
+			{
+				if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
+					echo "<option value='".$result[$i]['name']."'>".$result[$i]['name']."</option>";
+			}
+			echo "</select>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Separator</div>";
+			echo "<input type='text' value=',' name='import_csv_separator' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "</fieldset>";
+			
+			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
+			
+			echo "<fieldset><legend><b>File to import</b></legend>";
 			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
 			echo "</fieldset>";
 		}
