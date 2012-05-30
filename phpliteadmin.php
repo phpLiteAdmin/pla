@@ -2,13 +2,14 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.9.1
+//  Version: 1.9.2
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 11/3/11
+//  Last updated: 5/30/12
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
+//		 Christopher Kramer (crazy4chrissi@gmail.com)
 //
 //
 //  Copyright (C) 2011  phpLiteAdmin
@@ -124,7 +125,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.1");
+define("VERSION", "1.9.2");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
@@ -938,15 +939,16 @@ class Database
 	{
 		if($this->type=="PDO")
 		{
+			// PDO quote() escapes and adds quotes
 			return $this->db->quote($value);
 		}
 		else if($this->type=="SQLite3")
 		{
-			return $this->db->escapeString($value);
+			return "'".$this->db->escapeString($value)."'";
 		}
 		else
 		{
-			return sqlite_escape_string($value);
+			return "'".sqlite_escape_string($value)."'";
 		}
 	}
 
@@ -963,17 +965,59 @@ class Database
 	}
 	
 	//import csv
-	public function import_csv($filename, $separator, $table)
+	public function import_csv($filename, $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row)
 	{
-		//to do: CSV import - someone do it!!!!!!
-		return "CSV import not implemented yet. Anyone up for the task?";
+		// CSV import implemented by Christopher Kramer - http://www.christosoft.de
+		$csv_handle = fopen($filename,'r');
+		$csv_insert = "BEGIN;\n";
+		$csv_number_of_rows = 0;
+		// PHP requires enclosure defined, but has no problem if it was not used
+		if($field_enclosed=="") $field_enclosed='"';
+		// PHP requires escaper defined
+		if($field_escaped=="") $field_escaped='\\';
+		while(!feof($csv_handle))
+		{
+			$csv_data = fgetcsv($csv_handle, 0, $field_terminate, $field_enclosed, $field_escaped); 
+			if($csv_data[0] != NULL || count($csv_data)>1)
+			{
+				$csv_number_of_rows++;
+				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
+				$csv_col_number = count($csv_data);
+				$csv_insert .= "INSERT INTO $table VALUES (";
+				foreach($csv_data as $csv_col => $csv_cell)
+				{
+					if($csv_cell == $null) $csv_insert .= "NULL";
+					else
+					{
+						$csv_insert.= $this->quote($csv_cell);
+					}
+					if($csv_col == $csv_col_number-2 && $csv_data[$csv_col+1]=='')
+					{
+						// the CSV row ends with the separator (like old phpliteadmin exported)
+						break;
+					} 
+					if($csv_col < $csv_col_number-1) $csv_insert .= ",";
+				}
+				$csv_insert .= ");\n";
+				
+				if($csv_number_of_rows > 5000)
+				{
+					$csv_insert .= "COMMIT;\nBEGIN;\n";
+					$csv_number_of_rows = 0;
+				}
+			}
+		}
+		$csv_insert .= "COMMIT;";
+		fclose($csv_handle);
+		return $this->multiQuery($csv_insert);
+
 	}
 	
 	//export csv
-	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $line_terminated, $null, $crlf, $fields_in_first_row)
+	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		$field_enclosed = stripslashes($field_enclosed);
-		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
 		{
@@ -994,7 +1038,10 @@ class Database
 				{
 					for($z=0; $z<sizeof($cols); $z++)
 					{
-						echo $field_enclosed.$cols[$z].$field_enclosed.$field_terminate;
+						echo $field_enclosed.$cols[$z].$field_enclosed;
+						// do not terminate the last column!
+						if($z < sizeof($cols)-1)
+							echo $field_terminate;
 					}
 					echo "\r\n";	
 				}
@@ -1004,16 +1051,29 @@ class Database
 				{
 					for($y=0; $y<sizeof($cols); $y++)
 					{
-						if($arr[$z][$cols[$y]]==NULL)
-							$arr[$z][$cols[$y]] = $null;
-						echo $field_enclosed.$arr[$z][$cols[$y]].$field_enclosed.$field_terminate;
+						$cell = $arr[$z][$cols[$y]];
+						if($crlf)
+						{
+							$cell = str_replace("\n","", $cell);
+							$cell = str_replace("\r","", $cell);
+						}
+						$cell = str_replace($field_terminate,$field_escaped.$field_terminate,$cell);
+						$cell = str_replace($field_enclosed,$field_escaped.$field_enclosed,$cell);
+						// do not enclose NULLs
+						if($cell == NULL)
+							echo $null;  
+						else
+							echo $field_enclosed.$cell.$field_enclosed;
+						// do not terminate the last column!
+						if($y < sizeof($cols)-1)
+							echo $field_terminate;
 					}
 					if($z<sizeof($arr)-1)
 						echo "\r\n";	
 				}
+				if($i<sizeof($result)-1)
+					echo "\r\n";
 			}
-			if($i<sizeof($result)-1)
-				echo "\r\n";
 		}
 	}
 	
@@ -1164,12 +1224,11 @@ if(isset($_POST['export']))
 		$field_terminate = $_POST['export_csv_fieldsterminated'];
 		$field_enclosed = $_POST['export_csv_fieldsenclosed'];
 		$field_escaped = $_POST['export_csv_fieldsescaped'];
-		$line_terminated = $_POST['export_csv_linesterminated'];
 		$null = $_POST['export_csv_replacenull'];
 		$crlf = isset($_POST['export_csv_crlf']);
 		$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
 		$db = new Database($databases[$_SESSION[COOKIENAME.'currentDB']]);
-		echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $line_terminated, $null, $crlf, $fields_in_first_row);
+		echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
 	}
 	exit();
 }
@@ -1185,7 +1244,12 @@ if(isset($_POST['import']))
 	}
 	else
 	{
-		$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['import_csv_separator'], $_POST['single_table']);
+		$field_terminate = $_POST['import_csv_fieldsterminated'];
+		$field_enclosed = $_POST['import_csv_fieldsenclosed'];
+		$field_escaped = $_POST['import_csv_fieldsescaped'];
+		$null = $_POST['import_csv_replacenull'];
+		$fields_in_first_row = isset($_POST['import_csv_fieldnames']);
+		$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
 	}
 }
 
@@ -2621,9 +2685,6 @@ else //user is authorized - display the main application
 				echo "<div style='float:left;'>Fields escaped by</div>";
 				echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Lines terminated by</div>";
-				echo "<input type='text' value='AUTO' name='export_csv_linesterminated' style='float:right;'/>";
-				echo "<div style='clear:both;'>";
 				echo "<div style='float:left;'>Replace NULL by</div>";
 				echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
@@ -2664,9 +2725,19 @@ else //user is authorized - display the main application
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
 				echo "<input type='hidden' value='".$_GET['table']."' name='single_table'/>";
-				echo "<div style='float:left;'>Separator</div>";
-				echo "<input type='text' value=',' name='import_csv_separator' style='float:right;'/>";
+				echo "<div style='float:left;'>Fields terminated by</div>";
+				echo "<input type='text' value=';' name='import_csv_fieldsterminated' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Fields enclosed by</div>";
+				echo "<input type='text' value='\"' name='import_csv_fieldsenclosed' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>Fields escaped by</div>";
+				echo "<input type='text' value='\' name='import_csv_fieldsescaped' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<div style='float:left;'>NULL represented by</div>";
+				echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
+				echo "<div style='clear:both;'>";
+				echo "<input type='checkbox' checked='checked' name='import_csv_fieldnames'/> Field names in first row";
 				echo "</fieldset>";
 				
 				echo "<div style='clear:both;'></div>";
@@ -4329,9 +4400,6 @@ else //user is authorized - display the main application
 			echo "<div style='float:left;'>Fields escaped by</div>";
 			echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Lines terminated by</div>";
-			echo "<input type='text' value='AUTO' name='export_csv_linesterminated' style='float:right;'/>";
-			echo "<div style='clear:both;'>";
 			echo "<div style='float:left;'>Replace NULL by</div>";
 			echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
@@ -4383,9 +4451,19 @@ else //user is authorized - display the main application
 			}
 			echo "</select>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Separator</div>";
-			echo "<input type='text' value=',' name='import_csv_separator' style='float:right;'/>";
+			echo "<div style='float:left;'>Fields terminated by</div>";
+			echo "<input type='text' value=';' name='import_csv_fieldsterminated' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Fields enclosed by</div>";
+			echo "<input type='text' value='\"' name='import_csv_fieldsenclosed' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>Fields escaped by</div>";
+			echo "<input type='text' value='\' name='import_csv_fieldsescaped' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<div style='float:left;'>NULL represented by</div>";
+			echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
+			echo "<div style='clear:both;'>";
+			echo "<input type='checkbox' checked='checked' name='import_csv_fieldnames'/> Field names in first row";
 			echo "</fieldset>";
 			
 			echo "<div style='clear:both;'></div>";
