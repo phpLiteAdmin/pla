@@ -9,10 +9,10 @@
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
-//		 Christopher Kramer (crazy4chrissi@gmail.com)
+//     Christopher Kramer (crazy4chrissi@gmail.com)
 //
 //
-//  Copyright (C) 2011  phpLiteAdmin
+//  Copyright (C) 2012  phpLiteAdmin
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -1876,15 +1876,25 @@ else //user is authorized - display the main application
 			case "table_create":
 				$num = intval($_POST['rows']);
 				$name = $_POST['tablename'];
+				$primary_keys = array();
+				for($i=0; $i<$num; $i++)
+				{
+					if($_POST[$i.'_field']!="" && isset($_POST[$i.'_primarykey']))
+					{
+						$primary_keys[] = $_POST[$i.'_field'];
+					}
+				}
 				$query = "CREATE TABLE ".$name."(";
 				for($i=0; $i<$num; $i++)
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query .= $_POST[$i.'_field']." ";
+						$query .= $db->quote($_POST[$i.'_field'])." ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
-							$query .= "PRIMARY KEY NOT NULL ";
+						{
+							$query .= count($primary_keys)>1 ? "NOT NULL " : "PRIMARY KEY NOT NULL ";
+						}
 						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
 						if($_POST[$i.'_defaultvalue']!="")
@@ -1897,6 +1907,15 @@ else //user is authorized - display the main application
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ", ";
 					}
+				}
+				if (count($primary_keys)>1)
+				{
+					$compound_key = "";
+					foreach ($primary_keys as $primary_key)
+					{
+						$compound_key .= ($compound_key=="" ? "" : ", ") . $db->quote($primary_key);
+					}
+					$query .= "PRIMARY KEY (".$compound_key."), ";
 				}
 				$query = substr($query, 0, sizeof($query)-3);
 				$query .= ")";
