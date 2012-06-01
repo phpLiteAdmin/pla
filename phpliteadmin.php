@@ -2,9 +2,9 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.9.2
+//  Version: 1.9.3
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 5/30/12
+//  Last updated: 6/01/12
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -125,7 +125,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.2");
+define("VERSION", "1.9.3");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
@@ -1791,11 +1791,12 @@ function PopupCenter(pageURL, title)
 </head>
 <body>
 <?php
-if(ini_get("register_globals")) //check whether register_globals is turned on - if it is, we need to not continue
+if(ini_get("register_globals") == "on" || ini_get("register_globals")=="1") //check whether register_globals is turned on - if it is, we need to not continue
 {
 	echo "<div class='confirm' style='margin:20px;'>";
 	echo "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.";
 	echo "</div>";
+	echo "</body></html>";
 	exit();
 }
 
