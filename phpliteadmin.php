@@ -136,10 +136,6 @@ define("FORCETYPE", false); //force the extension that will be used (set to fals
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
 define("DATATYPES", serialize($types));
 
-//accepted db extensions
-$exts = array("sqlite", "sqlite3", "db", "db3");
-define("EXTENSIONS", serialize($exts));
-
 //available SQLite functions array (don't add anything here or there will be problems)
 $functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
 define("FUNCTIONS", serialize($functions));
@@ -236,7 +232,7 @@ function dir_tree($dir)
 //the function echo the help [?] links to the documentation
 function helpLink($name)
 {
-	return "<a href='javascript:openHelp(\"".$name."\");' class='helpq' title='Help: ".$name."'>[?]</a>";	
+	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='Help: ".$name."'>[?]</a>";	
 }
 
 //user is deleting a database
@@ -271,19 +267,11 @@ if(isset($_POST['new_dbname']))
 	$dbname = $str;
 	$dbpath = $str;
 	$info = pathinfo($dbpath);
-	if(!isset($info['extension']))
-		$dbpath = $dbpath.".".$exts[0];
-	else
-	{
-		if(!in_array(strtolower($info['extension']), $exts))
-		{
-			$dbpath = $dbpath.".".$exts[0];
-		}
-	}
 	$tdata = array();	
 	$tdata['name'] = $dbname;
 	$tdata['path'] = $directory."/".$dbpath;
 	$td = new Database($tdata);
+	$td->query("VACUUM");
 }
 
 //if the user wants to scan a directory for databases, do so
@@ -303,30 +291,27 @@ if($directory!==false)
 		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 		{
 			$file = pathinfo($arr[$i]);
-			if(isset($file['extension']))
+			$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
+			if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
 			{
-				$ext = strtolower($file['extension']);
-				if(in_array(strtolower($ext), $exts)) //make sure the file is a valid SQLite database by checking its extension
+				if($subdirectories===true)
+					$databases[$j]['path'] = $arr[$i];
+				else
+					$databases[$j]['path'] = $directory."/".$arr[$i];
+				$databases[$j]['name'] = $arr[$i];
+				// 22 August 2011: gkf fixed bug 49.
+				$perms = 0;
+				$perms += is_readable($databases[$j]['path']) ? 4 : 0;
+				$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
+				switch($perms)
 				{
-					if($subdirectories===true)
-						$databases[$j]['path'] = $arr[$i];
-					else
-						$databases[$j]['path'] = $directory."/".$arr[$i];
-					$databases[$j]['name'] = $arr[$i];
-					// 22 August 2011: gkf fixed bug 49.
-					$perms = 0;
-					$perms += is_readable($databases[$j]['path']) ? 4 : 0;
-					$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
-					switch($perms)
-					{
-						case 6: $perms = "[rw] "; break;
-						case 4: $perms = "[r ] "; break;
-						case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
-						default: $perms = "[  ] "; break;
-					}
-					$databases[$j]['perms'] = $perms;
-					$j++;
+					case 6: $perms = "[rw] "; break;
+					case 4: $perms = "[r ] "; break;
+					case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
+					default: $perms = "[  ] "; break;
 				}
+				$databases[$j]['perms'] = $perms;
+				$j++;
 			}
 		}
 		// 22 August 2011: gkf fixed bug #50.
@@ -362,6 +347,26 @@ if($directory!==false)
 		echo "</div>";
 		exit();
 	}
+}
+else
+{
+	for($i=0; $i<sizeof($databases); $i++)
+	{
+		if(!file_exists($databases[$i]['path']))
+			continue; //skip if file not found ! - probably a warning can be displayed - later
+		$perms = 0;
+		$perms += is_readable($databases[$i]['path']) ? 4 : 0;
+		$perms += is_writeable($databases[$i]['path']) ? 2 : 0;
+		switch($perms)
+		{
+			case 6: $perms = "[rw] "; break;
+			case 4: $perms = "[r ] "; break;
+			case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
+			default: $perms = "[  ] "; break;
+		}
+		$databases[$i]['perms'] = $perms;
+	}
+	sort($databases);
 }
 
 // 22 August 2011: gkf added this function to support display of
@@ -611,7 +616,7 @@ class Database
 	//get the size of the database
 	public function getSize()
 	{
-		return round(filesize($this->data["path"])*0.0009765625, 1)." Kb";
+		return round(filesize($this->data["path"])*0.0009765625, 1)." KB";
 	}
 
 	//get the last modified time of database
@@ -807,7 +812,7 @@ class Database
 					$oldcolumns .= ($oldcolumns?', ':'').$key;
 				}
 				$copytotempsql = 'INSERT INTO '.$tmpname.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$table;
-				$dropoldsql = 'DROP TABLE '.$table;
+				$dropoldsql = 'DROP TABLE `'.$table.'`';
 				$createtesttableSQL = $createtemptableSQL;
 				foreach($defs as $def)
 				{
@@ -870,7 +875,7 @@ class Database
 				$tempResult = $this->query($createtesttableSQL);
 				if(!$tempResult)
 					return false;
-				$droptempsql = 'DROP TABLE '.$tmpname;
+				$droptempsql = 'DROP TABLE `'.$tmpname.'`';
 				$tempResult = $this->query($droptempsql);
 				//end block
 
@@ -1258,7 +1263,7 @@ if(isset($_POST['import']))
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<!-- Copyright 2011 phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
+<!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <title><?php echo PROJECT ?></title>
 
@@ -1285,6 +1290,10 @@ a
 	text-decoration: none;
 	cursor :pointer;
 }
+a:hover
+{
+	color: #06F;
+}
 hr
 {
 	height: 1px;
@@ -1292,10 +1301,6 @@ hr
 	color: #bbb;
 	background-color: #bbb;
 	width: 100%;	
-}
-a:hover
-{
-	color: #06F;
 }
 /* logo text containing name of project */
 h1
@@ -1927,7 +1932,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
-				$query = "DELETE FROM ".$_POST['tablename'];
+				$query = "DELETE FROM `".$_POST['tablename']."`";
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -1947,7 +1952,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
-				$query = "DROP TABLE ".$_POST['tablename'];
+				$query = "DROP TABLE `".$_POST['tablename']."`";
 				$db->query($query);
 				$completed = "Table '".$_POST['tablename']."' has been dropped.";
 				break;
@@ -2253,7 +2258,7 @@ else //user is authorized - display the main application
 	echo "</a>";
 	echo "</h1>";
 	echo "<div id='headerlinks'>";
-	echo "<a href='javascript:openHelp(\"top\");'>Documentation</a> | ";
+	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>Documentation</a> | ";
 	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>License</a> | ";
 	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank'>Project Site</a>";
 	echo "</div>";
@@ -2605,7 +2610,7 @@ else //user is authorized - display the main application
 										for($z=0; $z<sizeof($headers); $z++)
 										{
 											echo $tdWithClass;
-											echo $result[$j][$headers[$z]];
+											echo htmlentities($result[$j][$headers[$z]]);
 											echo "</td>";
 										}
 										echo "</tr>";
@@ -2847,7 +2852,7 @@ else //user is authorized - display the main application
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								echo $result[$j][$headers[$z]];
+								echo htmlentities($result[$j][$headers[$z]]);
 								echo "</td>";
 							}
 							echo "</tr>";
@@ -3135,7 +3140,7 @@ else //user is authorized - display the main application
 									echo $tdWithClassLeft;
 								// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
 								// di - i don't understand how SQLite returns null values. I played around with the conditional here and couldn't get empty strings to differeniate from actual null values...
-								if($arr[$i][$j]==NULL)
+								if($arr[$i][$j]===NULL)
 									echo "<i>NULL</i>";
 								else
 									echo $db->formatString($arr[$i][$j]);
@@ -3369,7 +3374,7 @@ else //user is authorized - display the main application
 						echo $tdWithClassLeft;
 						if($result[$i][3]==0)
 						{
-							if($result[$i][4]==NULL)
+							if($result[$i][4]===NULL)
 								echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' checked='checked' onclick='disableText(this, \"".$j.":".$field."\");'/>";
 							else
 								echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' onclick='disableText(this, \"".$j.":".$field."\");'/>";
@@ -3475,7 +3480,7 @@ else //user is authorized - display the main application
 								echo $tdWithClassLeft;
 								if($result[$i][3]==0)
 								{
-									if($value==NULL)
+									if($value===NULL)
 										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null' checked='checked'/>";
 									else
 										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null'/>";
@@ -4343,7 +4348,7 @@ else //user is authorized - display the main application
 									for($z=0; $z<sizeof($headers); $z++)
 									{
 										echo $tdWithClass;
-										echo $result[$j][$headers[$z]];
+										echo htmlentities($result[$j][$headers[$z]]);
 										echo "</td>";
 									}
 									echo "</tr>";
@@ -4499,7 +4504,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				if($oldpath==$newpath)
-					echo "Error: You didn't change the value dumbass.";
+					echo "Error: You didn't change the value dumbass ;-)";
 				else
 					echo "Error: A database of the name '".$newpath."' already exists.";
 				echo "</div><br/>";
