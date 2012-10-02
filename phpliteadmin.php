@@ -290,7 +290,7 @@ if($directory!==false)
 		$j = 0;
 		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 		{
-			#if(!is_file($arr[$i])) continue;
+			if(!is_file($arr[$i])) continue;
 			$file = pathinfo($arr[$i]);
 			$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
 			if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
