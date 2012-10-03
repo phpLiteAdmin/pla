@@ -1098,6 +1098,9 @@ class Database
 		$query = "SELECT * FROM `sqlite_master` WHERE `type`='table' OR `type`='index' ORDER BY `type` DESC";
 		$result = $this->selectArray($query);
 
+		if($transaction)
+			echo "BEGIN TRANSACTION;\r\n";
+
 		//iterate through each table
 		for($i=0; $i<sizeof($result); $i++)
 		{
@@ -1164,15 +1167,13 @@ class Database
 							$vals[$z][$cols[$y]] = $this->quote($arr[$z][$cols[$y]]);
 						}
 					}
-					if($transaction)
-						echo "BEGIN TRANSACTION;\r\n";
 					for($j=0; $j<sizeof($vals); $j++)
 						echo "INSERT INTO `".$result[$i]['tbl_name']."` (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
-					if($transaction)
-						echo "COMMIT;\r\n";
 				}
 			}
 		}
+		if($transaction)
+			echo "COMMIT;\r\n";
 	}
 }
 
