@@ -1959,13 +1959,13 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
-				$query = "DROP VIEW ".$_POST['viewname'];
+				$query = "DROP VIEW `".$_POST['viewname']."`";
 				$db->query($query);
 				$completed = "View '".$_POST['viewname']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
-				$query = "ALTER TABLE ".$_POST['oldname']." RENAME TO ".$_POST['newname'];
+				$query = "ALTER TABLE `".$_POST['oldname']."` RENAME TO ".$_POST['newname'];
 				if($db->getVersion()==3)
 					$result = $db->query($query, true);
 				else
@@ -1989,10 +1989,10 @@ else //user is authorized - display the main application
 				{
 					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query = "INSERT INTO ".$_GET['table']." (";
+						$query = "INSERT INTO `".$_GET['table']."` (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= $fields[$j].",";
+							$query .= "`".$fields[$j]."`,";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2032,7 +2032,7 @@ else //user is authorized - display the main application
 			case "row_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "DELETE FROM ".$_GET['table']." WHERE ROWID = ".$pks[0];
+				$query = "DELETE FROM `".$_GET['table']."` WHERE ROWID = ".$pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
@@ -2062,10 +2062,10 @@ else //user is authorized - display the main application
 				{
 					if(isset($_POST['new_row']))
 					{
-						$query = "INSERT INTO ".$_GET['table']." (";
+						$query = "INSERT INTO `".$_GET['table']."` (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= $fields[$j].",";
+							$query .= "`".$fields[$j]."`,";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2099,12 +2099,12 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						$query = "UPDATE ".$_GET['table']." SET ";
+						$query = "UPDATE `".$_GET['table']."` SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
 							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
-							$query .= $fields[$j]."=";
+							$query .= "`".$fields[$j]."`=";
 							if($function!="")
 								$query .= $function."(";
 							if($null)
@@ -2136,7 +2136,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE ".$_GET['table']." ADD ".$_POST[$i.'_field']." ";
+						$query = "ALTER TABLE `".$_GET['table']."` ADD ".$_POST[$i.'_field']." ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2163,7 +2163,7 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE ".$_GET['table']." DROP ".$pks[0];
+				$query = "ALTER TABLE `".$_GET['table']."` DROP ".$pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
@@ -2176,7 +2176,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".$_GET['table']." CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
+				$query = "ALTER TABLE `".$_GET['table']."` CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2184,7 +2184,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
-				$query = "DROP TRIGGER ".$_GET['pk'];
+				$query = "DROP TRIGGER `".$_GET['pk']."`";
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2192,7 +2192,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
-				$query = "DROP INDEX ".$_GET['pk'];
+				$query = "DROP INDEX `".$_GET['pk']."`";
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
