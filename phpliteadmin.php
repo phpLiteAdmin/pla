@@ -1051,7 +1051,7 @@ class Database
 					}
 					echo "\r\n";	
 				}
-				$query = "SELECT * FROM ".$result[$i]['tbl_name'];
+				$query = "SELECT * FROM `".$result[$i]['tbl_name']."`";
 				$arr = $this->selectArray($query, "assoc");
 				for($z=0; $z<sizeof($arr); $z++)
 				{
@@ -1891,7 +1891,7 @@ else //user is authorized - display the main application
 						$primary_keys[] = $_POST[$i.'_field'];
 					}
 				}
-				$query = "CREATE TABLE ".$name."(";
+				$query = "CREATE TABLE '".$name."' (";
 				for($i=0; $i<$num; $i++)
 				{
 					if($_POST[$i.'_field']!="")
@@ -1965,7 +1965,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
-				$query = "ALTER TABLE `".$_POST['oldname']."` RENAME TO ".$_POST['newname'];
+				$query = "ALTER TABLE `".$_POST['oldname']."` RENAME TO '".$_POST['newname']."'";
 				if($db->getVersion()==3)
 					$result = $db->query($query, true);
 				else
@@ -2625,7 +2625,7 @@ else //user is authorized - display the main application
 				else
 				{
 					$delimiter = ";";
-					$queryStr = "SELECT * FROM ".$_GET['table']." WHERE 1";
+					$queryStr = "SELECT * FROM `".$_GET['table']."` WHERE 1";
 				}
 
 				echo "<fieldset>";
@@ -2797,13 +2797,13 @@ else //user is authorized - display the main application
 						if($value!="" || $operator=="!= ''" || $operator=="= ''")
 						{
 							if($operator=="= ''" || $operator=="!= ''")
-								$arr[$j] .= $field." ".$operator;
+								$arr[$j] = "`".$field."` ".$operator;
 							else
-								$arr[$j] .= $field." ".$operator." ".$db->quote($value);
+								$arr[$j] = "`".$field."` ".$operator." ".$db->quote($value);
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM ".$_GET['table'];
+					$query = "SELECT * FROM `".$_GET['table']."`";
 					if(sizeof($arr)>0)
 					{
 						$query .= " WHERE ".$arr[0];
@@ -2959,7 +2959,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
 				}
 				
-				$query = "SELECT Count(*) FROM ".$_GET['table'];
+				$query = "SELECT Count(*) FROM `".$_GET['table']."`";
 				$rowCount = $db->select($query);
 				$rowCount = intval($rowCount[0]);
 				$lastPage = intval($rowCount / $_SESSION[COOKIENAME.'numRows']);
@@ -3053,8 +3053,8 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
-				$query = "SELECT *, ROWID FROM ".$table;
-				$queryDisp = "SELECT * FROM ".$table;
+				$query = "SELECT *, ROWID FROM `".$table."`";
+				$queryDisp = "SELECT * FROM `".$table."`";
 				$queryAdd = "";
 				if(isset($_SESSION[COOKIENAME.'sort']))
 					$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -3442,7 +3442,7 @@ else //user is authorized - display the main application
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
-							$query = "SELECT * FROM ".$_GET['table']." WHERE ROWID = ".$pks[$j];
+							$query = "SELECT * FROM `".$_GET['table']."` WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
