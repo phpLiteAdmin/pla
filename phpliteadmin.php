@@ -782,7 +782,7 @@ class Database
 	{
 		if($alterdefs != '')
 		{
-			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = '".$table."' ORDER BY type DESC";
+			$tempQuery = "SELECT `sql`,`name`,`type` FROM `sqlite_master` WHERE `tbl_name` = '".$table."' ORDER BY `type` DESC";
 			$result = $this->query($tempQuery);
 			$resultArr = $this->selectArray($tempQuery);
 
@@ -810,9 +810,9 @@ class Database
 				while(list($key, $val) = each($newcols))
 				{
 					$newcolumns .= ($newcolumns?', ':'').$val;
-					$oldcolumns .= ($oldcolumns?', ':'').$key;
+					$oldcolumns .= ($oldcolumns?', ':'').'`'.$key.'`';
 				}
-				$copytotempsql = 'INSERT INTO '.$tmpname.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$table;
+				$copytotempsql = 'INSERT INTO `'.$tmpname.'`('.$newcolumns.') SELECT '.$oldcolumns.' FROM `'.$table.'`';
 				$dropoldsql = 'DROP TABLE `'.$table.'`';
 				$createtesttableSQL = $createtemptableSQL;
 				foreach($defs as $def)
@@ -887,9 +887,9 @@ class Database
 				while(list($key,$val) = each($newcols))
 				{
 					$newcolumns .= ($newcolumns?', ':'').$val;
-					$oldcolumns .= ($oldcolumns?', ':'').$key;
+					$oldcolumns .= ($oldcolumns?', ':'').'`'.$key.'`';
 				}
-				$copytonewsql = 'INSERT INTO '.$table.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$tmpname;
+				$copytonewsql = 'INSERT INTO `'.$table.'`('.$newcolumns.') SELECT '.$oldcolumns.' FROM `'.$tmpname.'`';
 
 				$this->query($createtemptableSQL); //create temp table
 				$this->query($copytotempsql); //copy to table
@@ -936,7 +936,7 @@ class Database
 	//get number of rows in table
 	public function numRows($table)
 	{
-		$result = $this->select("SELECT Count(*) FROM ".$table);
+		$result = $this->select("SELECT Count(*) FROM `".$table."`");
 		return $result[0];
 	}
 
@@ -989,7 +989,7 @@ class Database
 				$csv_number_of_rows++;
 				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
 				$csv_col_number = count($csv_data);
-				$csv_insert .= "INSERT INTO $table VALUES (";
+				$csv_insert .= "INSERT INTO `$table` VALUES (";
 				foreach($csv_data as $csv_col => $csv_cell)
 				{
 					if($csv_cell == $null) $csv_insert .= "NULL";
@@ -1023,7 +1023,7 @@ class Database
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		$field_enclosed = stripslashes($field_enclosed);
-		$query = "SELECT * FROM sqlite_master WHERE type='table' ORDER BY type DESC";
+		$query = "SELECT * FROM `sqlite_master` WHERE `type`='table' ORDER BY `type` DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
 		{
@@ -1095,7 +1095,7 @@ class Database
 			echo "-- Database file: ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
-		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";
+		$query = "SELECT * FROM `sqlite_master` WHERE `type`='table' OR `type`='index' ORDER BY `type` DESC";
 		$result = $this->selectArray($query);
 
 		//iterate through each table
@@ -1140,7 +1140,7 @@ class Database
 				}
 				if($data && $result[$i]['type']=="table")
 				{
-					$query = "SELECT * FROM ".$result[$i]['tbl_name'];
+					$query = "SELECT * FROM `".$result[$i]['tbl_name']."`";
 					$arr = $this->selectArray($query, "assoc");
 
 					if($comments)
@@ -1167,7 +1167,7 @@ class Database
 					if($transaction)
 						echo "BEGIN TRANSACTION;\r\n";
 					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO ".$result[$i]['tbl_name']." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
+						echo "INSERT INTO `".$result[$i]['tbl_name']."` (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
 					if($transaction)
 						echo "COMMIT;\r\n";
 				}
@@ -1945,7 +1945,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
-				$query = "CREATE VIEW ".$_POST['viewname']." AS ".stripslashes($_POST['select']);
+				$query = "CREATE VIEW '".$_POST['viewname']."' AS ".stripslashes($_POST['select']);
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2136,7 +2136,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE `".$_GET['table']."` ADD ".$_POST[$i.'_field']." ";
+						$query = "ALTER TABLE `".$_GET['table']."` ADD '".$_POST[$i.'_field']."' ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2163,11 +2163,11 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE `".$_GET['table']."` DROP ".$pks[0];
+				$query = "ALTER TABLE `".$_GET['table']."` DROP `".$pks[0]."`";
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
-					$query .= ", DROP ".$pks[$i];
+					$query .= ", DROP `".$pks[$i]."`";
 				}
 				$result = $db->query($query);
 				if(!$result)
@@ -2200,7 +2200,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
-				$str = "CREATE TRIGGER ".$_POST['trigger_name'];
+				$str = "CREATE TRIGGER '".$_POST['trigger_name']."'";
 				if($_POST['beforeafter']!="")
 					$str .= " ".$_POST['beforeafter'];
 				$str .= " ".$_POST['event']." ON ".$_GET['table'];
@@ -2233,7 +2233,7 @@ else //user is authorized - display the main application
 					$str = "CREATE ";
 					if($_POST['duplicate']=="no")
 						$str .= "UNIQUE ";
-					$str .= "INDEX ".$_POST['name']." ON ".$_GET['table']." (";
+					$str .= "INDEX '".$_POST['name']."' ON `".$_GET['table']."` (";
 					$str .= $_POST['0_field'].$_POST['0_order'];
 					for($i=1; $i<$num; $i++)
 					{
@@ -2302,7 +2302,7 @@ else //user is authorized - display the main application
 	echo ">".$currentDB['name']."</a>";
 	echo "</legend>";
 	//Display list of tables
-	$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
+	$query = "SELECT type, name FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
 	$result = $db->selectArray($query);
 	$j=0;
 	for($i=0; $i<sizeof($result); $i++)
@@ -2474,7 +2474,7 @@ else //user is authorized - display the main application
 			//table actions
 			/////////////////////////////////////////////// create table
 			case "table_create":
-				$query = "SELECT name FROM sqlite_master WHERE type='table' AND name='".$_POST['tablename']."'";
+				$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' AND `name`='".$_POST['tablename']."'";
 				$results = $db->selectArray($query);
 				if(sizeof($results)>0)
 					$exists = true;
@@ -3612,7 +3612,7 @@ else //user is authorized - display the main application
 					echo "</form>";
 				}
 				
-				$query = "SELECT sql FROM sqlite_master WHERE name='".$_GET['table']."'";
+				$query = "SELECT `sql` FROM `sqlite_master` WHERE `name`='".$_GET['table']."'";
 				$master = $db->selectArray($query);
 				
 				echo "<br/>";
@@ -3689,7 +3689,7 @@ else //user is authorized - display the main application
 						echo "</table><br/><br/>";
 					}
 					
-					$query = "SELECT * FROM sqlite_master WHERE type='trigger' AND tbl_name='".$_GET['table']."' ORDER BY name";
+					$query = "SELECT * FROM `sqlite_master` WHERE `type`='trigger' AND `tbl_name`='".$_GET['table']."' ORDER BY `name`";
 					$result = $db->selectArray($query);
 					//print_r($result);
 					if(sizeof($result)>0)
@@ -4102,7 +4102,7 @@ else //user is authorized - display the main application
 			else
 				unset($_SESSION[COOKIENAME.'order']);
 					
-			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view'";
+			$query = "SELECT `type`, `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view'";
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sort']))
 				$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -4395,7 +4395,7 @@ else //user is authorized - display the main application
 			echo "<form method='post' action='".PAGE."?view=export'>";
 			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Export</b></legend>";
 			echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
-			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
+			$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
 			$result = $db->selectArray($query);
 			for($i=0; $i<sizeof($result); $i++)
 			{
@@ -4468,7 +4468,7 @@ else //user is authorized - display the main application
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
 			echo "<div style='float:left;'>Table that CSV pertains to</div>";
 			echo "<select name='single_table' style='float:right;'>";
-			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
+			$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
 			$result = $db->selectArray($query);
 			for($i=0; $i<sizeof($result); $i++)
 			{
