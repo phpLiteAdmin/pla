@@ -468,6 +468,8 @@ class Database
 							$this->db->sqliteCreateFunction($cfns[$i], $cfns[$i], 1);
 							$this->addUserFunction($cfns[$i]);	
 						}
+						// use backtickt ` around identifiers such as column names in SQL
+						define("BT", '`');
 						break;
 					}
 				case (FORCETYPE=="SQLite3" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLite3") && ($ver==-1 || $ver==3))):
@@ -481,6 +483,8 @@ class Database
 							$this->addUserFunction($cfns[$i]);	
 						}
 						$this->type = "SQLite3";
+						// use backtickt ` around identifiers such as column names in SQL
+						define("BT", '`');
 						break;
 					}
 				case (FORCETYPE=="SQLiteDatabase" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLiteDatabase") && ($ver==-1 || $ver==2))):
@@ -494,6 +498,8 @@ class Database
 							$this->addUserFunction($cfns[$i]);	
 						}
 						$this->type = "SQLiteDatabase";
+						// DO NOT use backtickt ` around identifiers such as column names in SQL, because SQLiteDatabase does not support it
+						define("BT", '');
 						break;
 					}
 				default:
@@ -668,7 +674,7 @@ class Database
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
 			$queryparts = preg_split("/[\s]+/", $query, 4, PREG_SPLIT_NO_EMPTY);
-			$tablename = $queryparts[2];
+			$tablename = trim($queryparts[2],BT);
 			$alterdefs = $queryparts[3];
 			//echo $query;
 			$result = $this->alterTable($tablename, $alterdefs);
@@ -782,7 +788,7 @@ class Database
 	{
 		if($alterdefs != '')
 		{
-			$tempQuery = "SELECT `sql`,`name`,`type` FROM `sqlite_master` WHERE `tbl_name` = '".$table."' ORDER BY `type` DESC";
+			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = '".$table."' ORDER BY type DESC";
 			$result = $this->query($tempQuery);
 			$resultArr = $this->selectArray($tempQuery);
 
@@ -876,7 +882,7 @@ class Database
 				$tempResult = $this->query($createtesttableSQL);
 				if(!$tempResult)
 					return false;
-				$droptempsql = 'DROP TABLE `'.$tmpname.'`';
+				$droptempsql = 'DROP TABLE '.BT.$tmpname.BT;
 				$tempResult = $this->query($droptempsql);
 				//end block
 
@@ -886,10 +892,10 @@ class Database
 				reset($newcols);
 				while(list($key,$val) = each($newcols))
 				{
-					$newcolumns .= ($newcolumns?', ':'').$val;
-					$oldcolumns .= ($oldcolumns?', ':'').'`'.$key.'`';
+					$newcolumns .= ($newcolumns?', ':'').BT.$val.BT;
+					$oldcolumns .= ($oldcolumns?', ':'').BT.$key.BT;
 				}
-				$copytonewsql = 'INSERT INTO `'.$table.'`('.$newcolumns.') SELECT '.$oldcolumns.' FROM `'.$tmpname.'`';
+				$copytonewsql = 'INSERT INTO '.BT.$table.BT.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT.$tmpname.BT;
 
 				$this->query($createtemptableSQL); //create temp table
 				$this->query($copytotempsql); //copy to table
@@ -936,7 +942,7 @@ class Database
 	//get number of rows in table
 	public function numRows($table)
 	{
-		$result = $this->select("SELECT Count(*) FROM `".$table."`");
+		$result = $this->select("SELECT Count(*) FROM ".BT.$table.BT);
 		return $result[0];
 	}
 
@@ -989,7 +995,7 @@ class Database
 				$csv_number_of_rows++;
 				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
 				$csv_col_number = count($csv_data);
-				$csv_insert .= "INSERT INTO `$table` VALUES (";
+				$csv_insert .= "INSERT INTO ".BT.$table.BT." VALUES (";
 				foreach($csv_data as $csv_col => $csv_cell)
 				{
 					if($csv_cell == $null) $csv_insert .= "NULL";
@@ -1023,7 +1029,7 @@ class Database
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		$field_enclosed = stripslashes($field_enclosed);
-		$query = "SELECT * FROM `sqlite_master` WHERE `type`='table' ORDER BY `type` DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
 		{
@@ -1051,7 +1057,7 @@ class Database
 					}
 					echo "\r\n";	
 				}
-				$query = "SELECT * FROM `".$result[$i]['tbl_name']."`";
+				$query = "SELECT * FROM ".BT.$result[$i]['tbl_name'].BT;
 				$arr = $this->selectArray($query, "assoc");
 				for($z=0; $z<sizeof($arr); $z++)
 				{
@@ -1095,7 +1101,7 @@ class Database
 			echo "-- Database file: ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
-		$query = "SELECT * FROM `sqlite_master` WHERE `type`='table' OR `type`='index' ORDER BY `type` DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 
 		if($transaction)
@@ -1143,7 +1149,7 @@ class Database
 				}
 				if($data && $result[$i]['type']=="table")
 				{
-					$query = "SELECT * FROM `".$result[$i]['tbl_name']."`";
+					$query = "SELECT * FROM ".BT.$result[$i]['tbl_name'].BT;
 					$arr = $this->selectArray($query, "assoc");
 
 					if($comments)
@@ -1168,7 +1174,7 @@ class Database
 						}
 					}
 					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO `".$result[$i]['tbl_name']."` (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
+						echo "INSERT INTO ".BT.$result[$i]['tbl_name'].BT." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
 				}
 			}
 		}
@@ -1934,7 +1940,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
-				$query = "DELETE FROM `".$_POST['tablename']."`";
+				$query = "DELETE FROM ".BT.$_POST['tablename'].BT;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -1954,19 +1960,19 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
-				$query = "DROP TABLE `".$_POST['tablename']."`";
+				$query = "DROP TABLE ".BT.$_POST['tablename'].BT;
 				$db->query($query);
 				$completed = "Table '".$_POST['tablename']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
-				$query = "DROP VIEW `".$_POST['viewname']."`";
+				$query = "DROP VIEW ".BT.$_POST['viewname'].BT;
 				$db->query($query);
 				$completed = "View '".$_POST['viewname']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
-				$query = "ALTER TABLE `".$_POST['oldname']."` RENAME TO '".$_POST['newname']."'";
+				$query = "ALTER TABLE ".BT.$_POST['oldname'].BT." RENAME TO '".$_POST['newname']."'";
 				if($db->getVersion()==3)
 					$result = $db->query($query, true);
 				else
@@ -1990,10 +1996,10 @@ else //user is authorized - display the main application
 				{
 					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query = "INSERT INTO `".$_GET['table']."` (";
+						$query = "INSERT INTO ".BT.$_GET['table'].BT." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= "`".$fields[$j]."`,";
+							$query .= "".BT.$fields[$j].BT.",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2033,7 +2039,7 @@ else //user is authorized - display the main application
 			case "row_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "DELETE FROM `".$_GET['table']."` WHERE ROWID = ".$pks[0];
+				$query = "DELETE FROM ".BT.$_GET['table'].BT." WHERE ROWID = ".$pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
@@ -2063,10 +2069,10 @@ else //user is authorized - display the main application
 				{
 					if(isset($_POST['new_row']))
 					{
-						$query = "INSERT INTO `".$_GET['table']."` (";
+						$query = "INSERT INTO ".BT.$_GET['table'].BT." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= "`".$fields[$j]."`,";
+							$query .= BT.$fields[$j].BT.",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2100,12 +2106,12 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						$query = "UPDATE `".$_GET['table']."` SET ";
+						$query = "UPDATE ".BT.$_GET['table'].BT." SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
 							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
-							$query .= "`".$fields[$j]."`=";
+							$query .= BT.$fields[$j].BT."=";
 							if($function!="")
 								$query .= $function."(";
 							if($null)
@@ -2137,7 +2143,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE `".$_GET['table']."` ADD '".$_POST[$i.'_field']."' ";
+						$query = "ALTER TABLE ".BT.$_GET['table'].BT." ADD '".$_POST[$i.'_field']."' ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2164,11 +2170,11 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE `".$_GET['table']."` DROP `".$pks[0]."`";
+				$query = "ALTER TABLE ".$_GET['table']." DROP ".$pks[0]."";
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
-					$query .= ", DROP `".$pks[$i]."`";
+					$query .= ", DROP ".$pks[$i];
 				}
 				$result = $db->query($query);
 				if(!$result)
@@ -2177,7 +2183,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE `".$_GET['table']."` CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
+				$query = "ALTER TABLE ".BT.$_GET['table'].BT." CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2185,7 +2191,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
-				$query = "DROP TRIGGER `".$_GET['pk']."`";
+				$query = "DROP TRIGGER ".BT.$_GET['pk'].BT;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2193,7 +2199,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
-				$query = "DROP INDEX `".$_GET['pk']."`";
+				$query = "DROP INDEX ".BT.$_GET['pk'].BT;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2234,7 +2240,7 @@ else //user is authorized - display the main application
 					$str = "CREATE ";
 					if($_POST['duplicate']=="no")
 						$str .= "UNIQUE ";
-					$str .= "INDEX '".$_POST['name']."' ON `".$_GET['table']."` (";
+					$str .= "INDEX '".$_POST['name']."' ON ".BT.$_GET['table'].BT." (";
 					$str .= $_POST['0_field'].$_POST['0_order'];
 					for($i=1; $i<$num; $i++)
 					{
@@ -2303,7 +2309,7 @@ else //user is authorized - display the main application
 	echo ">".$currentDB['name']."</a>";
 	echo "</legend>";
 	//Display list of tables
-	$query = "SELECT type, name FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
+	$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 	$result = $db->selectArray($query);
 	$j=0;
 	for($i=0; $i<sizeof($result); $i++)
@@ -2475,7 +2481,7 @@ else //user is authorized - display the main application
 			//table actions
 			/////////////////////////////////////////////// create table
 			case "table_create":
-				$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' AND `name`='".$_POST['tablename']."'";
+				$query = "SELECT name FROM sqlite_master WHERE type='table' AND name='".$_POST['tablename']."'";
 				$results = $db->selectArray($query);
 				if(sizeof($results)>0)
 					$exists = true;
@@ -2626,7 +2632,7 @@ else //user is authorized - display the main application
 				else
 				{
 					$delimiter = ";";
-					$queryStr = "SELECT * FROM `".$_GET['table']."` WHERE 1";
+					$queryStr = "SELECT * FROM ".BT.$_GET['table'].BT." WHERE 1";
 				}
 
 				echo "<fieldset>";
@@ -2798,13 +2804,13 @@ else //user is authorized - display the main application
 						if($value!="" || $operator=="!= ''" || $operator=="= ''")
 						{
 							if($operator=="= ''" || $operator=="!= ''")
-								$arr[$j] = "`".$field."` ".$operator;
+								$arr[$j] = BT.$field.BT." ".$operator;
 							else
-								$arr[$j] = "`".$field."` ".$operator." ".$db->quote($value);
+								$arr[$j] = BT.$field.BT." ".$operator." ".$db->quote($value);
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM `".$_GET['table']."`";
+					$query = "SELECT * FROM ".BT.$_GET['table'].BT;
 					if(sizeof($arr)>0)
 					{
 						$query .= " WHERE ".$arr[0];
@@ -2960,7 +2966,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
 				}
 				
-				$query = "SELECT Count(*) FROM `".$_GET['table']."`";
+				$query = "SELECT Count(*) FROM ".BT.$_GET['table'].BT;
 				$rowCount = $db->select($query);
 				$rowCount = intval($rowCount[0]);
 				$lastPage = intval($rowCount / $_SESSION[COOKIENAME.'numRows']);
@@ -3054,8 +3060,8 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
-				$query = "SELECT *, ROWID FROM `".$table."`";
-				$queryDisp = "SELECT * FROM `".$table."`";
+				$query = "SELECT *, ROWID FROM ".BT.$table.BT;
+				$queryDisp = "SELECT * FROM ".BT.$table.BT;
 				$queryAdd = "";
 				if(isset($_SESSION[COOKIENAME.'sort']))
 					$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -3443,7 +3449,7 @@ else //user is authorized - display the main application
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
-							$query = "SELECT * FROM `".$_GET['table']."` WHERE ROWID = ".$pks[$j];
+							$query = "SELECT * FROM ".BT.$_GET['table'].BT." WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -3613,7 +3619,7 @@ else //user is authorized - display the main application
 					echo "</form>";
 				}
 				
-				$query = "SELECT `sql` FROM `sqlite_master` WHERE `name`='".$_GET['table']."'";
+				$query = "SELECT sql FROM sqlite_master WHERE name='".$_GET['table']."'";
 				$master = $db->selectArray($query);
 				
 				echo "<br/>";
@@ -3690,7 +3696,7 @@ else //user is authorized - display the main application
 						echo "</table><br/><br/>";
 					}
 					
-					$query = "SELECT * FROM `sqlite_master` WHERE `type`='trigger' AND `tbl_name`='".$_GET['table']."' ORDER BY `name`";
+					$query = "SELECT * FROM sqlite_master WHERE type='trigger' AND tbl_name='".$_GET['table']."' ORDER BY name";
 					$result = $db->selectArray($query);
 					//print_r($result);
 					if(sizeof($result)>0)
@@ -4103,7 +4109,7 @@ else //user is authorized - display the main application
 			else
 				unset($_SESSION[COOKIENAME.'order']);
 					
-			$query = "SELECT `type`, `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view'";
+			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view'";
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sort']))
 				$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -4396,7 +4402,7 @@ else //user is authorized - display the main application
 			echo "<form method='post' action='".PAGE."?view=export'>";
 			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Export</b></legend>";
 			echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
-			$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
+			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 			$result = $db->selectArray($query);
 			for($i=0; $i<sizeof($result); $i++)
 			{
@@ -4469,7 +4475,7 @@ else //user is authorized - display the main application
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
 			echo "<div style='float:left;'>Table that CSV pertains to</div>";
 			echo "<select name='single_table' style='float:right;'>";
-			$query = "SELECT `name` FROM `sqlite_master` WHERE `type`='table' OR `type`='view' ORDER BY `name`";
+			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 			$result = $db->selectArray($query);
 			for($i=0; $i<sizeof($result); $i++)
 			{
