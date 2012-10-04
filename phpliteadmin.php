@@ -2560,7 +2560,8 @@ else //user is authorized - display the main application
 						if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 						{
 							$startTime = microtime(true);
-							if(strpos(strtolower($query[$i]), "select ")!==false)
+							if(strpos(strtolower($query[$i]), "select ")!==false
+								|| strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
 							{
 								$isSelect = true;
 								$result = $db->selectArray($query[$i], "assoc");
