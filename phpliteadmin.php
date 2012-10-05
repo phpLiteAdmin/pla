@@ -920,10 +920,12 @@ class Database
 		if($this->type=="PDO")
 		{
 			$success = $this->db->exec($query);
+			if(!$success) $error =  implode(" - ", $this->db->errorInfo());
 		}
 		else if($this->type=="SQLite3")
 		{
-			$success = $this->db->exec($query, $error);
+			$success = $this->db->exec($query);
+			if(!$success) $error = $this->db->lastErrorMsg();
 		}
 		else
 		{
