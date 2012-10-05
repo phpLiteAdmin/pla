@@ -2153,10 +2153,10 @@ else //user is authorized - display the main application
 							$query .= "NOT NULL ";
 						if($_POST[$i.'_defaultvalue']!="")
 						{
-							if($_POST[$i.'_type']=="INTEGER")
+							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
 							else
-								$query .= "DEFAULT '".$_POST[$i.'_defaultvalue']."' ";
+								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
 						}
 						if($db->getVersion()==3)
 							$result = $db->query($query, true);
