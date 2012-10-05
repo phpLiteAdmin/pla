@@ -3807,16 +3807,11 @@ else //user is authorized - display the main application
 			case "column_delete":
 				if(isset($_POST['check']))
 					$pks = $_POST['check'];
-				else if(isset($_GET['pk']))
+				elseif(isset($_GET['pk']))
 					$pks = array($_GET['pk']);
-				$str = $pks[0];
-				$pkVal = $pks[0];
-				for($i=1; $i<sizeof($pks); $i++)
-				{
-					$str .= ", ".$pks[$i];
-					$pkVal .= ":".$pks[$i];
-				}
-				if($str=="") //nothing was selected so show an error
+				else $pks = array();
+				
+				if(sizeof($pks)==0) //nothing was selected so show an error
 				{
 					echo "<div class='confirm'>";
 					echo "Error: You did not select anything.";
@@ -3825,6 +3820,13 @@ else //user is authorized - display the main application
 				}
 				else
 				{
+					$str = $pks[0];
+					$pkVal = $pks[0];
+					for($i=1; $i<sizeof($pks); $i++)
+					{
+						$str .= ", ".$pks[$i];
+						$pkVal .= ":".$pks[$i];
+					}
 					echo "<form action='".PAGE."?table=".$_GET['table']."&action=column_delete&confirm=1&pk=".$pkVal."' method='post'>";
 					echo "<div class='confirm'>";
 					echo "Are you sure you want to delete column(s) ".$str." from table '".$_GET['table']."'?<br/><br/>";
