@@ -498,8 +498,8 @@ class Database
 							$this->addUserFunction($cfns[$i]);	
 						}
 						$this->type = "SQLiteDatabase";
-						// DO NOT use backtickt ` around identifiers such as column names in SQL, because SQLiteDatabase does not support it
-						define("BT", '');
+						// use ' instead of backtickt ` around identifiers such as column names in SQL, because SQLiteDatabase supports it this way
+						define("BT", "'");
 						break;
 					}
 				default:
@@ -1915,10 +1915,10 @@ else //user is authorized - display the main application
 							$query .= "NOT NULL ";
 						if($_POST[$i.'_defaultvalue']!="")
 						{
-							if($_POST[$i.'_type']=="INTEGER")
+							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "default ".$_POST[$i.'_defaultvalue']."  ";
 							else
-								$query .= "default '".$_POST[$i.'_defaultvalue']."' ";
+								$query .= "default ".$db->quote($_POST[$i.'_defaultvalue'])." ";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ", ";
@@ -3640,7 +3640,7 @@ else //user is authorized - display the main application
 				{
 					echo "<br/><hr/><br/>";
 					//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
-					$query = "PRAGMA index_list(".$_GET['table'].")";
+					$query = "PRAGMA index_list(".BT.$_GET['table'].BT.")";
 					$result = $db->selectArray($query);
 					if(sizeof($result)>0)
 					{
