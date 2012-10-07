@@ -131,6 +131,9 @@ define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[$cookie_name.'_salt'])); //extra security - salted and encrypted password used for checking
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
+define("BT1","[");
+define("BT2","]");
+
 
 //data types array
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
@@ -468,8 +471,6 @@ class Database
 							$this->db->sqliteCreateFunction($cfns[$i], $cfns[$i], 1);
 							$this->addUserFunction($cfns[$i]);	
 						}
-						// use backtickt ` around identifiers such as column names in SQL
-						define("BT", '`');
 						break;
 					}
 				case (FORCETYPE=="SQLite3" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLite3") && ($ver==-1 || $ver==3))):
@@ -483,8 +484,6 @@ class Database
 							$this->addUserFunction($cfns[$i]);	
 						}
 						$this->type = "SQLite3";
-						// use backtickt ` around identifiers such as column names in SQL
-						define("BT", '`');
 						break;
 					}
 				case (FORCETYPE=="SQLiteDatabase" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLiteDatabase") && ($ver==-1 || $ver==2))):
@@ -498,8 +497,6 @@ class Database
 							$this->addUserFunction($cfns[$i]);	
 						}
 						$this->type = "SQLiteDatabase";
-						// use ' instead of backtickt ` around identifiers such as column names in SQL, because SQLiteDatabase supports it this way
-						define("BT", "'");
 						break;
 					}
 				default:
@@ -674,7 +671,7 @@ class Database
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
 			$queryparts = preg_split("/[\s]+/", $query, 4, PREG_SPLIT_NO_EMPTY);
-			$tablename = trim($queryparts[2],BT);
+			$tablename = rtrim(ltrim($queryparts[2],BT1),BT2);
 			$alterdefs = $queryparts[3];
 			//echo $query;
 			$result = $this->alterTable($tablename, $alterdefs);
@@ -944,7 +941,7 @@ class Database
 	//get number of rows in table
 	public function numRows($table)
 	{
-		$result = $this->select("SELECT Count(*) FROM ".BT.$table.BT);
+		$result = $this->select("SELECT Count(*) FROM ".BT1.$table.BT2);
 		return $result[0];
 	}
 
@@ -997,7 +994,7 @@ class Database
 				$csv_number_of_rows++;
 				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
 				$csv_col_number = count($csv_data);
-				$csv_insert .= "INSERT INTO ".BT.$table.BT." VALUES (";
+				$csv_insert .= "INSERT INTO ".BT1.$table.BT2." VALUES (";
 				foreach($csv_data as $csv_col => $csv_cell)
 				{
 					if($csv_cell == $null) $csv_insert .= "NULL";
@@ -1059,7 +1056,7 @@ class Database
 					}
 					echo "\r\n";	
 				}
-				$query = "SELECT * FROM ".BT.$result[$i]['tbl_name'].BT;
+				$query = "SELECT * FROM ".BT1.$result[$i]['tbl_name'].BT2;
 				$arr = $this->selectArray($query, "assoc");
 				for($z=0; $z<sizeof($arr); $z++)
 				{
@@ -1151,7 +1148,7 @@ class Database
 				}
 				if($data && $result[$i]['type']=="table")
 				{
-					$query = "SELECT * FROM ".BT.$result[$i]['tbl_name'].BT;
+					$query = "SELECT * FROM ".BT1.$result[$i]['tbl_name'].BT2;
 					$arr = $this->selectArray($query, "assoc");
 
 					if($comments)
@@ -1176,7 +1173,7 @@ class Database
 						}
 					}
 					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO ".BT.$result[$i]['tbl_name'].BT." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
+						echo "INSERT INTO ".BT1.$result[$i]['tbl_name'].BT2." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
 				}
 			}
 		}
@@ -1942,7 +1939,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
-				$query = "DELETE FROM ".BT.$_POST['tablename'].BT;
+				$query = "DELETE FROM ".BT1.$_POST['tablename'].BT2;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -1962,19 +1959,19 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
-				$query = "DROP TABLE ".BT.$_POST['tablename'].BT;
+				$query = "DROP TABLE ".BT1.$_POST['tablename'].BT2;
 				$db->query($query);
 				$completed = "Table '".$_POST['tablename']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
-				$query = "DROP VIEW ".BT.$_POST['viewname'].BT;
+				$query = "DROP VIEW ".BT1.$_POST['viewname'].BT2;
 				$db->query($query);
 				$completed = "View '".$_POST['viewname']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
-				$query = "ALTER TABLE ".BT.$_POST['oldname'].BT." RENAME TO '".$_POST['newname']."'";
+				$query = "ALTER TABLE ".BT1.$_POST['oldname'].BT2." RENAME TO '".$_POST['newname']."'";
 				if($db->getVersion()==3)
 					$result = $db->query($query, true);
 				else
@@ -1998,10 +1995,10 @@ else //user is authorized - display the main application
 				{
 					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query = "INSERT INTO ".BT.$_GET['table'].BT." (";
+						$query = "INSERT INTO ".BT1.$_GET['table'].BT2." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= "".BT.$fields[$j].BT.",";
+							$query .= "".BT1.$fields[$j].BT2.",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2041,7 +2038,7 @@ else //user is authorized - display the main application
 			case "row_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "DELETE FROM ".BT.$_GET['table'].BT." WHERE ROWID = ".$pks[0];
+				$query = "DELETE FROM ".BT1.$_GET['table'].BT2." WHERE ROWID = ".$pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
@@ -2071,10 +2068,10 @@ else //user is authorized - display the main application
 				{
 					if(isset($_POST['new_row']))
 					{
-						$query = "INSERT INTO ".BT.$_GET['table'].BT." (";
+						$query = "INSERT INTO ".BT1.$_GET['table'].BT2." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= BT.$fields[$j].BT.",";
+							$query .= BT1.$fields[$j].BT2.",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2108,12 +2105,12 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						$query = "UPDATE ".BT.$_GET['table'].BT." SET ";
+						$query = "UPDATE ".BT1.$_GET['table'].BT2." SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
 							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
-							$query .= BT.$fields[$j].BT."=";
+							$query .= BT1.$fields[$j].BT2."=";
 							if($function!="")
 								$query .= $function."(";
 							if($null)
@@ -2145,7 +2142,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE ".BT.$_GET['table'].BT." ADD '".$_POST[$i.'_field']."' ";
+						$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." ADD '".$_POST[$i.'_field']."' ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2172,11 +2169,12 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE ".$_GET['table']." DROP ".$pks[0]."";
+				$query = "ALTER TABLE ".$_GET['table']." DROP [".$pks[0]."]";
+				// note: here we use a real [] instead of BT as we parse this ourselves using alterTable() anyway!
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
-					$query .= ", DROP ".$pks[$i];
+					$query .= ", DROP [".$pks[$i]."]";
 				}
 				$result = $db->query($query);
 				if(!$result)
@@ -2185,7 +2183,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".BT.$_GET['table'].BT." CHANGE ".$_POST['oldvalue']." ".$_POST['0_field']." ".$_POST['0_type'];
+				$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." CHANGE [".$_POST['oldvalue']."] '".$_POST['0_field']."' ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2193,7 +2191,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
-				$query = "DROP TRIGGER ".BT.$_GET['pk'].BT;
+				$query = "DROP TRIGGER ".BT1.$_GET['pk'].BT2;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2201,7 +2199,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
-				$query = "DROP INDEX ".BT.$_GET['pk'].BT;
+				$query = "DROP INDEX ".BT1.$_GET['pk'].BT2;
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2242,7 +2240,7 @@ else //user is authorized - display the main application
 					$str = "CREATE ";
 					if($_POST['duplicate']=="no")
 						$str .= "UNIQUE ";
-					$str .= "INDEX '".$_POST['name']."' ON ".BT.$_GET['table'].BT." (";
+					$str .= "INDEX '".$_POST['name']."' ON ".BT1.$_GET['table'].BT2." (";
 					$str .= $_POST['0_field'].$_POST['0_order'];
 					for($i=1; $i<$num; $i++)
 					{
@@ -2635,7 +2633,7 @@ else //user is authorized - display the main application
 				else
 				{
 					$delimiter = ";";
-					$queryStr = "SELECT * FROM ".BT.$_GET['table'].BT." WHERE 1";
+					$queryStr = "SELECT * FROM ".BT1.$_GET['table'].BT2." WHERE 1";
 				}
 
 				echo "<fieldset>";
@@ -2807,13 +2805,13 @@ else //user is authorized - display the main application
 						if($value!="" || $operator=="!= ''" || $operator=="= ''")
 						{
 							if($operator=="= ''" || $operator=="!= ''")
-								$arr[$j] = BT.$field.BT." ".$operator;
+								$arr[$j] = BT1.$field.BT2." ".$operator;
 							else
-								$arr[$j] = BT.$field.BT." ".$operator." ".$db->quote($value);
+								$arr[$j] = BT1.$field.BT2." ".$operator." ".$db->quote($value);
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM ".BT.$_GET['table'].BT;
+					$query = "SELECT * FROM ".BT1.$_GET['table'].BT2;
 					if(sizeof($arr)>0)
 					{
 						$query .= " WHERE ".$arr[0];
@@ -2969,7 +2967,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
 				}
 				
-				$query = "SELECT Count(*) FROM ".BT.$_GET['table'].BT;
+				$query = "SELECT Count(*) FROM ".BT1.$_GET['table'].BT2;
 				$rowCount = $db->select($query);
 				$rowCount = intval($rowCount[0]);
 				$lastPage = intval($rowCount / $_SESSION[COOKIENAME.'numRows']);
@@ -3063,8 +3061,8 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
-				$query = "SELECT *, ROWID FROM ".BT.$table.BT;
-				$queryDisp = "SELECT * FROM ".BT.$table.BT;
+				$query = "SELECT *, ROWID FROM ".BT1.$table.BT2;
+				$queryDisp = "SELECT * FROM ".BT1.$table.BT2;
 				$queryAdd = "";
 				if(isset($_SESSION[COOKIENAME.'sort']))
 					$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -3452,7 +3450,7 @@ else //user is authorized - display the main application
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
-							$query = "SELECT * FROM ".BT.$_GET['table'].BT." WHERE ROWID = ".$pks[$j];
+							$query = "SELECT * FROM ".BT1.$_GET['table'].BT2." WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -3640,7 +3638,7 @@ else //user is authorized - display the main application
 				{
 					echo "<br/><hr/><br/>";
 					//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
-					$query = "PRAGMA index_list(".BT.$_GET['table'].BT.")";
+					$query = "PRAGMA index_list(".BT1.$_GET['table'].BT2.")";
 					$result = $db->selectArray($query);
 					if(sizeof($result)>0)
 					{
