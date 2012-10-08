@@ -779,8 +779,9 @@ class Database
 		}
 	}
 
-	//function that is called for an alter table statement in a query
-	//code borrowed with permission from http://code.jenseng.com/db/
+	// function that is called for an alter table statement in a query
+	// code borrowed with permission from http://code.jenseng.com/db/
+	// this has been completely debugged / rewritten by Christopher Kramer
 	public function alterTable($table, $alterdefs)
 	{
 		if($alterdefs != '')
@@ -788,100 +789,131 @@ class Database
 			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = '".$table."' ORDER BY type DESC";
 			$result = $this->query($tempQuery);
 			$resultArr = $this->selectArray($tempQuery);
-
+			if($this->type=="PDO") $result->closeCursor();
 			if(sizeof($resultArr)>0)
 			{
 				$row = $this->select($tempQuery); //table sql
 				$tmpname = 't'.time();
-				$origsql = trim(preg_replace("/[\s]+/", " ", str_replace(",", ", ",preg_replace("/[\(]/", "( ", $row['sql'], 1))));
+				$origsql = $row['sql'];
 				$createtemptableSQL = 'CREATE TEMPORARY '.substr(trim(preg_replace("'".$table."'", $tmpname, $origsql, 1)), 6);
 				$createindexsql = array();
 				$i = 0;
-				$defs = preg_split("/[,]+/",$alterdefs, -1, PREG_SPLIT_NO_EMPTY);
-				$prevword = $table;
+				preg_match_all("/(?:DROP|ADD|CHANGE)\s+(?:\"[^\"]+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
+
+				$defs = $matches[0];				
 				$oldcols = preg_split("/[,]+/", substr(trim($createtemptableSQL), strpos(trim($createtemptableSQL), '(')+1), -1, PREG_SPLIT_NO_EMPTY);
+				
+				$get_oldcols_query = "PRAGMA table_info('".$table."')";
+				$result_oldcols = $this->selectArray($get_oldcols_query);
 				$newcols = array();
-				for($i=0; $i<sizeof($oldcols); $i++)
+				foreach($result_oldcols as $column_info)
 				{
-					$colparts = preg_split("/[\s]+/", $oldcols[$i], -1, PREG_SPLIT_NO_EMPTY);
-					$oldcols[$i] = $colparts[0];
-					$newcols[$colparts[0]] = $colparts[0];
+					$newcols[$column_info['name']] = $column_info['name'];
 				}
 				$newcolumns = '';
 				$oldcolumns = '';
 				reset($newcols);
 				while(list($key, $val) = each($newcols))
 				{
-					$newcolumns .= ($newcolumns?', ':'').$val;
-					$oldcolumns .= ($oldcolumns?', ':'').'`'.$key.'`';
+					$newcolumns .= ($newcolumns?', ':'').BT1.$val.BT2;
+					$oldcolumns .= ($oldcolumns?', ':'').BT1.$key.BT2;
 				}
-				$copytotempsql = 'INSERT INTO `'.$tmpname.'`('.$newcolumns.') SELECT '.$oldcolumns.' FROM `'.$table.'`';
-				$dropoldsql = 'DROP TABLE `'.$table.'`';
+				$copytotempsql = 'INSERT INTO '.BT1.$tmpname.BT2.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT1.$table.BT2;
+				$dropoldsql = 'DROP TABLE '.BT1.$table.BT2;
 				$createtesttableSQL = $createtemptableSQL;
+				if(count($defs)<1) return false;
 				foreach($defs as $def)
 				{
-					$defparts = preg_split("/[\s]+/", $def,-1, PREG_SPLIT_NO_EMPTY);
-					$action = strtolower($defparts[0]);
+					$parse_def = preg_match("/^(DROP|ADD|CHANGE)\s+(?:\"([^\"]+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
+					if($parse_def===false) return false;
+					if(!isset($matches[1]))
+						return false;
+					$action = strtolower($matches[1]);
+					if($action == 'add')	
+						$column = $matches[3];		// enclosed in ''
+					else
+						$column = $matches[2];		// enclosed in ""
+						
+					$column_escaped = str_replace("'","''",$column);
+			
+					/* we build a regex that devides the CREATE TABLE statement parts:
+					  Part example								Group	Explanation
+					  1. CREATE TABLE t... (					$1
+					  2. 'col1' ..., 'col2' ..., 'colN' ...,	$3		(with col1-colN being columns that are not changed and listed before the col to change)
+					  3. 'colX' ...,							-		(with colX being the column to change/drop)
+					  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
+					*/
+					$preg_create_table = "(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname)."'?\s*\()";   // This is group $1 (keep unchanged)
+					$preg_column_definiton = "\s*(?:(?:'(?:[^']|'')+')|[^ ]+)\s+(?:[^,')]|'(?:[^']|'')*')+";		// catches a complete column definition, even if it is
+													// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
+					$preg_columns_before =  // columns before the one changed/dropped (keep)
+						"(?:".
+							"(".			// group $2. Keep this one unchanged!
+								"(?:".
+									"$preg_column_definiton,\s*".		// column definition + comma
+								")*".								// there might be any number of such columns here
+								$preg_column_definiton.				// last column definition 
+							")".			// end of group $2
+							",\s*"			// the last comma of the last column before the column to change. Do not keep it!
+						.")?";    // there might be no columns before
+					$preg_column_to_drop = "\s*(?:'".preg_quote($column_escaped)."'|".preg_quote($column_escaped).")\s+(?:[^,')]|'(?:[^']|'')*')+";      // delete this part (we want to drop this column)
+					$preg_column_to_change = "\s*(?:'".preg_quote($column_escaped)."'|".preg_quote($column_escaped).")\s+(?:INTEGER|REAL|TEXT|BLOB)?(\s+(?:[^,')]|'(?:[^']|'')*')+)?";
+											// replace this part (we want to change this column)
+											// group $3 contains the column constraints (keep!). the name & data type is replaced.
+					$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
+											// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
+											// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
+					// stick the regex together
+					$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/";
+					$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
+					$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/";
+					
+					
 					switch($action)
 					{
 						case 'add':
-							if(sizeof($defparts) <= 2)
+							if(!isset($matches[4]))
+							{
 								return false;
-							$createtesttableSQL = substr($createtesttableSQL, 0, strlen($createtesttableSQL)-1).',';
-							for($i=1;$i<sizeof($defparts);$i++)
-								$createtesttableSQL.=' '.$defparts[$i];
-							$createtesttableSQL.=')';
+							}
+							$new_col_definition = "'$column_escaped' ".$matches[4];
+							// append the column definiton in the CREATE TABLE statement
+							$newSQL = preg_replace($preg_pattern_add, '$1$2, '.preg_quote($new_col_definition).')', $createtesttableSQL);
+							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
+								return false;
+							$createtesttableSQL = $newSQL;
 							break;
 						case 'change':
-							if(sizeof($defparts) <= 3)
+							if(!isset($matches[5]) || !isset($matches[6]))
 							{
 								return false;
 							}
-							if($severpos = strpos($createtesttableSQL,' '.$defparts[1].' '))
-							{
-								if($newcols[$defparts[1]] != $defparts[1])
-									return false;
-								$newcols[$defparts[1]] = $defparts[2];
-								$nextcommapos = strpos($createtesttableSQL,',',$severpos);
-								$insertval = '';
-								for($i=2;$i<sizeof($defparts);$i++)
-									$insertval.=' '.$defparts[$i];
-								if($nextcommapos)
-									$createtesttableSQL = substr($createtesttableSQL,0,$severpos).$insertval.substr($createtesttableSQL,$nextcommapos);
-								else
-									$createtesttableSQL = substr($createtesttableSQL,0,$severpos-(strpos($createtesttableSQL,',')?0:1)).$insertval.')';
-							}
-							else
+							$new_col_name = $matches[5];
+							$new_col_type = $matches[6];
+							$new_col_definition = "'$new_col_name' $new_col_type";
+							// replace the column definiton in the CREATE TABLE statement
+							$newSQL = preg_replace($preg_pattern_change, '$1$2,'.preg_quote($new_col_definition).'$3$4)', $createtesttableSQL);
+							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
 								return false;
+							$createtesttableSQL = $newSQL;
+							$newcols[$column] = str_replace("''","'",$new_col_name);
 							break;
 						case 'drop':
-							if(sizeof($defparts) < 2)
+							// remove the column out of the CREATE TABLE statement
+							$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
+							// remove comma at the beginning if the first column is removed
+							// probably somebody is able to put this into the first regex (using lookahead probably).
+							$newSQL = preg_replace("/^(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname)."'\s+\(),\s*/",'$1',$newSQL);
+							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
 								return false;
-							if($severpos = strpos($createtesttableSQL,' '.$defparts[1].' '))
-							{
-								$nextcommapos = strpos($createtesttableSQL,',',$severpos);
-								if($nextcommapos)
-									$createtesttableSQL = substr($createtesttableSQL,0,$severpos).substr($createtesttableSQL,$nextcommapos + 1);
-								else
-									$createtesttableSQL = substr($createtesttableSQL,0,$severpos-(strpos($createtesttableSQL,',')?0:1) - 1).')';
-								unset($newcols[$defparts[1]]);
-							}
-							else
-								return false;
+							$createtesttableSQL = $newSQL;
+							unset($newcols[$column]);
 							break;
 						default:
 							return false;
 					}
-					$prevword = $defparts[sizeof($defparts)-1];
 				}
-				//this block of code generates a test table simply to verify that the columns specifed are valid in an sql statement
-				//this ensures that no reserved words are used as columns, for example
-				$tempResult = $this->query($createtesttableSQL);
-				if(!$tempResult)
-					return false;
-				$droptempsql = 'DROP TABLE '.BT.$tmpname.BT;
-				$tempResult = $this->query($droptempsql);
-				//end block
+				$droptempsql = 'DROP TABLE '.BT1.$tmpname.BT2;
 
 				$createnewtableSQL = 'CREATE '.substr(trim(preg_replace("'".$tmpname."'", $table, $createtesttableSQL, 1)), 17);
 				$newcolumns = '';
@@ -889,18 +921,20 @@ class Database
 				reset($newcols);
 				while(list($key,$val) = each($newcols))
 				{
-					$newcolumns .= ($newcolumns?', ':'').BT.$val.BT;
-					$oldcolumns .= ($oldcolumns?', ':'').BT.$key.BT;
+					$newcolumns .= ($newcolumns?', ':'').BT1.$val.BT2;
+					$oldcolumns .= ($oldcolumns?', ':'').BT1.$key.BT2;
 				}
-				$copytonewsql = 'INSERT INTO '.BT.$table.BT.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT.$tmpname.BT;
+				$copytonewsql = 'INSERT INTO '.BT1.$table.BT2.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT1.$tmpname.BT2;
 
-				$this->query($createtemptableSQL); //create temp table
-				$this->query($copytotempsql); //copy to table
-				$this->query($dropoldsql); //drop old table
-
-				$this->query($createnewtableSQL); //recreate original table
-				$this->query($copytonewsql); //copy back to original table
-				$this->query($droptempsql); //drop temp table
+				$alter_transaction  = 'BEGIN; ';
+				$alter_transaction .= $createtemptableSQL.'; ';  //create temp table
+				$alter_transaction .= $copytotempsql.'; ';      //copy to table
+				$alter_transaction .= $dropoldsql.'; ';        //drop old table
+				$alter_transaction .= $createnewtableSQL.'; ';  //recreate original table
+				$alter_transaction .= $copytonewsql.'; ';      //copy back to original table
+				$alter_transaction .= $droptempsql.'; ';      //drop temp table
+				$alter_transaction .= 'COMMIT;';
+				$this->multiQuery($alter_transaction);
 			}
 			else
 			{
@@ -2240,8 +2274,8 @@ else //user is authorized - display the main application
 					$str = "CREATE ";
 					if($_POST['duplicate']=="no")
 						$str .= "UNIQUE ";
-					$str .= "INDEX '".$_POST['name']."' ON ".BT1.$_GET['table'].BT2." (";
-					$str .= $_POST['0_field'].$_POST['0_order'];
+					$str .= "INDEX ".$db->quote($_POST['name'])." ON ".BT1.$_GET['table'].BT2." (";
+					$str .= BT1.$_POST['0_field'].BT2.$_POST['0_order'];
 					for($i=1; $i<$num; $i++)
 					{
 						if($_POST[$i.'_field']!="")
@@ -3993,7 +4027,7 @@ else //user is authorized - display the main application
 					echo "You must specify a table name.";
 				else
 				{
-					echo "<form action='".PAGE."?table=".$_POST['tablename']."&action=index_create&confirm=1' method='post'>";
+					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=index_create&amp;confirm=1' method='post'>";
 					$num = intval($_POST['numcolumns']);
 					$query = "PRAGMA table_info('".$_POST['tablename']."')";
 					$result = $db->selectArray($query);
@@ -4012,7 +4046,7 @@ else //user is authorized - display the main application
 						echo "<select name='".$i."_field'>";
 						echo "<option value=''>--Ignore--</option>";
 						for($j=0; $j<sizeof($result); $j++)
-							echo "<option value='".$result[$j][1]."'>".$result[$j][1]."</option>";
+							echo "<option value='".htmlentities($result[$j][1],ENT_QUOTES)."'>".htmlentities($result[$j][1],ENT_QUOTES)."</option>";
 						echo "</select> ";
 						echo "<select name='".$i."_order'>";
 						echo "<option value=''></option>";
@@ -4024,7 +4058,7 @@ else //user is authorized - display the main application
 					echo "<br/><br/>";
 					echo "<input type='hidden' name='num' value='".$num."'/>";
 					echo "<input type='submit' value='Create Index' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".$_POST['tablename']."&action=column_view'>Cancel</a>";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
 					echo "</form>";
 				}
 				break;
