@@ -449,7 +449,7 @@ class Database
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				echo "The database, '".$this->data["path"]."', does not exist and cannot be created because the containing directory, '".dirname($this->data["path"])."', is not writable. The application is unusable until you make it writable.";
-				echo "<form action='".PAGE."' method='post'/>";
+				echo "<form action='".PAGE."' method='post'>";
 				echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
 				echo "</form>";
 				echo "</div><br/>";
@@ -1301,7 +1301,7 @@ if(isset($_POST['import']))
 
 // here begins the HTML.
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
@@ -1682,6 +1682,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 ?>
 <!-- JavaScript Support -->
 <script type="text/javascript">
+/* <![CDATA[ */ 
 //makes sure autoincrement can only be selected when integer type is selected
 function toggleAutoincrement(i)
 {
@@ -1832,7 +1833,7 @@ function PopupCenter(pageURL, title)
 {
 	helpsec = window.open(pageURL, title, "toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=0,width=400,height=300");
 } 
-
+/* ]]> */ 
 </script>
 </head>
 <body>
@@ -2374,7 +2375,7 @@ else //user is authorized - display the main application
 	}
 	
 	echo "<div style='text-align:center;'>";
-	echo "<form action='".PAGE."' method='post'/>";
+	echo "<form action='".PAGE."' method='post'>";
 	echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
 	echo "</form>";
 	echo "</div>";
@@ -3130,7 +3131,7 @@ else //user is authorized - display the main application
 					
 					if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 					{
-						echo "<form action='".PAGE."?action=row_editordelete&amp;table=".$table."' method='post' name='checkForm'>";
+						echo "<form action='".PAGE."?action=row_editordelete&amp;table=".urlencode($table)."' method='post' name='checkForm'>";
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						if(!isset($_GET['view']))
@@ -3140,9 +3141,9 @@ else //user is authorized - display the main application
 						{
 							echo "<td class='tdheader'>";
 							if(!isset($_GET['view']))
-								echo "<a href='".PAGE."?action=row_view&amp;table=".$table."&amp;sort=".$result[$i][1];
+								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;sort=".urlencode($result[$i][1]);
 							else
-								echo "<a href='".PAGE."?action=row_view&amp;table=".$table."&amp;view=1&amp;sort=".$result[$i][1];
+								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;view=1&amp;sort=".urlencode($result[$i][1]);
 							if(isset($_SESSION[COOKIENAME.'sort']))
 								$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i][1] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
 							else
@@ -3604,7 +3605,7 @@ else //user is authorized - display the main application
 					if(!isset($_GET['view']))
 					{
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
+						echo "<input type='checkbox' name='check[]' value='".htmlentities($fieldVal,ENT_QUOTES)."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."'>edit</a>";
@@ -3649,8 +3650,8 @@ else //user is authorized - display the main application
 				if(!isset($_GET['view']))
 				{
 					echo "<br/>";
-					echo "<form action='".PAGE."?table=".$_GET['table']."&amp;action=column_create' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".$_GET['table']."'/>";
+					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_create' method='post'>";
+					echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
 					echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields' class='btn'/>";
 					echo "</form>";
 				}
@@ -4418,6 +4419,7 @@ else //user is authorized - display the main application
 			echo "Delimiter <input type='text' name='delimiter' value='".$delimiter."' style='width:50px;'/> ";
 			echo "<input type='submit' name='query' value='Go' class='btn'/>";
 			echo "</form>";
+			echo "</fieldset>";
 		}
 		else if($view=="vacuum")
 		{
