@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.3
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 6/01/12
+//  Last updated: 2012-10-08
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -131,8 +131,8 @@ define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[$cookie_name.'_salt'])); //extra security - salted and encrypted password used for checking
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
-define("BT1","[");
-define("BT2","]");
+define("BT1","\"");
+define("BT2","\"");
 
 
 //data types array
@@ -1715,7 +1715,7 @@ function moveFields()
 		if(fields.options[i].selected)
 			selected.push(fields.options[i].value);
 	for(var i=0; i<selected.length; i++)
-		insertAtCaret("queryval", selected[i]);
+		insertAtCaret("queryval", '"'+selected[i]+'"');
 }
 //helper function for moveFields
 function insertAtCaret(areaId,text)
@@ -2142,7 +2142,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." ADD '".$_POST[$i.'_field']."' ";
+						$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." ADD ".$db->quote($_POST[$i.'_field'])." ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2169,7 +2169,7 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE ".$_GET['table']." DROP [".$pks[0]."]";
+				$query = "ALTER TABLE ".$_GET['table'].' DROP "'.$pks[0].'"';
 				// note: here we use a real [] instead of BT as we parse this ourselves using alterTable() anyway!
 				for($i=1; $i<sizeof($pks); $i++)
 				{
@@ -2183,7 +2183,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." CHANGE [".$_POST['oldvalue']."] '".$_POST['0_field']."' ".$_POST['0_type'];
+				$query = "ALTER TABLE ".BT1.$_GET['table'].BT2.' CHANGE "'.$_POST['oldvalue']."\" ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2652,7 +2652,7 @@ else //user is authorized - display the main application
 				$result = $db->selectArray($query);
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					echo "<option value='".$result[$i][1]."'>".$result[$i][1]."</option>";
+					echo "<option value='".htmlentities($result[$i][1],ENT_QUOTES)."'>".htmlentities($result[$i][1],ENT_QUOTES)."</option>";
 				}
 				echo "</select>";
 				echo "<input type='button' value='<<' onclick='moveFields();' class='btn'/>";
@@ -3356,6 +3356,7 @@ else //user is authorized - display the main application
 					for($i=0; $i<sizeof($result); $i++)
 					{
 						$field = $result[$i][1];
+						$field_html = htmlentities($field, ENT_QUOTES);
 						if($j==0)
 							$fieldStr .= ":".$field;
 						$type = strtolower($result[$i][2]);
@@ -3370,7 +3371,7 @@ else //user is authorized - display the main application
 						echo $type;
 						echo "</td>";
 						echo $tdWithClassLeft;
-						echo "<select name='function_".$j."_".$field."' onchange='notNull(\"".$j.":".$field."_null\");'>";
+						echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"".$j.":".$field_html."_null\");'>";
 						echo "<option value=''></option>";
 						$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
 						for($z=0; $z<sizeof($functions); $z++)
@@ -3384,9 +3385,9 @@ else //user is authorized - display the main application
 						if($result[$i][3]==0)
 						{
 							if($result[$i][4]===NULL)
-								echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' checked='checked' onclick='disableText(this, \"".$j.":".$field."\");'/>";
+								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='".$j.":".$field_html."_null' checked='checked' onclick='disableText(this, \"".$j.":".$field_html."\");'/>";
 							else
-								echo "<input type='checkbox' name='".$j.":".$field."_null' id='".$j.":".$field."_null' onclick='disableText(this, \"".$j.":".$field."\");'/>";
+								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='".$j.":".$field_html."_null' onclick='disableText(this, \"".$j.":".$field_html."\");'/>";
 						}
 						echo "</td>";
 						echo $tdWithClassLeft;
@@ -3396,9 +3397,9 @@ else //user is authorized - display the main application
 						// 19 October 2011: di fixed the bug caused by the previous fix where the null column does not exist anymore
 						$type = strtolower($type);
 						if($scalarField)
-							echo "<input type='text' id='".$j.":".$field."' name='".$j.":".$field."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"".$j."_ignore\");' onclick='notNull(\"".$j.":".$field."_null\");'/>";
+							echo "<input type='text' id='".$j.":".$field_html."' name='".$j.":".$field_html."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"".$j."_ignore\");' onclick='notNull(\"".$j.":".$field_html."_null\");'/>";
 						else
-							echo "<textarea id='".$j.":".$field."' name='".$j.":".$field."' rows='5' cols='60' onclick='notNull(\"".$j.":".$field."_null\");' onblur='changeIgnore(this, \"".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
+							echo "<textarea id='".$j.":".$field_html."' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"".$j.":".$field_html."_null\");' onblur='changeIgnore(this, \"".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
             		echo "</td>";
             		echo "</tr>";
 					}
@@ -3410,7 +3411,7 @@ else //user is authorized - display the main application
 					echo "</table><br/>";
 				}
 				$fieldStr = substr($fieldStr, 1);
-				echo "<input type='hidden' name='fields' value='".$fieldStr."'/>";
+				echo "<input type='hidden' name='fields' value='".htmlentities($fieldStr,ENT_QUOTES)."'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// edit or delete row
@@ -3572,10 +3573,10 @@ else //user is authorized - display the main application
 						echo "<input type='checkbox' name='check[]' value='".$fieldVal."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_edit&pk=".$fieldVal."'>edit</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."'>edit</a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".$_GET['table']."&action=column_delete&pk=".$fieldVal."' style='color:red;'>delete</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' style='color:red;'>delete</a>";
 						echo "</td>";
 					}
 					echo $tdWithClass;
@@ -3861,9 +3862,9 @@ else //user is authorized - display the main application
 					}
 					
 					$name = $_GET['table'];
-					echo "<form action='".PAGE."?table=".$name."&action=column_edit&confirm=1' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".$name."'/>";
-					echo "<input type='hidden' name='oldvalue' value='".$_GET['pk']."'/>";
+					echo "<form action='".PAGE."?table=".urlencode($name)."&amp;action=column_edit&amp;confirm=1' method='post'>";
+					echo "<input type='hidden' name='tablename' value='".htmlentities($name,ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='oldvalue' value='".htmlentities($_GET['pk'],ENT_QUOTES)."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
@@ -3876,7 +3877,7 @@ else //user is authorized - display the main application
 					$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
 					echo "<tr>";
 					echo $tdWithClass;
-					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".$fieldVal."'/>";
+					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlentities($fieldVal,ENT_QUOTES)."'/>";
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
