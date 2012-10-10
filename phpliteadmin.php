@@ -668,12 +668,15 @@ class Database
 	//generic query wrapper
 	public function query($query, $ignoreAlterCase=false)
 	{
+		global $debug;
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
-			$queryparts = preg_split("/[\s]+/", $query, 4, PREG_SPLIT_NO_EMPTY);
-			$tablename = rtrim(ltrim($queryparts[2],BT1),BT2);
-			$alterdefs = $queryparts[3];
-			//echo $query;
+			preg_match("/^\s*ALTER\s+TABLE\s+\"([^\"]+)\"\s+(.*)$/i",$query,$matches);
+			if(!isset($matches[1]) || !isset($matches[2]))
+				return NULL;
+			$tablename = $matches[1];
+			$alterdefs = $matches[2];
+			if($debug) echo "ALTER TABLE QUERY=(".$query."), tablename=($tablename), alterdefs=($alterdefs)<hr>";
 			$result = $this->alterTable($tablename, $alterdefs);
 		}
 		else //this query is normal - proceed as normal
@@ -784,6 +787,8 @@ class Database
 	// this has been completely debugged / rewritten by Christopher Kramer
 	public function alterTable($table, $alterdefs)
 	{
+		global $debug;
+		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
 			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = ".$this->quote($table)." ORDER BY type DESC";
@@ -795,7 +800,8 @@ class Database
 				$row = $this->select($tempQuery); //table sql
 				$tmpname = 't'.time();
 				$origsql = $row['sql'];
-				$createtemptableSQL = 'CREATE TEMPORARY '.substr(trim(preg_replace("'".$table."'", $tmpname, $origsql, 1)), 6);
+				$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".preg_replace("/^\s*CREATE\s+TABLE\s+'?".str_replace("'","''",preg_quote($table,"/"))."'?\s+(.*)$/i", '$1', $origsql, 1);
+				if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 				$createindexsql = array();
 				$i = 0;
 				preg_match_all("/(?:DROP|ADD|CHANGE)\s+(?:\"[^\"]+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
@@ -830,11 +836,13 @@ class Database
 						return false;
 					$action = strtolower($matches[1]);
 					if($action == 'add')	
-						$column = $matches[3];		// enclosed in ''
+						$column = str_replace("''","'",$matches[3]);		// enclosed in ''
 					else
 						$column = $matches[2];		// enclosed in ""
 						
 					$column_escaped = str_replace("'","''",$column);
+
+					if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr>";
 			
 					/* we build a regex that devides the CREATE TABLE statement parts:
 					  Part example								Group	Explanation
@@ -843,7 +851,7 @@ class Database
 					  3. 'colX' ...,							-		(with colX being the column to change/drop)
 					  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
 					*/
-					$preg_create_table = "(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname)."'?\s*\()";   // This is group $1 (keep unchanged)
+					$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
 					$preg_column_definiton = "\s*(?:(?:'(?:[^']|'')+')|[^ ]+)\s+(?:[^,')]|'(?:[^']|'')*')+";		// catches a complete column definition, even if it is
 													// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 					$preg_columns_before =  // columns before the one changed/dropped (keep)
@@ -856,8 +864,8 @@ class Database
 							")".			// end of group $2
 							",\s*"			// the last comma of the last column before the column to change. Do not keep it!
 						.")?";    // there might be no columns before
-					$preg_column_to_drop = "\s*(?:'".preg_quote($column_escaped)."'|".preg_quote($column_escaped).")\s+(?:[^,')]|'(?:[^']|'')*')+";      // delete this part (we want to drop this column)
-					$preg_column_to_change = "\s*(?:'".preg_quote($column_escaped)."'|".preg_quote($column_escaped).")\s+(?:INTEGER|REAL|TEXT|BLOB)?(\s+(?:[^,')]|'(?:[^']|'')*')+)?";
+					$preg_column_to_drop = "\s*(?:'".preg_quote($column_escaped,"/")."'|".preg_quote($column_escaped,"/").")\s+(?:[^,')]|'(?:[^']|'')*')+";      // delete this part (we want to drop this column)
+					$preg_column_to_change = "\s*(?:'".preg_quote($column_escaped,"/")."'|".preg_quote($column_escaped,"/").")\s+(?:INTEGER|REAL|TEXT|BLOB)?(\s+(?:[^,')]|'(?:[^']|'')*')+)?";
 											// replace this part (we want to change this column)
 											// group $3 contains the column constraints (keep!). the name & data type is replaced.
 					$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
@@ -879,6 +887,12 @@ class Database
 							$new_col_definition = "'$column_escaped' ".$matches[4];
 							// append the column definiton in the CREATE TABLE statement
 							$newSQL = preg_replace($preg_pattern_add, '$1$2, '.preg_quote($new_col_definition).')', $createtesttableSQL);
+							if($debug)
+							{
+								echo $createtesttableSQL."<hr>";
+								echo $newSQL."<hr>";
+								echo $preg_pattern_add."<hr>";
+							}
 							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
 								return false;
 							$createtesttableSQL = $newSQL;
@@ -893,6 +907,15 @@ class Database
 							$new_col_definition = "'$new_col_name' $new_col_type";
 							// replace the column definiton in the CREATE TABLE statement
 							$newSQL = preg_replace($preg_pattern_change, '$1$2,'.preg_quote($new_col_definition).'$3$4)', $createtesttableSQL);
+							// remove comma at the beginning if the first column is changed
+							// probably somebody is able to put this into the first regex (using lookahead probably).
+							$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
+							if($debug)
+							{
+								echo $createtesttableSQL."<hr>";
+								echo $newSQL."<hr>";
+								echo $preg_pattern_change."<hr>";
+							}
 							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
 								return false;
 							$createtesttableSQL = $newSQL;
@@ -903,7 +926,13 @@ class Database
 							$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
 							// remove comma at the beginning if the first column is removed
 							// probably somebody is able to put this into the first regex (using lookahead probably).
-							$newSQL = preg_replace("/^(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname)."'\s+\(),\s*/",'$1',$newSQL);
+							$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
+							if($debug)
+							{
+								echo $createtesttableSQL."<hr>";
+								echo $newSQL."<hr>";
+								echo $preg_pattern_drop."<hr>";
+							}
 							if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
 								return false;
 							$createtesttableSQL = $newSQL;
@@ -915,7 +944,8 @@ class Database
 				}
 				$droptempsql = 'DROP TABLE '.BT1.$tmpname.BT2;
 
-				$createnewtableSQL = 'CREATE '.substr(trim(preg_replace("'".$tmpname."'", $table, $createtesttableSQL, 1)), 17);
+				$createnewtableSQL = "CREATE TABLE ".$this->quote($table)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
+
 				$newcolumns = '';
 				$oldcolumns = '';
 				reset($newcols);
@@ -934,6 +964,7 @@ class Database
 				$alter_transaction .= $copytonewsql.'; ';      //copy back to original table
 				$alter_transaction .= $droptempsql.'; ';      //drop temp table
 				$alter_transaction .= 'COMMIT;';
+				if($debug) echo $alter_transaction;
 				$this->multiQuery($alter_transaction);
 			}
 			else
@@ -1686,8 +1717,8 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 //makes sure autoincrement can only be selected when integer type is selected
 function toggleAutoincrement(i)
 {
-	var type = document.getElementById(i+'_type');
-	var autoincrement = document.getElementById(i+'_autoincrement');
+	var type = document.getElementById('i'+i+'_type');
+	var autoincrement = document.getElementById('i'+i+'_autoincrement');
 	if(type.value=="INTEGER")
 		autoincrement.disabled = false;
 	else
@@ -1970,7 +2001,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".$_POST['tablename']."' has been created.<br/><span style='font-size:11px;'>".$query."</span>";
+				$completed = "Table '".htmlentities($_POST['tablename'])."' has been created.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
@@ -1982,7 +2013,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".$_POST['tablename']."' has been emptied.<br/><span style='font-size:11px;'>".$query."</span>";
+				$completed = "Table '".htmlentities($_POST['tablename'])."' has been emptied.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
@@ -1996,7 +2027,7 @@ else //user is authorized - display the main application
 			case "table_drop":
 				$query = "DROP TABLE ".BT1.$_POST['tablename'].BT2;
 				$db->query($query);
-				$completed = "Table '".$_POST['tablename']."' has been dropped.";
+				$completed = "Table '".htmlentities($_POST['tablename'])."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
@@ -2551,7 +2582,7 @@ else //user is authorized - display the main application
 						echo "<input type='text' name='".$i."_field' style='width:200px;'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+						echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
 						$types = unserialize(DATATYPES);
 						for($z=0; $z<sizeof($types); $z++)
 							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";
@@ -3780,7 +3811,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create column
 			case "column_create":
-				echo "<h2>Adding new field(s) to table '".$_POST['tablename']."'</h2>";
+				echo "<h2>Adding new field(s) to table '".htmlentities($_POST['tablename'])."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
@@ -3789,8 +3820,8 @@ else //user is authorized - display the main application
 				{
 					$num = intval($_POST['tablefields']);
 					$name = $_POST['tablename'];
-					echo "<form action='".PAGE."?table=".$_POST['tablename']."&amp;action=column_create&amp;confirm=1' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".$name."'/>";
+					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_create&amp;confirm=1' method='post'>";
+					echo "<input type='hidden' name='tablename' value='".htmlentities($name,ENT_QUOTES)."'/>";
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
@@ -3807,7 +3838,7 @@ else //user is authorized - display the main application
 						echo "<input type='text' name='".$i."_field' style='width:200px;'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+						echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
 						$types = unserialize(DATATYPES);
 						for($z=0; $z<sizeof($types); $z++)
 							echo "<option value='".$types[$z]."'>".$types[$z]."</option>";
@@ -3817,7 +3848,7 @@ else //user is authorized - display the main application
 						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
@@ -3830,7 +3861,7 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 					echo "<input type='submit' value='Add Field(s)' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".$_POST['tablename']."&amp;action=column_view'>Cancel</a>";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -3861,9 +3892,9 @@ else //user is authorized - display the main application
 						$str .= ", ".$pks[$i];
 						$pkVal .= ":".$pks[$i];
 					}
-					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".$pkVal."' method='post'>";
+					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 					echo "<div class='confirm'>";
-					echo "Are you sure you want to delete column(s) ".$str." from table '".htmlentities($_GET['table'])."'?<br/><br/>";
+					echo "Are you sure you want to delete column(s) ".htmlentities($str)." from table '".htmlentities($_GET['table'])."'?<br/><br/>";
 					echo "<input type='submit' value='Confirm' class='btn'/> ";
 					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
 					echo "</div>";
@@ -3871,7 +3902,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				echo "<h2>Editing column '".$_GET['pk']."' on table '".htmlentities($_GET['table'])."'</h2>";
+				echo "<h2>Editing column '".htmlentities($_GET['pk'])."' on table '".htmlentities($_GET['table'])."'</h2>";
 				echo "Due to the limitations of SQLite, only the field name and data type can be modified.<br/><br/>";
 				if(!isset($_GET['pk']))
 					echo "You must specify a column.";
@@ -3915,7 +3946,7 @@ else //user is authorized - display the main application
 					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlentities($fieldVal,ENT_QUOTES)."'/>";
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<select name='".$i."_type' id='".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+					echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
 					$types = unserialize(DATATYPES);
 					for($z=0; $z<sizeof($types); $z++)
 					{
@@ -3983,12 +4014,12 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
-				echo "<h2>Creating new trigger on table '".$_POST['tablename']."'</h2>";
+				echo "<h2>Creating new trigger on table '".htmlentities($_POST['tablename'])."'</h2>";
 				if($_POST['tablename']=="")
 					echo "You must specify a table name.";
 				else
 				{
-					echo "<form action='".PAGE."?table=".$_POST['tablename']."&amp;action=trigger_create&amp;confirm=1' method='post'>";
+					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=trigger_create&amp;confirm=1' method='post'>";
 					echo "Trigger name: <input type='text' name='trigger_name'/><br/><br/>";
 					echo "<fieldset><legend>Database Event</legend>";
 					echo "Before/After: ";
@@ -4015,13 +4046,13 @@ else //user is authorized - display the main application
 					echo "<textarea name='triggersteps' style='width:500px; height:100px;'></textarea>";
 					echo "</fieldset><br/><br/>";
 					echo "<input type='submit' value='Create Trigger' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".$_POST['tablename']."&amp;action=column_view'>Cancel</a>";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
 					echo "</form>";
 				}
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
-				echo "<h2>Creating new index on table '".$_POST['tablename']."'</h2>";
+				echo "<h2>Creating new index on table '".htmlentities($_POST['tablename'])."'</h2>";
 				if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
