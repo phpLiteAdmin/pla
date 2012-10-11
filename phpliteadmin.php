@@ -800,7 +800,7 @@ class Database
 				$row = $this->select($tempQuery); //table sql
 				$tmpname = 't'.time();
 				$origsql = $row['sql'];
-				$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".preg_replace("/^\s*CREATE\s+TABLE\s+'?".str_replace("'","''",preg_quote($table,"/"))."'?\s+(.*)$/i", '$1', $origsql, 1);
+				$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".preg_replace("/^\s*CREATE\s+TABLE\s+'?".str_replace("'","''",preg_quote($table,"/"))."'?\s*(\(.*)$/i", '$1', $origsql, 1);
 				if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 				$createindexsql = array();
 				$i = 0;
@@ -1831,6 +1831,7 @@ function disableText(checker, textie)
 {
 	if(checker.checked)
 	{
+		document.getElementById(textie).value = "";
 		document.getElementById(textie).disabled = true;	
 	}
 	else
@@ -2070,8 +2071,14 @@ else //user is authorized - display the main application
 						$query .= ") VALUES (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$value = $_POST[$i.":".$fields[$j]];
+							// PHP replaces space with underscore
+							$fields[$j] = str_replace(" ","_",$fields[$j]);
+							
 							$null = isset($_POST[$i.":".$fields[$j]."_null"]);
+							if(!$null)
+								$value = $_POST[$i.":".$fields[$j]];
+							else
+								$value = "";
 							$type = $result[$j][2];
 							$function = $_POST["function_".$i."_".$fields[$j]];
 							if($function!="")
@@ -3409,7 +3416,7 @@ else //user is authorized - display the main application
 				for($j=0; $j<$num; $j++)
 				{
 					if($j>0)
-						echo "<input type='checkbox' value='ignore' name='".$j.":ignore' id='".$j."_ignore' checked='checked'/> Ignore<br/>";
+						echo "<input type='checkbox' value='ignore' name='".$j.":ignore' id='row_".$j."_ignore' checked='checked'/> Ignore<br/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td class='tdheader'>Field</td>";
@@ -3437,8 +3444,8 @@ else //user is authorized - display the main application
 						echo $type;
 						echo "</td>";
 						echo $tdWithClassLeft;
-						echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"".$j.":".$field_html."_null\");'>";
-						echo "<option value=''></option>";
+						echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"row_".$j."_field_".$i."_null\");'>";
+						echo "<option value=''>&nbsp;</option>";
 						$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
 						for($z=0; $z<sizeof($functions); $z++)
 						{
@@ -3451,9 +3458,9 @@ else //user is authorized - display the main application
 						if($result[$i][3]==0)
 						{
 							if($result[$i][4]===NULL)
-								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='".$j.":".$field_html."_null' checked='checked' onclick='disableText(this, \"".$j.":".$field_html."\");'/>";
+								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' checked='checked' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 							else
-								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='".$j.":".$field_html."_null' onclick='disableText(this, \"".$j.":".$field_html."\");'/>";
+								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 						}
 						echo "</td>";
 						echo $tdWithClassLeft;
@@ -3463,9 +3470,9 @@ else //user is authorized - display the main application
 						// 19 October 2011: di fixed the bug caused by the previous fix where the null column does not exist anymore
 						$type = strtolower($type);
 						if($scalarField)
-							echo "<input type='text' id='".$j.":".$field_html."' name='".$j.":".$field_html."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"".$j."_ignore\");' onclick='notNull(\"".$j.":".$field_html."_null\");'/>";
+							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 						else
-							echo "<textarea id='".$j.":".$field_html."' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"".$j.":".$field_html."_null\");' onblur='changeIgnore(this, \"".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
+							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
             		echo "</td>";
             		echo "</tr>";
 					}
