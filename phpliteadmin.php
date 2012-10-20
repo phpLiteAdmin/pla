@@ -293,16 +293,18 @@ if($directory!==false)
 		$j = 0;
 		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 		{
+			if($subdirectories===false)
+				$arr[$i] = $directory."/".$arr[$i];
+			
 			if(!is_file($arr[$i])) continue;
-			$file = pathinfo($arr[$i]);
 			$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
 			if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
 			{
-				if($subdirectories===true)
-					$databases[$j]['path'] = $arr[$i];
+				$databases[$j]['path'] = $arr[$i];
+				if($subdirectories===false)
+					$databases[$j]['name'] = basename($arr[$i]);
 				else
-					$databases[$j]['path'] = $directory."/".$arr[$i];
-				$databases[$j]['name'] = $arr[$i];
+					$databases[$j]['name'] = $arr[$i];
 				// 22 August 2011: gkf fixed bug 49.
 				$perms = 0;
 				$perms += is_readable($databases[$j]['path']) ? 4 : 0;
