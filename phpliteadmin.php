@@ -677,10 +677,13 @@ class Database
 		global $debug;
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
-			preg_match("/^\s*ALTER\s+TABLE\s+\"([^\"]+)\"\s+(.*)$/i",$query,$matches);
+			preg_match("/^\s*ALTER\s+TABLE\s+\"((?:[^\"]|\"\")+)\"\s+(.*)$/i",$query,$matches);
 			if(!isset($matches[1]) || !isset($matches[2]))
+			{
+				if($debug) echo "query=(".$query.")<br />";
 				return NULL;
-			$tablename = $matches[1];
+			}
+			$tablename = str_replace('""','"',$matches[1]);
 			$alterdefs = $matches[2];
 			if($debug) echo "ALTER TABLE QUERY=(".$query."), tablename=($tablename), alterdefs=($alterdefs)<hr>";
 			$result = $this->alterTable($tablename, $alterdefs);
@@ -688,7 +691,7 @@ class Database
 		else //this query is normal - proceed as normal
 		{
 			$result = $this->db->query($query);
-			if($debug) echo "query=(".$query.")";
+			if($debug) echo "query=(".$query.")<br />";
 		}
 		if(!$result)
 			return NULL;
@@ -813,7 +816,7 @@ class Database
 				if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 				$createindexsql = array();
 				$i = 0;
-				preg_match_all("/(?:DROP|ADD|CHANGE)\s+(?:\"[^\"]+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
+				preg_match_all("/(?:DROP|ADD|CHANGE)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
 
 				$defs = $matches[0];				
 				$oldcols = preg_split("/[,]+/", substr(trim($createtemptableSQL), strpos(trim($createtemptableSQL), '(')+1), -1, PREG_SPLIT_NO_EMPTY);
@@ -836,22 +839,34 @@ class Database
 				$copytotempsql = 'INSERT INTO '.$this->quote_id($tmpname).'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$this->quote_id($table);
 				$dropoldsql = 'DROP TABLE '.$this->quote_id($table);
 				$createtesttableSQL = $createtemptableSQL;
-				if(count($defs)<1) return false;
+				if(count($defs)<1)
+				{
+					if($debug) echo "ERROR: defs&lt;1<hr />";
+					return false;
+				}
 				foreach($defs as $def)
 				{
-					$parse_def = preg_match("/^(DROP|ADD|CHANGE)\s+(?:\"([^\"]+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
-					if($parse_def===false) return false;
-					if(!isset($matches[1]))
+					if($debug) echo "def=$def<hr />";
+					$parse_def = preg_match("/^(DROP|ADD|CHANGE)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
+					if($parse_def===false)
+					{
+						if($debug) echo "ERROR: !parse_def<hr />";
 						return false;
+					}
+					if(!isset($matches[1]))
+					{
+						if($debug) echo "ERROR: !isset(matches[1])<hr />";
+						return false;
+					}
 					$action = strtolower($matches[1]);
 					if($action == 'add')	
 						$column = str_replace("''","'",$matches[3]);		// enclosed in ''
 					else
-						$column = $matches[2];		// enclosed in ""
+						$column = str_replace('""','"',$matches[2]);		// enclosed in ""
 						
 					$column_escaped = str_replace("'","''",$column);
 
-					if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr>";
+					if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
 			
 					/* we build a regex that devides the CREATE TABLE statement parts:
 					  Part example								Group	Explanation
@@ -895,7 +910,7 @@ class Database
 							}
 							$new_col_definition = "'$column_escaped' ".$matches[4];
 							// append the column definiton in the CREATE TABLE statement
-							$newSQL = preg_replace($preg_pattern_add, '$1$2, '.preg_quote($new_col_definition).')', $createtesttableSQL);
+							$newSQL = preg_replace($preg_pattern_add, '$1$2, ', $createtesttableSQL).$new_col_definition.')';
 							if($debug)
 							{
 								echo $createtesttableSQL."<hr>";
@@ -915,7 +930,7 @@ class Database
 							$new_col_type = $matches[6];
 							$new_col_definition = "'$new_col_name' $new_col_type";
 							// replace the column definiton in the CREATE TABLE statement
-							$newSQL = preg_replace($preg_pattern_change, '$1$2,'.preg_quote($new_col_definition).'$3$4)', $createtesttableSQL);
+							$newSQL = preg_replace($preg_pattern_change, '$1$2,'.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).'$3$4)', $createtesttableSQL);
 							// remove comma at the beginning if the first column is changed
 							// probably somebody is able to put this into the first regex (using lookahead probably).
 							$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
@@ -2026,7 +2041,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlentities($_POST['tablename'])."' has been created.<br/><span style='font-size:11px;'>".$query."</span>";
+				$completed = "Table '".htmlencode($_POST['tablename'])."' has been created.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
@@ -2100,7 +2115,15 @@ else //user is authorized - display the main application
 							
 							$null = isset($_POST[$i.":".$fields[$j]."_null"]);
 							if(!$null)
+							{
+								if(!isset($_POST[$i.":".$fields[$j]]) && $debug)
+								{
+									echo "MISSING POST INDEX (".$i.":".$fields[$j].")<br><pre />";
+									var_dump($_POST);
+									echo "</pre><hr />";
+								} 
 								$value = $_POST[$i.":".$fields[$j]];
+							}
 							else
 								$value = "";
 							$type = $result[$j][2];
@@ -2268,12 +2291,11 @@ else //user is authorized - display the main application
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' DROP "'.$pks[0].'"';
-				// note: here we use a real [] instead of BT as we parse this ourselves using alterTable() anyway!
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' DROP '.$db->quote_id($pks[0]);
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
-					$query .= ", DROP [".$pks[$i]."]";
+					$query .= ", DROP ".$db->quote_id($pks[$i]);
 				}
 				$result = $db->query($query);
 				if(!$result)
@@ -2282,7 +2304,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' CHANGE "'.$_POST['oldvalue']."\" ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' CHANGE '.$db->quote_id($_POST['oldvalue'])." ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
