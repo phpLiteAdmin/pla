@@ -1212,9 +1212,9 @@ class Database
 						echo "----\r\n";
 					}
 					if($result[$i]['type']=="table")
-						echo "DROP TABLE '".$result[$i]['tbl_name']."';\r\n";
+						echo "DROP TABLE ".$this->quote_id($result[$i]['tbl_name']).";\r\n";
 					else
-						echo "DROP INDEX '".$result[$i]['name']."';\r\n";
+						echo "DROP INDEX ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
 				if($structure)
 				{
@@ -1243,9 +1243,13 @@ class Database
 					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
 					$temp = $this->selectArray($query);
 					$cols = array();
+					$cols_quoted = array();
 					$vals = array();
 					for($z=0; $z<sizeof($temp); $z++)
+					{
 						$cols[$z] = $temp[$z][1];
+						$cols_quoted[$z] = $this->quote_id($temp[$z][1]);
+					}
 					for($z=0; $z<sizeof($arr); $z++)
 					{
 						for($y=0; $y<sizeof($cols); $y++)
@@ -1256,7 +1260,7 @@ class Database
 						}
 					}
 					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
+						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols_quoted).") VALUES (".implode(",", $vals[$j]).");\r\n";
 				}
 			}
 		}
@@ -1801,7 +1805,7 @@ function moveFields()
 		if(fields.options[i].selected)
 			selected.push(fields.options[i].value);
 	for(var i=0; i<selected.length; i++)
-		insertAtCaret("queryval", '"'+selected[i]+'"');
+		insertAtCaret("queryval", '"'+selected[i].replace(/"/g,'""')+'"');
 }
 //helper function for moveFields
 function insertAtCaret(areaId,text)
@@ -2170,10 +2174,11 @@ else //user is authorized - display the main application
 						$query .= ") VALUES (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$value = $_POST[$pks[$i].":".$fields[$j]];
-							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
+							$field_index = str_replace(" ","_",$fields[$j]);
+							$value = $_POST[$pks[$i].":".$field_index];
+							$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
 							$type = $result[$j][2];
-							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
+							$function = $_POST["function_".$pks[$i]."_".$field_index];
 							if($function!="")
 								$query .= $function."(";
 								//di - messed around with this logic for null values
@@ -2201,15 +2206,16 @@ else //user is authorized - display the main application
 						$query = "UPDATE ".$db->quote_id($_GET['table'])." SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
-							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
+							$field_index = str_replace(" ","_",$fields[$j]);
+							$function = $_POST["function_".$pks[$i]."_".$field_index];
+							$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
 							$query .= $db->quote_id($fields[$j])."=";
 							if($function!="")
 								$query .= $function."(";
 							if($null)
 								$query .= "NULL";
 							else
-								$query .= $db->quote($_POST[$pks[$i].":".$fields[$j]]);
+								$query .= $db->quote($_POST[$pks[$i].":".$field_index]);
 							if($function!="")
 								$query .= ")";
 							$query .= ", ";
@@ -2222,7 +2228,7 @@ else //user is authorized - display the main application
 							$error = true;
 						}
 					}
-					$completed .= "<span style='font-size:11px;'>".$query."</span><br/>";
+					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
 				}
 				if(isset($_POST['new_row']))
 					$completed = $z." row(s) inserted.<br/><br/>".$completed;
@@ -3225,14 +3231,14 @@ else //user is authorized - display the main application
 							if(!isset($_GET['view']))
 							{
 								echo $tdWithClass;
-								echo "<input type='checkbox' name='check[]' value='".$pk."' id='check_".$i."'/>";
+								echo "<input type='checkbox' name='check[]' value='".htmlencode($pk)."' id='check_".htmlencode($i)."'/>";
 								echo "</td>";
 								echo $tdWithClass;
 								// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-								echo "<a href='".PAGE."?table=".$table."&amp;action=row_editordelete&amp;pk=".$pk."&amp;type=edit'>edit</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit'>edit</a>";
 								echo "</td>";
 								echo $tdWithClass;
-								echo "<a href='".PAGE."?table=".$table."&amp;action=row_editordelete&amp;pk=".$pk."&amp;type=delete' style='color:red;'>delete</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' style='color:red;'>delete</a>";
 								echo "</td>";
 							}
 							for($j=0; $j<sizeof($result); $j++)
@@ -3532,7 +3538,7 @@ else //user is authorized - display the main application
 				{
 					if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 					{
-						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_edit&amp;confirm=1&amp;pk=".$pkVal."' method='post'>";
+						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_edit&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 						$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
 						$result = $db->selectArray($query);
 
@@ -3541,7 +3547,7 @@ else //user is authorized - display the main application
 						for($j=1; $j<sizeof($result); $j++)
 							$fieldStr .= ":".$result[$j][1];
 
-						echo "<input type='hidden' name='fieldArray' value='".$fieldStr."'/>";
+						echo "<input type='hidden' name='fieldArray' value='".htmlencode($fieldStr)."'/>";
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
@@ -3572,12 +3578,12 @@ else //user is authorized - display the main application
 								echo $type;
 								echo "</td>";
 								echo $tdWithClassLeft;
-								echo "<select name='function_".$pks[$j]."_".$field."' onchange='notNull(\"".$pks[$j].":".$field."_null\");'>";
+								echo "<select name='function_".htmlencode($pks[$j])."_".htmlencode($field)."' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
 								echo "<option value=''></option>";
 								$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
 								for($z=0; $z<sizeof($functions); $z++)
 								{
-									echo "<option value='".$functions[$z]."'>".$functions[$z]."</option>";
+									echo "<option value='".htmlencode($functions[$z])."'>".htmlencode($functions[$z])."</option>";
 								}
 								echo "</select>";
 								echo "</td>";
@@ -3585,16 +3591,16 @@ else //user is authorized - display the main application
 								if($result[$i][3]==0)
 								{
 									if($value===NULL)
-										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null' checked='checked'/>";
+										echo "<input type='checkbox' name='".htmlencode($pks[$j]).":".htmlencode($field)."_null' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null' checked='checked'/>";
 									else
-										echo "<input type='checkbox' name='".$pks[$j].":".$field."_null' id='".$pks[$j].":".$field."_null'/>";
+										echo "<input type='checkbox' name='".htmlencode($pks[$j]).":".htmlencode($field)."_null' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null'/>";
 								}
 								echo "</td>";
 								echo $tdWithClassLeft;
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-									echo "<input type='text' name='".$pks[$j].":".$field."' value='".$db->formatString($value)."' onblur='changeIgnore(this, \"".$j."\", \"".$pks[$j].":".$field."_null\")' />";
+									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".$db->formatString($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".$pks[$j].":".$field."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".$pks[$j].":".$field."_null\")'>".$db->formatString($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".$db->formatString($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
@@ -3612,9 +3618,9 @@ else //user is authorized - display the main application
 					}
 					else //delete
 					{
-						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_delete&amp;confirm=1&amp;pk=".$pkVal."' method='post'>";
+						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 						echo "<div class='confirm'>";
-						echo "Are you sure you want to delete row(s) ".$str." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
+						echo "Are you sure you want to delete row(s) ".htmlencode($str)." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
 						echo "<input type='submit' value='Confirm' class='btn'/> ";
 						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Cancel</a>";
 						echo "</div>";
