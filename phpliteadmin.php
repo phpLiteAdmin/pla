@@ -131,8 +131,6 @@ define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[$cookie_name.'_salt'])); //extra security - salted and encrypted password used for checking
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
-define("BT1","\"");
-define("BT2","\"");
 
 
 //data types array
@@ -236,6 +234,12 @@ function dir_tree($dir)
 function helpLink($name)
 {
 	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='Help: ".$name."'>[?]</a>";	
+}
+
+// function to encode value into HTML just like htmlentities, but with adjusted default settings
+function htmlencode($value, $flags=ENT_QUOTES, $encoding ="UTF-8")
+{
+	return htmlentities($value, $flags, $encoding);
 }
 
 //user is deleting a database
@@ -682,7 +686,10 @@ class Database
 			$result = $this->alterTable($tablename, $alterdefs);
 		}
 		else //this query is normal - proceed as normal
+		{
 			$result = $this->db->query($query);
+			if($debug) echo "query=(".$query.")";
+		}
 		if(!$result)
 			return NULL;
 		$this->lastResult = $result;
@@ -823,11 +830,11 @@ class Database
 				reset($newcols);
 				while(list($key, $val) = each($newcols))
 				{
-					$newcolumns .= ($newcolumns?', ':'').BT1.$val.BT2;
-					$oldcolumns .= ($oldcolumns?', ':'').BT1.$key.BT2;
+					$newcolumns .= ($newcolumns?', ':'').$this->quote_id($val);
+					$oldcolumns .= ($oldcolumns?', ':'').$this->quote_id($key);
 				}
-				$copytotempsql = 'INSERT INTO '.BT1.$tmpname.BT2.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT1.$table.BT2;
-				$dropoldsql = 'DROP TABLE '.BT1.$table.BT2;
+				$copytotempsql = 'INSERT INTO '.$this->quote_id($tmpname).'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$this->quote_id($table);
+				$dropoldsql = 'DROP TABLE '.$this->quote_id($table);
 				$createtesttableSQL = $createtemptableSQL;
 				if(count($defs)<1) return false;
 				foreach($defs as $def)
@@ -944,7 +951,7 @@ class Database
 							return false;
 					}
 				}
-				$droptempsql = 'DROP TABLE '.BT1.$tmpname.BT2;
+				$droptempsql = 'DROP TABLE '.$this->quote_id($tmpname);
 
 				$createnewtableSQL = "CREATE TABLE ".$this->quote($table)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
 
@@ -953,10 +960,10 @@ class Database
 				reset($newcols);
 				while(list($key,$val) = each($newcols))
 				{
-					$newcolumns .= ($newcolumns?', ':'').BT1.$val.BT2;
-					$oldcolumns .= ($oldcolumns?', ':'').BT1.$key.BT2;
+					$newcolumns .= ($newcolumns?', ':'').$this->quote_id($val);
+					$oldcolumns .= ($oldcolumns?', ':'').$this->quote_id($key);
 				}
-				$copytonewsql = 'INSERT INTO '.BT1.$table.BT2.'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.BT1.$tmpname.BT2;
+				$copytonewsql = 'INSERT INTO '.$this->quote_id($table).'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$this->quote_id($tmpname);
 
 				$alter_transaction  = 'BEGIN; ';
 				$alter_transaction .= $createtemptableSQL.'; ';  //create temp table
@@ -1008,7 +1015,7 @@ class Database
 	//get number of rows in table
 	public function numRows($table)
 	{
-		$result = $this->select("SELECT Count(*) FROM ".BT1.$table.BT2);
+		$result = $this->select("SELECT Count(*) FROM ".$this->quote_id($table));
 		return $result[0];
 	}
 
@@ -1029,6 +1036,15 @@ class Database
 			return "'".sqlite_escape_string($value)."'";
 		}
 	}
+
+ 	//correctly escape an identifier (column / table / trigger / index name) to be injected into an SQL query
+	public function quote_id($value)
+	{
+		// double-quotes need to be escaped by doubling them
+		$value = str_replace('"','""',$value);
+		return '"'.$value.'"';
+	}
+
 
 	//correctly format a string value from a table before showing it
 	public function formatString($value)
@@ -1061,7 +1077,7 @@ class Database
 				$csv_number_of_rows++;
 				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
 				$csv_col_number = count($csv_data);
-				$csv_insert .= "INSERT INTO ".BT1.$table.BT2." VALUES (";
+				$csv_insert .= "INSERT INTO ".$this->quote_id($table)." VALUES (";
 				foreach($csv_data as $csv_col => $csv_cell)
 				{
 					if($csv_cell == $null) $csv_insert .= "NULL";
@@ -1123,7 +1139,7 @@ class Database
 					}
 					echo "\r\n";	
 				}
-				$query = "SELECT * FROM ".BT1.$result[$i]['tbl_name'].BT2;
+				$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
 				$arr = $this->selectArray($query, "assoc");
 				for($z=0; $z<sizeof($arr); $z++)
 				{
@@ -1215,7 +1231,7 @@ class Database
 				}
 				if($data && $result[$i]['type']=="table")
 				{
-					$query = "SELECT * FROM ".BT1.$result[$i]['tbl_name'].BT2;
+					$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
 					$arr = $this->selectArray($query, "assoc");
 
 					if($comments)
@@ -1224,7 +1240,7 @@ class Database
 						echo "-- Data dump for ".$result[$i]['tbl_name'].", a total of ".sizeof($arr)." rows\r\n";
 						echo "----\r\n";
 					}
-					$query = "PRAGMA table_info(".BT1.$result[$i]['tbl_name'].BT2.")";
+					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
 					$temp = $this->selectArray($query);
 					$cols = array();
 					$vals = array();
@@ -1240,7 +1256,7 @@ class Database
 						}
 					}
 					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO ".BT1.$result[$i]['tbl_name'].BT2." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
+						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols).") VALUES (".implode(",", $vals[$j]).");\r\n";
 				}
 			}
 		}
@@ -1331,6 +1347,8 @@ if(isset($_POST['import']))
 		$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
 	}
 }
+
+header('Content-Type: text/html; charset=utf-8');
 
 // here begins the HTML.
 ?>
@@ -2008,7 +2026,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
-				$query = "DELETE FROM ".BT1.$_POST['tablename'].BT2;
+				$query = "DELETE FROM ".$db->quote_id($_POST['tablename']);
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2016,7 +2034,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlentities($_POST['tablename'])."' has been emptied.<br/><span style='font-size:11px;'>".$query."</span>";
+				$completed = "Table '".htmlencode($_POST['tablename'])."' has been emptied.<br/><span style='font-size:11px;'>".$query."</span>";
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
@@ -2028,19 +2046,19 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
-				$query = "DROP TABLE ".BT1.$_POST['tablename'].BT2;
+				$query = "DROP TABLE ".$db->quote_id($_POST['tablename']);
 				$db->query($query);
-				$completed = "Table '".htmlentities($_POST['tablename'])."' has been dropped.";
+				$completed = "Table '".htmlencode($_POST['tablename'])."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
-				$query = "DROP VIEW ".BT1.$_POST['viewname'].BT2;
+				$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
 				$db->query($query);
 				$completed = "View '".$_POST['viewname']."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
-				$query = "ALTER TABLE ".BT1.$_POST['oldname'].BT2." RENAME TO '".$_POST['newname']."'";
+				$query = "ALTER TABLE ".$db->quote_id($_POST['oldname'])." RENAME TO '".$_POST['newname']."'";
 				if($db->getVersion()==3)
 					$result = $db->query($query, true);
 				else
@@ -2064,10 +2082,10 @@ else //user is authorized - display the main application
 				{
 					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query = "INSERT INTO ".BT1.$_GET['table'].BT2." (";
+						$query = "INSERT INTO ".$db->quote_id($_GET['table'])." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= "".BT1.$fields[$j].BT2.",";
+							$query .= "".$db->quote_id($fields[$j]).",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2113,7 +2131,7 @@ else //user is authorized - display the main application
 			case "row_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "DELETE FROM ".BT1.$_GET['table'].BT2." WHERE ROWID = ".$pks[0];
+				$query = "DELETE FROM ".$db->quote_id($_GET['table'])." WHERE ROWID = ".$pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
 					$str .= ", ".$pks[$i];
@@ -2143,10 +2161,10 @@ else //user is authorized - display the main application
 				{
 					if(isset($_POST['new_row']))
 					{
-						$query = "INSERT INTO ".BT1.$_GET['table'].BT2." (";
+						$query = "INSERT INTO ".$db->quote_id($_GET['table'])." (";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
-							$query .= BT1.$fields[$j].BT2.",";
+							$query .= $db->quote_id($fields[$j]).",";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ") VALUES (";
@@ -2180,12 +2198,12 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						$query = "UPDATE ".BT1.$_GET['table'].BT2." SET ";
+						$query = "UPDATE ".$db->quote_id($_GET['table'])." SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							$function = $_POST["function_".$pks[$i]."_".$fields[$j]];
 							$null = isset($_POST[$pks[$i].":".$fields[$j]."_null"]);
-							$query .= BT1.$fields[$j].BT2."=";
+							$query .= $db->quote_id($fields[$j])."=";
 							if($function!="")
 								$query .= $function."(";
 							if($null)
@@ -2217,7 +2235,7 @@ else //user is authorized - display the main application
 				{
 					if($_POST[$i.'_field']!="")
 					{
-						$query = "ALTER TABLE ".BT1.$_GET['table'].BT2." ADD ".$db->quote($_POST[$i.'_field'])." ";
+						$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." ADD ".$db->quote($_POST[$i.'_field'])." ";
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 							$query .= "PRIMARY KEY ";
@@ -2238,13 +2256,13 @@ else //user is authorized - display the main application
 							$error = true;
 					}
 				}
-				$completed = "Table '".htmlentities($_GET['table'])."' has been altered successfully.";
+				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
 				break;
 			/////////////////////////////////////////////// delete column
 			case "column_delete":
 				$pks = explode(":", $_GET['pk']);
 				$str = $pks[0];
-				$query = "ALTER TABLE ".BT1.$_GET['table'].BT2.' DROP "'.$pks[0].'"';
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' DROP "'.$pks[0].'"';
 				// note: here we use a real [] instead of BT as we parse this ourselves using alterTable() anyway!
 				for($i=1; $i<sizeof($pks); $i++)
 				{
@@ -2254,19 +2272,19 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlentities($_GET['table'])."' has been altered successfully.";
+				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				$query = "ALTER TABLE ".BT1.$_GET['table'].BT2.' CHANGE "'.$_POST['oldvalue']."\" ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' CHANGE "'.$_POST['oldvalue']."\" ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlentities($_GET['table'])."' has been altered successfully.";
+				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
-				$query = "DROP TRIGGER ".BT1.$_GET['pk'].BT2;
+				$query = "DROP TRIGGER ".$db->quote_id($_GET['pk']);
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2274,7 +2292,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
-				$query = "DROP INDEX ".BT1.$_GET['pk'].BT2;
+				$query = "DROP INDEX ".$db->quote_id($_GET['pk']);
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2285,7 +2303,7 @@ else //user is authorized - display the main application
 				$str = "CREATE TRIGGER '".$_POST['trigger_name']."'";
 				if($_POST['beforeafter']!="")
 					$str .= " ".$_POST['beforeafter'];
-				$str .= " ".$_POST['event']." ON ".BT1.$_GET['table'].BT2;
+				$str .= " ".$_POST['event']." ON ".$db->quote_id($_GET['table']);
 				if(isset($_POST['foreachrow']))
 					$str .= " FOR EACH ROW";
 				if($_POST['whenexpression']!="")
@@ -2315,8 +2333,8 @@ else //user is authorized - display the main application
 					$str = "CREATE ";
 					if($_POST['duplicate']=="no")
 						$str .= "UNIQUE ";
-					$str .= "INDEX ".$db->quote($_POST['name'])." ON ".BT1.$_GET['table'].BT2." (";
-					$str .= BT1.$_POST['0_field'].BT2.$_POST['0_order'];
+					$str .= "INDEX ".$db->quote($_POST['name'])." ON ".$db->quote_id($_GET['table'])." (";
+					$str .= $db->quote_id($_POST['0_field']).$_POST['0_order'];
 					for($i=1; $i<$num; $i++)
 					{
 						if($_POST[$i.'_field']!="")
@@ -2397,7 +2415,7 @@ else //user is authorized - display the main application
 				echo "<span style='font-size:11px;'>[view]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."&amp;view=1'";
 			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
 				echo " style='text-decoration:underline;'";
-			echo ">".htmlentities($result[$i]['name'])."</a><br/>";
+			echo ">".htmlencode($result[$i]['name'])."</a><br/>";
 			$j++;
 		}
 	}
@@ -2425,7 +2443,7 @@ else //user is authorized - display the main application
 	//breadcrumb navigation
 	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
 	if(isset($_GET['table']))
-		echo " &rarr; <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".htmlentities($_GET['table'])."</a>";
+		echo " &rarr; <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".htmlencode($_GET['table'])."</a>";
 	echo "<br/><br/>";
 
 	//user has performed some action so show the resulting message
@@ -2562,7 +2580,7 @@ else //user is authorized - display the main application
 					$exists = true;
 				else
 					$exists = false;
-				echo "<h2>Creating new table: '".htmlentities($_POST['tablename'])."'</h2>";
+				echo "<h2>Creating new table: '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
@@ -2574,7 +2592,7 @@ else //user is authorized - display the main application
 					$num = intval($_POST['tablefields']);
 					$name = $_POST['tablename'];
 					echo "<form action='".PAGE."?action=table_create&amp;confirm=1' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($name,ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($name,ENT_QUOTES)."'/>";
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
@@ -2694,7 +2712,7 @@ else //user is authorized - display the main application
 										for($z=0; $z<sizeof($headers); $z++)
 										{
 											echo $tdWithClass;
-											echo htmlentities($result[$j][$headers[$z]]);
+											echo htmlencode($result[$j][$headers[$z]]);
 											echo "</td>";
 										}
 										echo "</tr>";
@@ -2708,7 +2726,7 @@ else //user is authorized - display the main application
 				else
 				{
 					$delimiter = ";";
-					$queryStr = "SELECT * FROM ".BT1.$_GET['table'].BT2." WHERE 1";
+					$queryStr = "SELECT * FROM ".$db->quote_id($_GET['table'])." WHERE 1";
 				}
 
 				echo "<fieldset>";
@@ -2727,7 +2745,7 @@ else //user is authorized - display the main application
 				$result = $db->selectArray($query);
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					echo "<option value='".htmlentities($result[$i][1],ENT_QUOTES)."'>".htmlentities($result[$i][1],ENT_QUOTES)."</option>";
+					echo "<option value='".htmlencode($result[$i][1],ENT_QUOTES)."'>".htmlencode($result[$i][1],ENT_QUOTES)."</option>";
 				}
 				echo "</select>";
 				echo "<input type='button' value='<<' onclick='moveFields();' class='btn'/>";
@@ -2740,9 +2758,9 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
 				echo "<form action='".PAGE."?action=table_empty&amp;confirm=1' method='post'>";
-				echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to empty the table '".htmlentities($_GET['table'])."'?<br/><br/>";
+				echo "Are you sure you want to empty the table '".htmlencode($_GET['table'])."'?<br/><br/>";
 				echo "<input type='submit' value='Confirm' class='btn'/> ";
 				echo "<a href='".PAGE."'>Cancel</a>";
 				echo "</div>";
@@ -2750,9 +2768,9 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
 				echo "<form action='".PAGE."?action=table_drop&amp;confirm=1' method='post'>";
-				echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to drop the table '".htmlentities($_GET['table'])."'?<br/><br/>";
+				echo "Are you sure you want to drop the table '".htmlencode($_GET['table'])."'?<br/><br/>";
 				echo "<input type='submit' value='Confirm' class='btn'/> ";
 				echo "<a href='".PAGE."'>Cancel</a>";
 				echo "</div>";
@@ -2760,9 +2778,9 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
 				echo "<form action='".PAGE."?action=view_drop&amp;confirm=1' method='post'>";
-				echo "<input type='hidden' name='viewname' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+				echo "<input type='hidden' name='viewname' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to drop the view '".htmlentities($_GET['table'])."'?<br/><br/>";
+				echo "Are you sure you want to drop the view '".htmlencode($_GET['table'])."'?<br/><br/>";
 				echo "<input type='submit' value='Confirm' class='btn'/> ";
 				echo "<a href='".PAGE."'>Cancel</a>";
 				echo "</div>";
@@ -2771,7 +2789,7 @@ else //user is authorized - display the main application
 			case "table_export":
 				echo "<form method='post' action='".PAGE."'>";
 				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Export</b></legend>";
-				echo "<input type='hidden' value='".htmlentities($_GET['table'],ENT_QUOTES)."' name='single_table'/>";
+				echo "<input type='hidden' value='".htmlencode($_GET['table'],ENT_QUOTES)."' name='single_table'/>";
 				echo "<input type='radio' name='export_type' checked='checked' value='sql' onclick='toggleExports(\"sql\");'/> SQL";
 				echo "<br/><input type='radio' name='export_type' value='csv' onclick='toggleExports(\"csv\");'/> CSV";
 				echo "</fieldset>";
@@ -2807,7 +2825,7 @@ else //user is authorized - display the main application
 				echo "<input type='hidden' name='database_num' value='".$_SESSION[COOKIENAME.'currentDB']."'/>";
 				$file = pathinfo($db->getPath());
 				$name = $file['filename'];
-				echo "<input type='text' name='filename' value='".$name.".".htmlentities($_GET['table'],ENT_QUOTES).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
+				echo "<input type='text' name='filename' value='".$name.".".htmlencode($_GET['table'],ENT_QUOTES).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
 				break;
@@ -2823,7 +2841,7 @@ else //user is authorized - display the main application
 					echo "</div><br/>";
 				}
 				echo "<form method='post' action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_import' enctype='multipart/form-data'>";
-				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import into ".htmlentities($_GET['table'])."</b></legend>";
+				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import into ".htmlencode($_GET['table'])."</b></legend>";
 				echo "<input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> SQL";
 				echo "<br/><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> CSV";
 				echo "</fieldset>";
@@ -2833,7 +2851,7 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
-				echo "<input type='hidden' value='".htmlentities($_GET['table'],ENT_QUOTES)."' name='single_table'/>";
+				echo "<input type='hidden' value='".htmlencode($_GET['table'],ENT_QUOTES)."' name='single_table'/>";
 				echo "<div style='float:left;'>Fields terminated by</div>";
 				echo "<input type='text' value=';' name='import_csv_fieldsterminated' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
@@ -2859,8 +2877,8 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
 				echo "<form action='".PAGE."?action=table_rename&amp;confirm=1' method='post'>";
-				echo "<input type='hidden' name='oldname' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
-				echo "Rename table '".htmlentities($_GET['table'])."' to <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='Rename' name='rename' class='btn'/>";
+				echo "<input type='hidden' name='oldname' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
+				echo "Rename table '".htmlencode($_GET['table'])."' to <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='Rename' name='rename' class='btn'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// search table
@@ -2875,18 +2893,19 @@ else //user is authorized - display the main application
 					for($i=0; $i<sizeof($result); $i++)
 					{
 						$field = $result[$i][1];
-						$operator = $_POST[$field.":operator"];
-						$value = $_POST[$field];
+						$field_index = str_replace(" ","_",$field);
+						$operator = $_POST[$field_index.":operator"];
+						$value = $_POST[$field_index];
 						if($value!="" || $operator=="!= ''" || $operator=="= ''")
 						{
 							if($operator=="= ''" || $operator=="!= ''")
-								$arr[$j] = BT1.$field.BT2." ".$operator;
+								$arr[$j] = $db->quote_id($field)." ".$operator;
 							else
-								$arr[$j] = BT1.$field.BT2." ".$operator." ".$db->quote($value);
+								$arr[$j] = $db->quote_id($field)." ".$operator." ".$db->quote($value);
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM ".BT1.$_GET['table'].BT2;
+					$query = "SELECT * FROM ".$db->quote_id($_GET['table']);
 					if(sizeof($arr)>0)
 					{
 						$query .= " WHERE ".$arr[0];
@@ -2936,7 +2955,7 @@ else //user is authorized - display the main application
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								echo htmlentities($result[$j][$headers[$z]]);
+								echo htmlencode($result[$j][$headers[$z]]);
 								echo "</td>";
 							}
 							echo "</tr>";
@@ -2981,7 +3000,7 @@ else //user is authorized - display the main application
 					  echo $type;
 					  echo "</td>";
 					  echo $tdWithClassLeft;
-					  echo "<select name='".$field.":operator'>";
+					  echo "<select name='".htmlencode($field).":operator'>";
 					  echo "<option value='='>=</option>";
 					  if($type=="INTEGER" || $type=="REAL")
 					  {
@@ -3005,9 +3024,9 @@ else //user is authorized - display the main application
 					  echo "</td>";
 					  echo $tdWithClassLeft;
 					  if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-						  echo "<input type='text' name='".$field."'/>";
+						  echo "<input type='text' name='".htmlencode($field)."'/>";
 					  else
-						  echo "<textarea name='".$field."' wrap='hard' rows='1' cols='60'></textarea>";
+						  echo "<textarea name='".htmlencode($field)."' wrap='hard' rows='1' cols='60'></textarea>";
 					  echo "</td>";
 					  echo "</tr>";
 					}
@@ -3042,7 +3061,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
 				}
 				
-				$query = "SELECT Count(*) FROM ".BT1.$_GET['table'].BT2;
+				$query = "SELECT Count(*) FROM ".$db->quote_id($_GET['table']);
 				$rowCount = $db->select($query);
 				$rowCount = intval($rowCount[0]);
 				$lastPage = intval($rowCount / $_SESSION[COOKIENAME.'numRows']);
@@ -3136,8 +3155,8 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
-				$query = "SELECT *, ROWID FROM ".BT1.$table.BT2;
-				$queryDisp = "SELECT * FROM ".BT1.$table.BT2;
+				$query = "SELECT *, ROWID FROM ".$db->quote_id($table);
+				$queryDisp = "SELECT * FROM ".$db->quote_id($table);
 				$queryAdd = "";
 				if(isset($_SESSION[COOKIENAME.'sort']))
 					$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
@@ -3161,11 +3180,11 @@ else //user is authorized - display the main application
 					
 					if(isset($_GET['view']))
 					{
-						echo "'".htmlentities($_GET['table'])."' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records. <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo "'".htmlencode($_GET['table'])."' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records. <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
 						echo "<br/><br/>";	
 					}
 					
-					$query = "PRAGMA table_info(".BT1.$table.BT2.")";
+					$query = "PRAGMA table_info(".$db->quote_id($table).")";
 					$result = $db->selectArray($query);
 					$rowidColumn = sizeof($result);
 					
@@ -3431,7 +3450,7 @@ else //user is authorized - display the main application
 					for($i=0; $i<sizeof($result); $i++)
 					{
 						$field = $result[$i][1];
-						$field_html = htmlentities($field, ENT_QUOTES);
+						$field_html = htmlencode($field, ENT_QUOTES);
 						if($j==0)
 							$fieldStr .= ":".$field;
 						$type = strtolower($result[$i][2]);
@@ -3486,7 +3505,7 @@ else //user is authorized - display the main application
 					echo "</table><br/>";
 				}
 				$fieldStr = substr($fieldStr, 1);
-				echo "<input type='hidden' name='fields' value='".htmlentities($fieldStr,ENT_QUOTES)."'/>";
+				echo "<input type='hidden' name='fields' value='".htmlencode($fieldStr,ENT_QUOTES)."'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// edit or delete row
@@ -3526,7 +3545,7 @@ else //user is authorized - display the main application
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
-							$query = "SELECT * FROM ".BT1.$_GET['table'].BT2." WHERE ROWID = ".$pks[$j];
+							$query = "SELECT * FROM ".$db->quote_id($_GET['table'])." WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -3595,7 +3614,7 @@ else //user is authorized - display the main application
 					{
 						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_delete&amp;confirm=1&amp;pk=".$pkVal."' method='post'>";
 						echo "<div class='confirm'>";
-						echo "Are you sure you want to delete row(s) ".$str." from table '".htmlentities($_GET['table'])."'?<br/><br/>";
+						echo "Are you sure you want to delete row(s) ".$str." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
 						echo "<input type='submit' value='Confirm' class='btn'/> ";
 						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Cancel</a>";
 						echo "</div>";
@@ -3645,7 +3664,7 @@ else //user is authorized - display the main application
 					if(!isset($_GET['view']))
 					{
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='check[]' value='".htmlentities($fieldVal,ENT_QUOTES)."' id='check_".$i."'/>";
+						echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal,ENT_QUOTES)."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."'>edit</a>";
@@ -3691,7 +3710,7 @@ else //user is authorized - display the main application
 				{
 					echo "<br/>";
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_create' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 					echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields' class='btn'/>";
 					echo "</form>";
 				}
@@ -3714,7 +3733,7 @@ else //user is authorized - display the main application
 				{
 					echo "<br/><hr/><br/>";
 					//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$_GET['table']."'";
-					$query = "PRAGMA index_list(".BT1.$_GET['table'].BT2.")";
+					$query = "PRAGMA index_list(".$db->quote_id($_GET['table']).")";
 					$result = $db->selectArray($query);
 					if(sizeof($result)>0)
 					{
@@ -3804,14 +3823,14 @@ else //user is authorized - display the main application
 					}
 					
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_create' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 					echo "<br/><div class='tdheader'>";
 					echo "Create an index on <input type='text' name='numcolumns' style='width:30px;' value='1'/> columns <input type='submit' value='Go' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
 					
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_create' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($_GET['table'],ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'],ENT_QUOTES)."'/>";
 					echo "<br/><div class='tdheader'>";
 					echo "Create a new trigger <input type='submit' value='Go' name='addindex' class='btn'/>";
 					echo "</div>";
@@ -3820,7 +3839,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create column
 			case "column_create":
-				echo "<h2>Adding new field(s) to table '".htmlentities($_POST['tablename'])."'</h2>";
+				echo "<h2>Adding new field(s) to table '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
@@ -3830,7 +3849,7 @@ else //user is authorized - display the main application
 					$num = intval($_POST['tablefields']);
 					$name = $_POST['tablename'];
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_create&amp;confirm=1' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($name,ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($name,ENT_QUOTES)."'/>";
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
@@ -3903,7 +3922,7 @@ else //user is authorized - display the main application
 					}
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 					echo "<div class='confirm'>";
-					echo "Are you sure you want to delete column(s) ".htmlentities($str)." from table '".htmlentities($_GET['table'])."'?<br/><br/>";
+					echo "Are you sure you want to delete column(s) ".htmlencode($str)." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
 					echo "<input type='submit' value='Confirm' class='btn'/> ";
 					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
 					echo "</div>";
@@ -3911,7 +3930,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				echo "<h2>Editing column '".htmlentities($_GET['pk'])."' on table '".htmlentities($_GET['table'])."'</h2>";
+				echo "<h2>Editing column '".htmlencode($_GET['pk'])."' on table '".htmlencode($_GET['table'])."'</h2>";
 				echo "Due to the limitations of SQLite, only the field name and data type can be modified.<br/><br/>";
 				if(!isset($_GET['pk']))
 					echo "You must specify a column.";
@@ -3938,8 +3957,8 @@ else //user is authorized - display the main application
 					
 					$name = $_GET['table'];
 					echo "<form action='".PAGE."?table=".urlencode($name)."&amp;action=column_edit&amp;confirm=1' method='post'>";
-					echo "<input type='hidden' name='tablename' value='".htmlentities($name,ENT_QUOTES)."'/>";
-					echo "<input type='hidden' name='oldvalue' value='".htmlentities($_GET['pk'],ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='tablename' value='".htmlencode($name,ENT_QUOTES)."'/>";
+					echo "<input type='hidden' name='oldvalue' value='".htmlencode($_GET['pk'],ENT_QUOTES)."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
@@ -3952,7 +3971,7 @@ else //user is authorized - display the main application
 					$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
 					echo "<tr>";
 					echo $tdWithClass;
-					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlentities($fieldVal,ENT_QUOTES)."'/>";
+					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlencode($fieldVal,ENT_QUOTES)."'/>";
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
@@ -4023,7 +4042,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
-				echo "<h2>Creating new trigger on table '".htmlentities($_POST['tablename'])."'</h2>";
+				echo "<h2>Creating new trigger on table '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablename']=="")
 					echo "You must specify a table name.";
 				else
@@ -4061,7 +4080,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
-				echo "<h2>Creating new index on table '".htmlentities($_POST['tablename'])."'</h2>";
+				echo "<h2>Creating new index on table '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
 					echo "You must specify the number of table fields.";
 				else if($_POST['tablename']=="")
@@ -4087,7 +4106,7 @@ else //user is authorized - display the main application
 						echo "<select name='".$i."_field'>";
 						echo "<option value=''>--Ignore--</option>";
 						for($j=0; $j<sizeof($result); $j++)
-							echo "<option value='".htmlentities($result[$j][1],ENT_QUOTES)."'>".htmlentities($result[$j][1],ENT_QUOTES)."</option>";
+							echo "<option value='".htmlencode($result[$j][1],ENT_QUOTES)."'>".htmlencode($result[$j][1],ENT_QUOTES)."</option>";
 						echo "</select> ";
 						echo "<select name='".$i."_order'>";
 						echo "<option value=''></option>";
@@ -4254,7 +4273,7 @@ else //user is authorized - display the main application
 							echo "Table";
 							echo "</td>";
 							echo $tdWithClassLeft;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlentities($result[$i]['name'])."</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>Browse</a>";
@@ -4435,7 +4454,7 @@ else //user is authorized - display the main application
 									for($z=0; $z<sizeof($headers); $z++)
 									{
 										echo $tdWithClass;
-										echo htmlentities($result[$j][$headers[$z]]);
+										echo htmlencode($result[$j][$headers[$z]]);
 										echo "</td>";
 									}
 									echo "</tr>";
