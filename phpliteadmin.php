@@ -1271,7 +1271,10 @@ class Database
 						{
 							if(!isset($vals[$z]))
 								$vals[$z] = array();
-							$vals[$z][$cols[$y]] = $this->quote($arr[$z][$cols[$y]]);
+							if($arr[$z][$cols[$y]] === NULL)
+								$vals[$z][$cols[$y]] = 'NULL';
+							else
+								$vals[$z][$cols[$y]] = $this->quote($arr[$z][$cols[$y]]);
 						}
 					}
 					for($j=0; $j<sizeof($vals); $j++)
