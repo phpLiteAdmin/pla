@@ -1125,7 +1125,7 @@ class Database
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		$field_enclosed = stripslashes($field_enclosed);
-		$query = "SELECT * FROM sqlite_master WHERE type='table' ORDER BY type DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' or type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
 		{
@@ -1197,7 +1197,7 @@ class Database
 			echo "-- Database file: ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
-		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' ORDER BY type DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' OR type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 
 		if($transaction)
@@ -1221,12 +1221,16 @@ class Database
 						echo "\r\n----\r\n";
 						if($result[$i]['type']=="table")
 							echo "-- Drop table for ".$result[$i]['tbl_name']."\r\n";
+						elseif($result[$i]['type']=="view")
+							echo "-- Drop view for ".$result[$i]['name']."\r\n";
 						else
 							echo "-- Drop index for ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
 					if($result[$i]['type']=="table")
 						echo "DROP TABLE ".$this->quote_id($result[$i]['tbl_name']).";\r\n";
+					elseif($result[$i]['type']=="view")
+						echo "DROP VIEW ".$this->quote_id($result[$i]['name']).";\r\n";
 					else
 						echo "DROP INDEX ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
@@ -1235,8 +1239,8 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						if($result[$i]['type']=="table")
-							echo "-- Table structure for ".$result[$i]['tbl_name']."\r\n";
+						if($result[$i]['type']=="table" || $result[$i]['type']=="view")
+							echo "-- ".ucfirst($result[$i]['type'])." structure for ".$result[$i]['tbl_name']."\r\n";
 						else
 							echo "-- Structure for index ".$result[$i]['name']." on table ".$result[$i]['tbl_name']."\r\n";
 						echo "----\r\n";
@@ -2243,6 +2247,7 @@ else //user is authorized - display the main application
 						$query = "UPDATE ".$db->quote_id($_GET['table'])." SET ";
 						for($j=0; $j<sizeof($fields); $j++)
 						{
+							if(!is_numeric($pks[$i])) continue;
 							$field_index = str_replace(" ","_",$fields[$j]);
 							$function = $_POST["function_".$pks[$i]."_".$field_index];
 							$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
@@ -3583,6 +3588,7 @@ else //user is authorized - display the main application
 
 						for($j=0; $j<sizeof($pks); $j++)
 						{
+							if(!is_numeric($pks[$j])) continue;
 							$query = "SELECT * FROM ".$db->quote_id($_GET['table'])." WHERE ROWID = ".$pks[$j];
 							$result1 = $db->select($query);
 
