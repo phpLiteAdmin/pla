@@ -815,7 +815,7 @@ class Database
 				if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 				$createindexsql = array();
 				$i = 0;
-				preg_match_all("/(?:DROP|ADD|CHANGE)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
+				preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
 
 				$defs = $matches[0];				
 				$oldcols = preg_split("/[,]+/", substr(trim($createtemptableSQL), strpos(trim($createtemptableSQL), '(')+1), -1, PREG_SPLIT_NO_EMPTY);
@@ -846,7 +846,7 @@ class Database
 				foreach($defs as $def)
 				{
 					if($debug) echo "def=$def<hr />";
-					$parse_def = preg_match("/^(DROP|ADD|CHANGE)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
+					$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 					if($parse_def===false)
 					{
 						if($debug) echo "ERROR: !parse_def<hr />";
@@ -858,7 +858,7 @@ class Database
 						return false;
 					}
 					$action = strtolower($matches[1]);
-					if($action == 'add')	
+					if($action == 'add' || $action == 'rename to')	
 						$column = str_replace("''","'",$matches[3]);		// enclosed in ''
 					else
 						$column = str_replace('""','"',$matches[2]);		// enclosed in ""
@@ -899,7 +899,8 @@ class Database
 					$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
 					$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/";
 					
-					
+					$table_new = $table;
+
 					switch($action)
 					{
 						case 'add':
@@ -961,13 +962,20 @@ class Database
 							$createtesttableSQL = $newSQL;
 							unset($newcols[$column]);
 							break;
+						case 'rename to':
+							// don't change column definition at all
+							$newSQL = $createtesttableSQL;
+							// only change the name of the table
+							$table_new = $column;
+							break;
 						default:
+							if($default) echo 'ERROR: unknown alter operation!<hr />';
 							return false;
 					}
 				}
 				$droptempsql = 'DROP TABLE '.$this->quote_id($tmpname);
 
-				$createnewtableSQL = "CREATE TABLE ".$this->quote($table)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
+				$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
 
 				$newcolumns = '';
 				$oldcolumns = '';
@@ -977,7 +985,7 @@ class Database
 					$newcolumns .= ($newcolumns?', ':'').$this->quote_id($val);
 					$oldcolumns .= ($oldcolumns?', ':'').$this->quote_id($key);
 				}
-				$copytonewsql = 'INSERT INTO '.$this->quote_id($table).'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$this->quote_id($tmpname);
+				$copytonewsql = 'INSERT INTO '.$this->quote_id($table_new).'('.$newcolumns.') SELECT '.$oldcolumns.' FROM '.$this->quote_id($tmpname);
 
 				$alter_transaction  = 'BEGIN; ';
 				$alter_transaction .= $createtemptableSQL.'; ';  //create temp table
