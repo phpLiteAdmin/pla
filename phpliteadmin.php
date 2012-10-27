@@ -575,7 +575,7 @@ class Database
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
 				echo "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow ".PROJECT." to create it automatically or recreate it manually as SQLite version 3.";
 			else
-				echo "The problem cannot be diagnosed properly. Please email me at daneiracleous@gmail.com with your database as an attachment and the contents of this error message. It may be that your database is simply not a valid SQLite database, but this is not certain.";
+           echo "The problem cannot be diagnosed properly. Please file an issue report at http://phpliteadmin.googlecode.com.";
 		}
 		echo "</div><br/>";
 	}
