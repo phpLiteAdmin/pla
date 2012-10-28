@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.3
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-10-26
+//  Last updated: 2012-10-28
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -575,7 +575,7 @@ class Database
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
 				echo "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow ".PROJECT." to create it automatically or recreate it manually as SQLite version 3.";
 			else
-           echo "The problem cannot be diagnosed properly. Please file an issue report at http://phpliteadmin.googlecode.com.";
+				echo "The problem cannot be diagnosed properly. Please file an issue report at http://phpliteadmin.googlecode.com.";
 		}
 		echo "</div><br/>";
 	}
@@ -793,6 +793,40 @@ class Database
 		}
 	}
 
+	
+	// SQlite supports multiple ways of surrounding names in quotes:
+	// single-quotes, double-quotes, backticks, square brackets.
+	// As sqlite does not keep this strict, we also need to be flexible here.
+	// This function generates a regex that matches any of the possibilities.
+	private function sqlite_surroundings_preg($name,$preg_quote=true,$notAllowedIfNone="'\"")
+	{
+		if($name=="*" || $name=="+")
+		{
+			$nameSingle   = "(?:[^']|'')".$name;
+			$nameDouble   = "(?:[^\"]|\"\")".$name;
+			$nameBacktick = "(?:[^`]|``)".$name;
+			$nameSquare   = "(?:[^\]]|\]\])".$name;
+			$nameNo = "[^".$notAllowedIfNone."]".$name;
+		}
+		else
+		{
+			if($preg_quote) $name = preg_quote($name,"/");
+			
+			$nameSingle = str_replace("'","''",$name);
+			$nameDouble = str_replace('"','""',$name);
+			$nameBacktick = str_replace('`','``',$name);
+			$nameSquare = str_replace(']',']]',$name);
+			$nameNo = $name;
+		}
+		
+		$preg =	"(?:'".$nameSingle."'|".   // single-quote surrounded or not in quotes (correct SQL for values/new names)
+				$nameNo."|".               // not surrounded (correct SQL if not containing reserved words, spaces or some special chars)
+				"\"".$nameDouble."\"|".    // double-quote surrounded (correct SQL for identifiers)
+				"`".$nameBacktick."`|".    // backtick surrounded (MySQL-Style)
+				"\[".$nameSquare."\])";    // square-bracket surrounded (MS Access/SQL server-Style)
+		return $preg;
+	}
+	
 	// function that is called for an alter table statement in a query
 	// code borrowed with permission from http://code.jenseng.com/db/
 	// this has been completely debugged / rewritten by Christopher Kramer
@@ -809,7 +843,7 @@ class Database
 			if($this->type=="PDO")
 				$result->closeCursor();
 			if(sizeof($resultArr)<1)
-				return false;			
+				return false;
 			for($i=0; $i<sizeof($resultArr); $i++)
 			{
 				$row = $resultArr[$i];
@@ -824,18 +858,21 @@ class Database
 					// ALTER the table
 					$tmpname = 't'.time();
 					$origsql = $row['sql'];
-					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".preg_replace("/^\s*CREATE\s+TABLE\s+'?".str_replace("'","''",preg_quote($table,"/"))."'?\s*(\(.*)$/i", '$1', $origsql, 1);
+					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".
+						preg_replace("/^\s*CREATE\s+TABLE\s+".$this->sqlite_surroundings_preg($table)."\s*(\(.*)$/i", '$1', $origsql, 1);
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
 					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
-					$defs = $matches[0];				
+					$defs = $matches[0];
 					
 					$get_oldcols_query = "PRAGMA table_info(".$this->quote($table).")";
 					$result_oldcols = $this->selectArray($get_oldcols_query);
 					$newcols = array();
+					$coltypes = array();
 					foreach($result_oldcols as $column_info)
 					{
 						$newcols[$column_info['name']] = $column_info['name'];
+						$coltypes[$column_info['name']] = $column_info['type'];
 					}
 					$newcolumns = '';
 					$oldcolumns = '';
@@ -874,9 +911,9 @@ class Database
 							$column = str_replace('""','"',$matches[2]);		// enclosed in ""
 							
 						$column_escaped = str_replace("'","''",$column);
-	
+
 						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
-				
+
 						/* we build a regex that devides the CREATE TABLE statement parts:
 						  Part example								Group	Explanation
 						  1. CREATE TABLE t... (					$1
@@ -885,8 +922,9 @@ class Database
 						  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*(?:(?:'(?:[^']|'')+')|[^ ]+)\s+(?:[^,')]|'(?:[^']|'')*')+";		// catches a complete column definition, even if it is
+						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[) ").")+";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
+						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
 								"(".			// group $2. Keep this one unchanged!
@@ -897,18 +935,10 @@ class Database
 								")".			// end of group $2
 								",\s*"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
-						$preg_column_to_drop = "\s*(?:'".preg_quote($column_escaped,"/")."'|".preg_quote($column_escaped,"/").")\s+(?:[^,')]|'(?:[^']|'')*')+";      // delete this part (we want to drop this column)
-						$preg_column_to_change = "\s*(?:'".preg_quote($column_escaped,"/")."'|".preg_quote($column_escaped,"/").")\s+(?:INTEGER|REAL|TEXT|BLOB)?(\s+(?:[^,')]|'(?:[^']|'')*')+)?";
-												// replace this part (we want to change this column)
-												// group $3 contains the column constraints (keep!). the name & data type is replaced.
+						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<hr />";
 						$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
 												// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
 												// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
-						// stick the regex together
-						$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/";
-						$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
-						$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/";
-						
 						$table_new = $table;
 	
 						switch($action)
@@ -919,6 +949,7 @@ class Database
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
+								$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/";
 								// append the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_add, '$1$2, ', $createtesttableSQL).$new_col_definition.')';
 								if($debug)
@@ -939,6 +970,11 @@ class Database
 								$new_col_name = $matches[5];
 								$new_col_type = $matches[6];
 								$new_col_definition = "'$new_col_name' $new_col_type";
+								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\")`\[").")+)?";
+												// replace this part (we want to change this column)
+												// group $3 contains the column constraints (keep!). the name & data type is replaced.
+								$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
+
 								// replace the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_change, '$1$2,'.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).'$3$4)', $createtesttableSQL);
 								// remove comma at the beginning if the first column is changed
@@ -946,16 +982,21 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									echo $createtesttableSQL."<hr>";
-									echo $newSQL."<hr>";
-									echo $preg_pattern_change."<hr>";
+									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
+									echo $createtesttableSQL."<hr />";
+									echo $newSQL."<hr />";
+									echo $preg_pattern_change."<hr />";
+									
 								}
-								if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
+								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 									return false;
 								$createtesttableSQL = $newSQL;
 								$newcols[$column] = str_replace("''","'",$new_col_name);
 								break;
 							case 'drop':
+								$preg_column_to_drop = "\s*".$this->sqlite_surroundings_preg($column)."\s+(?:".$this->sqlite_surroundings_preg("*",false,",')\"\[`").")+";      // delete this part (we want to drop this column)
+								$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/";
+
 								// remove the column out of the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
 								// remove comma at the beginning if the first column is removed
@@ -967,7 +1008,7 @@ class Database
 									echo $newSQL."<hr>";
 									echo $preg_pattern_drop."<hr>";
 								}
-								if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
+								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 									return false;
 								$createtesttableSQL = $newSQL;
 								unset($newcols[$column]);
@@ -984,9 +1025,9 @@ class Database
 						}
 					}
 					$droptempsql = 'DROP TABLE '.$this->quote_id($tmpname);
-	
+
 					$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
-	
+
 					$newcolumns = '';
 					$oldcolumns = '';
 					reset($newcols);
@@ -1007,6 +1048,8 @@ class Database
 			$alter_transaction .= $droptempsql.'; ';         //drop temp table
 			for($i=0; $i<sizeof($recreateQueries); $i++)
 			{
+				// TODO: if RENAME, exchange the table-name
+				// CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:(?:[^"'\[])|(?:'(?:[^']|'')+')|(?:"(?:[^"]|"")+")|(?:\[(?:[^\]]+)\]))*ON\s+(?:(?:'(?:[^']|'')+')|(?:"(?:[^"]|"")+")|(?:\[(?:[^\]]+)\]))				
 				$alter_transaction .= $recreateQueries[$i];            // recreate triggers and indexes
 			}
 			$alter_transaction .= 'COMMIT;';
