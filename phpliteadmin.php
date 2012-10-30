@@ -1257,7 +1257,7 @@ class Database
 			echo "-- Database file: ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
-		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' OR type='view' ORDER BY type DESC";
+		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' OR type='view' OR type='trigger' ORDER BY type='trigger', type='index', type='view', type='table'";
 		$result = $this->selectArray($query);
 
 		if($transaction)
@@ -1279,20 +1279,10 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						if($result[$i]['type']=="table")
-							echo "-- Drop table for ".$result[$i]['tbl_name']."\r\n";
-						elseif($result[$i]['type']=="view")
-							echo "-- Drop view for ".$result[$i]['name']."\r\n";
-						else
-							echo "-- Drop index for ".$result[$i]['name']."\r\n";
+						echo "-- Drop ".$result[$i]['type']." for ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
-					if($result[$i]['type']=="table")
-						echo "DROP TABLE ".$this->quote_id($result[$i]['tbl_name']).";\r\n";
-					elseif($result[$i]['type']=="view")
-						echo "DROP VIEW ".$this->quote_id($result[$i]['name']).";\r\n";
-					else
-						echo "DROP INDEX ".$this->quote_id($result[$i]['name']).";\r\n";
+					echo "DROP ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
 				if($structure)
 				{
@@ -1301,8 +1291,8 @@ class Database
 						echo "\r\n----\r\n";
 						if($result[$i]['type']=="table" || $result[$i]['type']=="view")
 							echo "-- ".ucfirst($result[$i]['type'])." structure for ".$result[$i]['tbl_name']."\r\n";
-						else
-							echo "-- Structure for index ".$result[$i]['name']." on table ".$result[$i]['tbl_name']."\r\n";
+						else // index or trigger
+							echo "-- Structure for ".$result[$i]['type']." ".$result[$i]['name']." on table ".$result[$i]['tbl_name']."\r\n";
 						echo "----\r\n";
 					}
 					echo $result[$i]['sql'].";\r\n";
