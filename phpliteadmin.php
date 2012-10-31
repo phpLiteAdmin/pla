@@ -680,7 +680,7 @@ class Database
 			if(!isset($matches[1]) || !isset($matches[2]))
 			{
 				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
-				return NULL;
+				return false;
 			}
 			$tablename = str_replace('""','"',$matches[1]);
 			$alterdefs = $matches[2];
@@ -693,7 +693,7 @@ class Database
 			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
 		}
 		if(!$result)
-			return NULL;
+			return false;
 		$this->lastResult = $result;
 		return $result;
 	}
@@ -1808,13 +1808,24 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 ?>
 <!-- JavaScript Support -->
 <script type="text/javascript">
-/* <![CDATA[ */ 
+/* <![CDATA[ */
+//initiated autoincrement checkboxes
+function initAutoincrement()
+{
+	var i=0;
+	while(document.getElementById('i'+i+'_autoincrement')!=undefined)
+	{
+		document.getElementById('i'+i+'_autoincrement').disabled = true;
+		i++;
+	}
+}
 //makes sure autoincrement can only be selected when integer type is selected
 function toggleAutoincrement(i)
 {
 	var type = document.getElementById('i'+i+'_type');
+	var primarykey = document.getElementById('i'+i+'_primarykey');
 	var autoincrement = document.getElementById('i'+i+'_autoincrement');
-	if(type.value=="INTEGER")
+	if(type.value=='INTEGER' && primarykey.checked)
 		autoincrement.disabled = false;
 	else
 	{
@@ -1824,8 +1835,8 @@ function toggleAutoincrement(i)
 }
 function toggleNull(i)
 {
-	var pk = document.getElementById(i+'_primarykey');
-	var notnull = document.getElementById(i+'_notnull');
+	var pk = document.getElementById('i'+i+'_primarykey');
+	var notnull = document.getElementById('i'+i+'_notnull');
 	if(pk.checked)
 	{
 		notnull.disabled = true;
@@ -2082,7 +2093,13 @@ else //user is authorized - display the main application
 						$query .= $_POST[$i.'_type']." ";
 						if(isset($_POST[$i.'_primarykey']))
 						{
-							$query .= count($primary_keys)>1 ? "NOT NULL " : "PRIMARY KEY NOT NULL ";
+							if(count($primary_keys)==1)
+							{
+								$query .= "PRIMARY KEY "; 
+								if(isset($_POST[$i.'_autoincrement']))
+									$query .=  "AUTOINCREMENT ";
+							}
+							$query .= "NOT NULL ";
 						}
 						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
@@ -2711,13 +2728,13 @@ else //user is authorized - display the main application
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_primarykey' id='".$i."_primarykey' onclick='toggleNull(".$i.");'/> Yes";
+						echo "<input type='checkbox' name='".$i."_primarykey' id='i".$i."_primarykey' onclick='toggleNull(".$i."); toggleAutoincrement(".$i.");'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_notnull' id='".$i."_notnull'/> Yes";
+						echo "<input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> Yes";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;'/>";
@@ -2732,6 +2749,7 @@ else //user is authorized - display the main application
 					echo "</tr>";
 					echo "</table>";
 					echo "</form>";
+					echo "<script type='text/javascript'>window.onload=initAutoincrement;</script>";
 				}
 				break;
 			/////////////////////////////////////////////// perform SQL query on table
@@ -4312,7 +4330,7 @@ else //user is authorized - display the main application
 
 			$j = 0;
 			for($i=0; $i<sizeof($result); $i++)
-				if(substr($result[$i]['name'], 0, 7)!="sqldite_" && $result[$i]['name']!="")
+				if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 					$j++;
 
 			if($j==0)
@@ -4353,7 +4371,7 @@ else //user is authorized - display the main application
 				$totalRecords = 0;
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					if(substr($result[$i]['name'], 0, 7)!="sqldite_" && $result[$i]['name']!="")
+					if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 					{
 						$records = $db->numRows($result[$i]['name']);
 						$totalRecords += $records;
