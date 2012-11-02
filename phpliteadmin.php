@@ -865,7 +865,7 @@ class Database
 					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
 					$defs = $matches[0];
 					
-					$get_oldcols_query = "PRAGMA table_info(".$this->quote($table).")";
+					$get_oldcols_query = "PRAGMA table_info(".$this->quote_id($table).")";
 					$result_oldcols = $this->selectArray($get_oldcols_query);
 					$newcols = array();
 					$coltypes = array();
@@ -1046,11 +1046,34 @@ class Database
 			$alter_transaction .= $createnewtableSQL.'; ';   //recreate original table
 			$alter_transaction .= $copytonewsql.'; ';        //copy back to original table
 			$alter_transaction .= $droptempsql.'; ';         //drop temp table
+
+			$preg_index="/^\s*(CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*ON\s+)(".$this->sqlite_surroundings_preg($table).")(\s*\((?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*\)\s*;)\s*$/i";				
 			for($i=0; $i<sizeof($recreateQueries); $i++)
 			{
-				// TODO: if RENAME, exchange the table-name
-				// CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:(?:[^"'\[])|(?:'(?:[^']|'')+')|(?:"(?:[^"]|"")+")|(?:\[(?:[^\]]+)\]))*ON\s+(?:(?:'(?:[^']|'')+')|(?:"(?:[^"]|"")+")|(?:\[(?:[^\]]+)\]))				
-				$alter_transaction .= $recreateQueries[$i];            // recreate triggers and indexes
+				// recreate triggers / indexes
+				if($table == $table_new)
+				{
+					// we had no RENAME TO, so we can recreate indexes/triggers just like the original ones
+				    $alter_transaction .= $recreateQueries[$i];
+				} else
+				{
+					// we had a RENAME TO, so we need to exchange the table-name in the CREATE-SQL of triggers & indexes
+					// first let's try if it's an index...
+					$recreate_queryIndex = preg_replace($preg_index, '$1'.$this->quote_id(strtr($table_new, array('\\' => '\\\\', '$' => '\$'))).'$3 ', $recreateQueries[$i]);
+					if($recreate_queryIndex!=$recreateQueries[$i] && $recreate_queryIndex != NULL)
+					{
+						// the CREATE INDEX regex did match
+						$alter_transaction .= $recreate_queryIndex;
+					} else
+					{
+						// the CREATE INDEX regex did not match, so we try if it's a CREATE TRIGGER
+						
+					    $recreate_queryTrigger = $recreateQueries[$i];
+						// TODO: IMPLEMENT
+					    
+						$alter_transaction .= $recreate_queryTrigger;
+					}
+				}
 			}
 			$alter_transaction .= 'COMMIT;';
 			if($debug) echo $alter_transaction;
@@ -1191,7 +1214,7 @@ class Database
 			}
 			if($valid)
 			{
-				$query = "PRAGMA table_info(".$this->quote($result[$i]['tbl_name']).")";
+				$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
 				$temp = $this->selectArray($query);
 				$cols = array();
 				for($z=0; $z<sizeof($temp); $z++)
@@ -2175,7 +2198,7 @@ else //user is authorized - display the main application
 				$fields = explode(":", $_POST['fields']);
 				$z = 0;
 				
-				$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 				
 				for($i=0; $i<$num; $i++)
@@ -2255,7 +2278,7 @@ else //user is authorized - display the main application
 				
 				$z = 0;
 				
-				$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 				
 				if(isset($_POST['new_row']))
@@ -2848,7 +2871,7 @@ else //user is authorized - display the main application
 				echo "<div style='float:left; width:28%; padding-left:10px;'>";
 				echo "Fields<br/>";
 				echo "<select multiple='multiple' style='width:100%;' id='fieldcontainer'>";
-				$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 				for($i=0; $i<sizeof($result); $i++)
 				{
@@ -2991,7 +3014,7 @@ else //user is authorized - display the main application
 			case "table_search":
 				if(isset($_GET['done']))
 				{
-					$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+					$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 					$result = $db->selectArray($query);
 					$j = 0;
 					$arr = array();
@@ -3075,7 +3098,7 @@ else //user is authorized - display the main application
 				}
 				else
 				{
-					$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+					$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 					$result = $db->selectArray($query);
 					
 					if(!isset($_GET['view']))
@@ -3531,7 +3554,7 @@ else //user is authorized - display the main application
 				echo "<input type='submit' value='Go' class='btn'/>";
 				echo "</form>";
 				echo "<br/>";
-				$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create&amp;confirm=1' method='post'>";
 				if(isset($_POST['num']))
@@ -3638,7 +3661,7 @@ else //user is authorized - display the main application
 					if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 					{
 						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_edit&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
-						$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+						$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 						$result = $db->selectArray($query);
 
 						//build the POST array of fields
@@ -3730,7 +3753,7 @@ else //user is authorized - display the main application
 			//column actions
 			/////////////////////////////////////////////// view column
 			case "column_view":
-				$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete' method='post' name='checkForm'>";
@@ -3861,7 +3884,7 @@ else //user is authorized - display the main application
 							else
 								$unique = "yes";
 	
-							$query = "PRAGMA index_info(".$result[$i]['name'].")";
+							$query = "PRAGMA index_info(".$db->quote_id($result[$i]['name']).")";
 							$info = $db->selectArray($query);
 							$span = sizeof($info);
 	
@@ -4044,7 +4067,7 @@ else //user is authorized - display the main application
 					echo "You must specify a table name.";
 				else
 				{
-					$query = "PRAGMA table_info(".$db->quote($_GET['table']).")";
+					$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 					$result = $db->selectArray($query);
 
 					for($i=0; $i<sizeof($result); $i++)
@@ -4195,7 +4218,7 @@ else //user is authorized - display the main application
 				{
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=index_create&amp;confirm=1' method='post'>";
 					$num = intval($_POST['numcolumns']);
-					$query = "PRAGMA table_info(".$db->quote($_POST['tablename']).")";
+					$query = "PRAGMA table_info(".$db->quote_id($_POST['tablename']).")";
 					$result = $db->selectArray($query);
 					echo "<fieldset><legend>Define index properties</legend>";
 					echo "Index name: <input type='text' name='name'/><br/>";
