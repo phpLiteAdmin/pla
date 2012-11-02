@@ -4329,7 +4329,7 @@ else //user is authorized - display the main application
 			if(SYSTEMPASSWORD=="admin")
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
-				echo "You are using the default password which can be dangerous. You can change it easily at the top of phpliteadmin.php<br />You have been warned.";
+				echo "You are using the default password, which can be dangerous. You can change it easily at the top of phpliteadmin.php<br />You have been warned.";
 				echo "</div>";
 			}
 			
