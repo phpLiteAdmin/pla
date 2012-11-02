@@ -242,148 +242,13 @@ function htmlencode($value, $flags=ENT_QUOTES, $encoding ="UTF-8")
 	return htmlentities($value, $flags, $encoding);
 }
 
-//user is deleting a database
-if(isset($_GET['database_delete']))
-{
-	$dbpath = $_POST['database_delete'];
-	unlink($dbpath);
-	unset($_SESSION[COOKIENAME.'currentDB']);
-}
-
-//user is renaming a database
-if(isset($_GET['database_rename']))
-{
-	$oldpath = $_POST['oldname'];
-	$newpath = $_POST['newname'];
-	if(!file_exists($newpath))
-	{
-		copy($oldpath, $newpath);
-		unlink($oldpath);
-		$justrenamed = true;
-	}
-	else
-	{
-		$dbexists = true;	
-	}
-}
-
-//user is creating a new Database
-if(isset($_POST['new_dbname']))
-{
-	$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
-	$dbname = $str;
-	$dbpath = $str;
-	$info = pathinfo($dbpath);
-	$tdata = array();	
-	$tdata['name'] = $dbname;
-	$tdata['path'] = $directory."/".$dbpath;
-	$td = new Database($tdata);
-	$td->query("VACUUM");
-}
-
-//if the user wants to scan a directory for databases, do so
-if($directory!==false)
-{
-	if($directory[strlen($directory)-1]=="/") //if user has a trailing slash in the directory, remove it
-		$directory = substr($directory, 0, strlen($directory)-1);
-		
-	if(is_dir($directory)) //make sure the directory is valid
-	{
-		if($subdirectories===true)
-			$arr = dir_tree($directory);
-		else
-			$arr = scandir($directory);
-		$databases = array();
-		$j = 0;
-		for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
-		{
-			if($subdirectories===false)
-				$arr[$i] = $directory."/".$arr[$i];
-			
-			if(!is_file($arr[$i])) continue;
-			$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
-			if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
-			{
-				$databases[$j]['path'] = $arr[$i];
-				if($subdirectories===false)
-					$databases[$j]['name'] = basename($arr[$i]);
-				else
-					$databases[$j]['name'] = $arr[$i];
-				// 22 August 2011: gkf fixed bug 49.
-				$perms = 0;
-				$perms += is_readable($databases[$j]['path']) ? 4 : 0;
-				$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
-				switch($perms)
-				{
-					case 6: $perms = "[rw] "; break;
-					case 4: $perms = "[r ] "; break;
-					case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
-					default: $perms = "[  ] "; break;
-				}
-				$databases[$j]['perms'] = $perms;
-				$j++;
-			}
-		}
-		// 22 August 2011: gkf fixed bug #50.
-		sort($databases);
-		if(isset($tdata))
-		{
-			foreach($databases as $db_id => $database)
-			{
-				if($database['path'] == $tdata)
-				{
-					$_SESSION[COOKIENAME.'currentDB'] = $database;
-					break;
-				}
-			}
-		}
-		if(isset($justrenamed))
-		{
-			foreach($databases as $db_id => $database)
-			{
-				if($database['path'] == $newpath)
-				{
-					$_SESSION[COOKIENAME.'currentDB'] = $database;
-					break;
-				}
-			}
-		}
-	}
-	else //the directory is not valid - display error and exit
-	{
-		echo "<div class='confirm' style='margin:20px;'>";
-		echo "The directory you specified to scan for databases does not exist or is not a directory.";
-		echo "</div>";
-		exit();
-	}
-}
-else
-{
-	for($i=0; $i<sizeof($databases); $i++)
-	{
-		if(!file_exists($databases[$i]['path']))
-			continue; //skip if file not found ! - probably a warning can be displayed - later
-		$perms = 0;
-		$perms += is_readable($databases[$i]['path']) ? 4 : 0;
-		$perms += is_writeable($databases[$i]['path']) ? 2 : 0;
-		switch($perms)
-		{
-			case 6: $perms = "[rw] "; break;
-			case 4: $perms = "[r ] "; break;
-			case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
-			default: $perms = "[  ] "; break;
-		}
-		$databases[$i]['perms'] = $perms;
-	}
-	sort($databases);
-}
-
 // 22 August 2011: gkf added this function to support display of
 //                 default values in the form used to INSERT new data.
 function deQuoteSQL($s)
 {
 	return trim(trim($s), "'");
 }
+
 
 //
 // Authorization class
@@ -1373,70 +1238,211 @@ else if(isset($_POST['login']) || isset($_POST['proc_login'])) //user has attemp
 	}
 }
 
-//user is downloading the exported database file
-if(isset($_POST['export']))
+if($auth->isAuthorized())
 {
-	if($_POST['export_type']=="sql")
-	{
-		header('Content-Type: text/sql');
-		header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
-		if(isset($_POST['tables']))
-			$tables = $_POST['tables'];
-		else
-		{
-			$tables = array();
-			$tables[0] = $_POST['single_table'];
-		}
-		$drop = isset($_POST['drop']);
-		$structure = isset($_POST['structure']);
-		$data = isset($_POST['data']);
-		$transaction = isset($_POST['transaction']);
-		$comments = isset($_POST['comments']);
-		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
-		echo $db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
-	}
-	else if($_POST['export_type']=="csv")
-	{
-		header("Content-type: application/csv");
-		header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
-		header("Pragma: no-cache");
-		header("Expires: 0");
-		if(isset($_POST['tables']))
-			$tables = $_POST['tables'];
-		else
-		{
-			$tables = array();
-			$tables[0] = $_POST['single_table'];
-		}
-		$field_terminate = $_POST['export_csv_fieldsterminated'];
-		$field_enclosed = $_POST['export_csv_fieldsenclosed'];
-		$field_escaped = $_POST['export_csv_fieldsescaped'];
-		$null = $_POST['export_csv_replacenull'];
-		$crlf = isset($_POST['export_csv_crlf']);
-		$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
-		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
-		echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
-	}
-	exit();
-}
 
-//user is importing a file
-if(isset($_POST['import']))
-{
-	$db = new Database($_SESSION[COOKIENAME.'currentDB']);
-	if($_POST['import_type']=="sql")
+	//user is deleting a database
+	if(isset($_GET['database_delete']))
 	{
-		$data = file_get_contents($_FILES["file"]["tmp_name"]);
-		$importSuccess = $db->import_sql($data);
+		$dbpath = $_POST['database_delete'];
+		unlink($dbpath);
+		unset($_SESSION[COOKIENAME.'currentDB']);
+	}
+	
+	//user is renaming a database
+	if(isset($_GET['database_rename']))
+	{
+		$oldpath = $_POST['oldname'];
+		$newpath = $_POST['newname'];
+		if(!file_exists($newpath))
+		{
+			copy($oldpath, $newpath);
+			unlink($oldpath);
+			$justrenamed = true;
+		}
+		else
+		{
+			$dbexists = true;	
+		}
+	}
+	
+	//user is creating a new Database
+	if(isset($_POST['new_dbname']) && $auth->isAuthorized())
+	{
+		$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
+		$dbname = $str;
+		$dbpath = $str;
+		$info = pathinfo($dbpath);
+		$tdata = array();	
+		$tdata['name'] = $dbname;
+		$tdata['path'] = $directory."/".$dbpath;
+		$td = new Database($tdata);
+		$td->query("VACUUM");
+	}
+	
+	//if the user wants to scan a directory for databases, do so
+	if($directory!==false)
+	{
+		if($directory[strlen($directory)-1]=="/") //if user has a trailing slash in the directory, remove it
+			$directory = substr($directory, 0, strlen($directory)-1);
+			
+		if(is_dir($directory)) //make sure the directory is valid
+		{
+			if($subdirectories===true)
+				$arr = dir_tree($directory);
+			else
+				$arr = scandir($directory);
+			$databases = array();
+			$j = 0;
+			for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
+			{
+				if($subdirectories===false)
+					$arr[$i] = $directory."/".$arr[$i];
+				
+				if(!is_file($arr[$i])) continue;
+				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
+				if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
+				{
+					$databases[$j]['path'] = $arr[$i];
+					if($subdirectories===false)
+						$databases[$j]['name'] = basename($arr[$i]);
+					else
+						$databases[$j]['name'] = $arr[$i];
+					// 22 August 2011: gkf fixed bug 49.
+					$perms = 0;
+					$perms += is_readable($databases[$j]['path']) ? 4 : 0;
+					$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
+					switch($perms)
+					{
+						case 6: $perms = "[rw] "; break;
+						case 4: $perms = "[r ] "; break;
+						case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
+						default: $perms = "[  ] "; break;
+					}
+					$databases[$j]['perms'] = $perms;
+					$j++;
+				}
+			}
+			// 22 August 2011: gkf fixed bug #50.
+			sort($databases);
+			if(isset($tdata))
+			{
+				foreach($databases as $db_id => $database)
+				{
+					if($database['path'] == $tdata)
+					{
+						$_SESSION[COOKIENAME.'currentDB'] = $database;
+						break;
+					}
+				}
+			}
+			if(isset($justrenamed))
+			{
+				foreach($databases as $db_id => $database)
+				{
+					if($database['path'] == $newpath)
+					{
+						$_SESSION[COOKIENAME.'currentDB'] = $database;
+						break;
+					}
+				}
+			}
+		}
+		else //the directory is not valid - display error and exit
+		{
+			echo "<div class='confirm' style='margin:20px;'>";
+			echo "The directory you specified to scan for databases does not exist or is not a directory.";
+			echo "</div>";
+			exit();
+		}
 	}
 	else
 	{
-		$field_terminate = $_POST['import_csv_fieldsterminated'];
-		$field_enclosed = $_POST['import_csv_fieldsenclosed'];
-		$field_escaped = $_POST['import_csv_fieldsescaped'];
-		$null = $_POST['import_csv_replacenull'];
-		$fields_in_first_row = isset($_POST['import_csv_fieldnames']);
-		$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
+		for($i=0; $i<sizeof($databases); $i++)
+		{
+			if(!file_exists($databases[$i]['path']))
+				continue; //skip if file not found ! - probably a warning can be displayed - later
+			$perms = 0;
+			$perms += is_readable($databases[$i]['path']) ? 4 : 0;
+			$perms += is_writeable($databases[$i]['path']) ? 2 : 0;
+			switch($perms)
+			{
+				case 6: $perms = "[rw] "; break;
+				case 4: $perms = "[r ] "; break;
+				case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
+				default: $perms = "[  ] "; break;
+			}
+			$databases[$i]['perms'] = $perms;
+		}
+		sort($databases);
+	}
+	
+	
+	//user is downloading the exported database file
+	if(isset($_POST['export']))
+	{
+		if($_POST['export_type']=="sql")
+		{
+			header('Content-Type: text/sql');
+			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
+			if(isset($_POST['tables']))
+				$tables = $_POST['tables'];
+			else
+			{
+				$tables = array();
+				$tables[0] = $_POST['single_table'];
+			}
+			$drop = isset($_POST['drop']);
+			$structure = isset($_POST['structure']);
+			$data = isset($_POST['data']);
+			$transaction = isset($_POST['transaction']);
+			$comments = isset($_POST['comments']);
+			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+			echo $db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
+		}
+		else if($_POST['export_type']=="csv")
+		{
+			header("Content-type: application/csv");
+			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			if(isset($_POST['tables']))
+				$tables = $_POST['tables'];
+			else
+			{
+				$tables = array();
+				$tables[0] = $_POST['single_table'];
+			}
+			$field_terminate = $_POST['export_csv_fieldsterminated'];
+			$field_enclosed = $_POST['export_csv_fieldsenclosed'];
+			$field_escaped = $_POST['export_csv_fieldsescaped'];
+			$null = $_POST['export_csv_replacenull'];
+			$crlf = isset($_POST['export_csv_crlf']);
+			$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
+			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+			echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
+		}
+		exit();
+	}
+	
+	//user is importing a file
+	if(isset($_POST['import']))
+	{
+		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+		if($_POST['import_type']=="sql")
+		{
+			$data = file_get_contents($_FILES["file"]["tmp_name"]);
+			$importSuccess = $db->import_sql($data);
+		}
+		else
+		{
+			$field_terminate = $_POST['import_csv_fieldsterminated'];
+			$field_enclosed = $_POST['import_csv_fieldsenclosed'];
+			$field_escaped = $_POST['import_csv_fieldsescaped'];
+			$null = $_POST['import_csv_replacenull'];
+			$fields_in_first_row = isset($_POST['import_csv_fieldnames']);
+			$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
+		}
 	}
 }
 
@@ -4318,6 +4324,14 @@ else //user is authorized - display the main application
 			$query = "SELECT sqlite_version() AS sqlite_version";
 			$queryVersion = $db->select($query);
 			$realVersion = $queryVersion['sqlite_version'];
+			
+			
+			if(SYSTEMPASSWORD=="admin")
+			{
+				echo "<div class='confirm' style='margin:20px;'>";
+				echo "You are using the default password which can be dangerous. You can change it easily at the top of phpliteadmin.php<br />You have been warned.";
+				echo "</div>";
+			}
 			
 			echo "<b>Database name</b>: ".htmlencode($db->getName())."<br/>";
 			echo "<b>Path to database</b>: ".htmlencode($db->getPath())."<br/>";
