@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.3
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-10-28
+//  Last updated: 2012-11-02
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1119,12 +1119,6 @@ class Database
 		return '"'.$value.'"';
 	}
 
-
-	//correctly format a string value from a table before showing it
-	public function formatString($value)
-	{
-		return htmlspecialchars(stripslashes($value));
-	}
 
 	//import sql
 	public function import_sql($query)
@@ -3357,7 +3351,7 @@ else //user is authorized - display the main application
 								if($arr[$i][$j]===NULL)
 									echo "<i>NULL</i>";
 								else
-									echo $db->formatString($arr[$i][$j]);
+									echo htmlencode($arr[$i][$j]);
 								echo "</td>";
 							}
 							echo "</tr>";
@@ -3420,8 +3414,8 @@ else //user is authorized - display the main application
 							<?php
 							for($i=0; $i<sizeof($arr); $i++)
 							{
-								$label = str_replace("'", "", $db->formatString($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']]));
-								$value = $db->formatString($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']]);
+								$label = str_replace("'", "", htmlencode($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']]));
+								$value = htmlencode($arr[$i][$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']]);
 								
 								if($value==NULL || $value=="")
 									$value = 0;
@@ -3704,9 +3698,9 @@ else //user is authorized - display the main application
 								echo "</td>";
 								echo $tdWithClassLeft;
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".$db->formatString($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
+									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".$db->formatString($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
