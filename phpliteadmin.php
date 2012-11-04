@@ -2,9 +2,9 @@
 
 //
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
-//  Version: 1.9.3
+//  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-02
+//  Last updated: 2012-11-04
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -125,7 +125,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.3");
+define("VERSION", "1.9.4");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
@@ -4538,7 +4538,8 @@ else //user is authorized - display the main application
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$startTime = microtime(true);
-						if(strpos(strtolower($query[$i]), "select ")!==false)
+						if(strpos(strtolower($query[$i]), "select ")!==false
+							|| strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select						{
 						{
 							$isSelect = true;
 							$result = $db->selectArray($query[$i], "assoc");
