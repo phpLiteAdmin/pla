@@ -1766,6 +1766,10 @@ fieldset
 	right:10px;
 	bottom:10px;	
 }
+.warning, .delete, .empty, .drop
+{
+  color:red;
+}
 </style>
 <!-- end the customizable stylesheet/theme -->
 <?php
@@ -2014,7 +2018,7 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px; text-align:center;'>";
 	if(isset($_POST['login']))
-		echo "<span style='color:red;'>Incorrect password.</span><br/><br/>";
+		echo "<span class='warning'>Incorrect password.</span><br/><br/>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo "Password: <input type='password' name='password'/><br/>";
 	echo "<input type='checkbox' name='remember' value='yes' checked='checked'/> Remember me<br/><br/>";
@@ -2654,10 +2658,10 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">Rename</a>";
 			echo "<a href='".PAGE."?action=table_empty&amp;table=".urlencode($_GET['table'])."' ";
-			echo "class='tab' style='color:red;'";
+			echo "class='tab' class='empty'";
 			echo ">Empty</a>";
 			echo "<a href='".PAGE."?action=table_drop&amp;table=".urlencode($_GET['table'])."' ";
-			echo "class='tab' style='color:red;'";
+			echo "class='tab' class='drop'";
 			echo ">Drop</a>";
 			echo "<div style='clear:both;'></div>";
 		}
@@ -2694,7 +2698,7 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">Export</a>";
 			echo "<a href='".PAGE."?action=view_drop&amp;table=".urlencode($_GET['table'])."&amp;view=1' ";
-			echo "class='tab' style='color:red;'";
+			echo "class='tab drop'";
 			echo ">Drop</a>";
 			echo "<div style='clear:both;'></div>";
 		}
@@ -3363,10 +3367,10 @@ else //user is authorized - display the main application
 								echo "</td>";
 								echo $tdWithClass;
 								// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit'>edit</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' class='edit'>edit</a>";
 								echo "</td>";
 								echo $tdWithClass;
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' style='color:red;'>delete</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' class='delete'>delete</a>";
 								echo "</td>";
 							}
 							for($j=0; $j<sizeof($result); $j++)
@@ -3802,10 +3806,10 @@ else //user is authorized - display the main application
 						echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal)."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."'>edit</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' class='edit'>edit</a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' style='color:red;'>delete</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' class='delete'>delete</a>";
 						echo "</td>";
 					}
 					echo $tdWithClass;
@@ -3900,7 +3904,7 @@ else //user is authorized - display the main application
 							$tdWithClassLeftSpan = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;' rowspan='".$span."'>";
 							echo "<tr>";
 							echo $tdWithClassSpan;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' style='color:red;'>delete</a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' class='delete'>delete</a>";
 							echo "</td>";
 							echo $tdWithClassLeftSpan;
 							echo $result[$i]['name'];
@@ -3945,7 +3949,7 @@ else //user is authorized - display the main application
 							$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' style='color:red;'>delete</a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' class='delete'>delete</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo htmlencode($result[$i]['name']);
@@ -4309,11 +4313,11 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">Rename Database</a>";
 			
-			echo "<a href='".PAGE."?view=delete' style='color:red;' ";
+			echo "<a href='".PAGE."?view=delete' ";
 			if($view=="delete")
-				echo "class='tab_pressed'";
+				echo "class='tab_pressed delete'";
 			else
-				echo "class='tab'";
+				echo "class='tab delete'";
 			echo ">Delete Database</a>";
 		}
 		echo "<div style='clear:both;'></div>";
@@ -4443,10 +4447,10 @@ else //user is authorized - display the main application
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>Rename</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' style='color:red;'>Empty</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>Empty</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' style='color:red;'>Drop</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>Drop</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo $records;
@@ -4490,7 +4494,7 @@ else //user is authorized - display the main application
 							echo "";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' style='color:red;'>Drop</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' class='drop'>Drop</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo $records;
