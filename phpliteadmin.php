@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-04
+//  Last updated: 2012-11-06
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -287,6 +287,8 @@ class Authorization
 	}
 	public function isAuthorized()
 	{
+		global $password;
+		if ($password == '') { return true; }  // no validation check if password is turned off
 		// Is this just session long? (What!?? -DI)
 		if((isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == SYSTEMPASSWORDENCRYPTED) || (isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5($_COOKIE[COOKIENAME]."_".$_COOKIE[COOKIENAME.'_salt']) == SYSTEMPASSWORDENCRYPTED))
 			return true;
@@ -1458,7 +1460,10 @@ header('Content-Type: text/html; charset=utf-8');
 <title><?php echo PROJECT ?></title>
 
 <?php
-if(!file_exists("phpliteadmin.css")) //only use the inline stylesheet if an external one does not exist
+if(isset($_GET['theme'])) $theme = $_GET['theme'];
+else $theme = "phpliteadmin.css";
+
+if(!file_exists($theme)) //only use the inline stylesheet if an external one does not exist
 {
 ?>
 <!-- begin the customizable stylesheet/theme -->
@@ -1770,13 +1775,25 @@ fieldset
 {
   color:red;
 }
+.sidebar_table
+{ 
+  font-size:11px;
+}
+.active_table, .active_db
+{
+  text-decoration:underline;
+}
+.null
+{
+  color:#ccc;
+}
 </style>
 <!-- end the customizable stylesheet/theme -->
 <?php
 }
 else //an external stylesheet exists - import it
 {
-	echo 	"<link href='phpliteadmin.css' rel='stylesheet' type='text/css' />";
+	echo 	"<link href='".$theme."' rel='stylesheet' type='text/css' />";
 }
 if(isset($_GET['help'])) //this page is used as the popup help section
 {
@@ -2510,7 +2527,7 @@ else //user is authorized - display the main application
 			// 22 August 2011: gkf fixed bug #49
 			echo $databases[$i]['perms'];
 			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' style='text-decoration:underline;'>".htmlencode($databases[$i]['name'])."</a>";
+				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>";
 			else
 				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>";
 			if($i<sizeof($databases)-1)
@@ -2537,7 +2554,7 @@ else //user is authorized - display the main application
 	echo "<fieldset style='margin:15px;'><legend>";
 	echo "<a href='".PAGE."'";
 	if(!isset($_GET['table']))
-		echo " style='text-decoration:underline;'";
+		echo " class='active_table'";
 	echo ">".$currentDB['name']."</a>";
 	echo "</legend>";
 	//Display list of tables
@@ -2549,11 +2566,11 @@ else //user is authorized - display the main application
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
 			if($result[$i]['type']=="table")
-				echo "<span style='font-size:11px;'>[table]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."'";
+				echo "<span class='sidebar_table'><span>[table]</span></span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."'";
 			else
 				echo "<span style='font-size:11px;'>[view]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."&amp;view=1'";
 			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
-				echo " style='text-decoration:underline;'";
+				echo " class='active_table'";
 			echo ">".htmlencode($result[$i]['name'])."</a><br/>";
 			$j++;
 		}
@@ -2658,10 +2675,10 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">Rename</a>";
 			echo "<a href='".PAGE."?action=table_empty&amp;table=".urlencode($_GET['table'])."' ";
-			echo "class='tab' class='empty'";
+			echo "class='tab empty'";
 			echo ">Empty</a>";
 			echo "<a href='".PAGE."?action=table_drop&amp;table=".urlencode($_GET['table'])."' ";
-			echo "class='tab' class='drop'";
+			echo "class='tab drop'";
 			echo ">Drop</a>";
 			echo "<div style='clear:both;'></div>";
 		}
@@ -3367,10 +3384,10 @@ else //user is authorized - display the main application
 								echo "</td>";
 								echo $tdWithClass;
 								// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' class='edit'>edit</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='edit' class='edit'><span>edit</span></a>";
 								echo "</td>";
 								echo $tdWithClass;
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' class='delete'>delete</a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='delete' class='delete'><span>delete</span></a>";
 								echo "</td>";
 							}
 							for($j=0; $j<sizeof($result); $j++)
@@ -3382,7 +3399,7 @@ else //user is authorized - display the main application
 								// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
 								// di - i don't understand how SQLite returns null values. I played around with the conditional here and couldn't get empty strings to differeniate from actual null values...
 								if($arr[$i][$j]===NULL)
-									echo "<i>NULL</i>";
+									echo "<i class='null'>NULL</i>";
 								else
 									echo htmlencode($arr[$i][$j]);
 								echo "</td>";
@@ -3806,10 +3823,10 @@ else //user is authorized - display the main application
 						echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal)."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' class='edit'>edit</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' title='edit' class='edit'><span>edit</span></a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' class='delete'>delete</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' title='delete' class='delete'><span>delete</span></a>";
 						echo "</td>";
 					}
 					echo $tdWithClass;
@@ -3904,7 +3921,7 @@ else //user is authorized - display the main application
 							$tdWithClassLeftSpan = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;' rowspan='".$span."'>";
 							echo "<tr>";
 							echo $tdWithClassSpan;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' class='delete'>delete</a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' title='delete' class='delete'><span>delete</span></a>";
 							echo "</td>";
 							echo $tdWithClassLeftSpan;
 							echo $result[$i]['name'];
@@ -3949,7 +3966,7 @@ else //user is authorized - display the main application
 							$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' class='delete'>delete</a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' title='delete' class='delete'><span>delete</span></a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo htmlencode($result[$i]['name']);
@@ -4313,12 +4330,12 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">Rename Database</a>";
 			
-			echo "<a href='".PAGE."?view=delete' ";
+			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";
 			if($view=="delete")
 				echo "class='tab_pressed delete'";
 			else
 				echo "class='tab delete'";
-			echo ">Delete Database</a>";
+			echo "><span>Delete Database</span></a>";
 		}
 		echo "<div style='clear:both;'></div>";
 		echo "<div id='main'>";
@@ -4542,8 +4559,7 @@ else //user is authorized - display the main application
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$startTime = microtime(true);
-						if(strpos(strtolower($query[$i]), "select ")!==false
-							|| strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select						{
+						if(strpos(strtolower($query[$i]), "select ")!==false || strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
 						{
 							$isSelect = true;
 							$result = $db->selectArray($query[$i], "assoc");
