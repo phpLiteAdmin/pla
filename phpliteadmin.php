@@ -1460,8 +1460,11 @@ header('Content-Type: text/html; charset=utf-8');
 <title><?php echo PROJECT ?></title>
 
 <?php
-if(isset($_GET['theme'])) $theme = $_GET['theme'];
+if(isset($_GET['theme'])) $theme = basename($_GET['theme']);
 else $theme = "phpliteadmin.css";
+
+// allow themes to be dropped in subfolder "themes"
+if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
 
 if(!file_exists($theme)) //only use the inline stylesheet if an external one does not exist
 {
