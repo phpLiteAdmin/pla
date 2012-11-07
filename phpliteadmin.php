@@ -1774,7 +1774,7 @@ fieldset
 	right:10px;
 	bottom:10px;	
 }
-.warning, .delete, .empty, .drop
+.warning, .delete, .empty, .drop, .delete_db
 {
   color:red;
 }
@@ -4335,9 +4335,9 @@ else //user is authorized - display the main application
 			
 			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";
 			if($view=="delete")
-				echo "class='tab_pressed delete'";
+				echo "class='tab_pressed delete_db'";
 			else
-				echo "class='tab delete'";
+				echo "class='tab delete_db'";
 			echo "><span>Delete Database</span></a>";
 		}
 		echo "<div style='clear:both;'></div>";
