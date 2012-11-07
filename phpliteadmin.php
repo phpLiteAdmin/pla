@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-06
+//  Last updated: 2012-11-07
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1301,7 +1301,7 @@ if($auth->isAuthorized())
 				if($subdirectories===false)
 					$arr[$i] = $directory."/".$arr[$i];
 				
-				if(!is_file($arr[$i])) continue;
+				if(@!is_file($arr[$i])) continue;
 				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
 				if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
 				{
@@ -1872,6 +1872,7 @@ function toggleAutoincrement(i)
 	var type = document.getElementById('i'+i+'_type');
 	var primarykey = document.getElementById('i'+i+'_primarykey');
 	var autoincrement = document.getElementById('i'+i+'_autoincrement');
+	if(!autoincrement) return false;
 	if(type.value=='INTEGER' && primarykey.checked)
 		autoincrement.disabled = false;
 	else
@@ -2143,7 +2144,7 @@ else //user is authorized - display the main application
 							if(count($primary_keys)==1)
 							{
 								$query .= "PRIMARY KEY "; 
-								if(isset($_POST[$i.'_autoincrement']))
+								if(isset($_POST[$i.'_autoincrement']) && $db->getType() != "SQLiteDatabase")
 									$query .=  "AUTOINCREMENT ";
 							}
 							$query .= "NOT NULL ";
@@ -2200,13 +2201,17 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
 				$query = "DROP TABLE ".$db->quote_id($_POST['tablename']);
-				$db->query($query);
+				$result=$db->query($query);
+				if(!$result)
+					$error = true;
 				$completed = "Table '".htmlencode($_POST['tablename'])."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
 				$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
-				$db->query($query);
+				$result=$db->query($query);
+				if(!$result)
+					$error = true;
 				$completed = "View '".htmlencode($_POST['viewname'])."' has been dropped.";
 				break;
 			/////////////////////////////////////////////// rename table
@@ -2755,7 +2760,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
+					$headings = array("Field", "Type", "Primary Key");
+					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
+					$headings[] = "Not NULL";
+					$headings[] = "Default Value";
       			for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
@@ -2777,9 +2785,12 @@ else //user is authorized - display the main application
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_primarykey' id='i".$i."_primarykey' onclick='toggleNull(".$i."); toggleAutoincrement(".$i.");'/> Yes";
 						echo "</td>";
-						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
-						echo "</td>";
+						if($db->getType() != "SQLiteDatabase")
+						{
+							echo $tdWithClass;
+							echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
+							echo "</td>";
+						} else echo "NIO";
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> Yes";
 						echo "</td>";
@@ -2796,7 +2807,7 @@ else //user is authorized - display the main application
 					echo "</tr>";
 					echo "</table>";
 					echo "</form>";
-					echo "<script type='text/javascript'>window.onload=initAutoincrement;</script>";
+					if($db->getType() != "SQLiteDatabase") echo "<script type='text/javascript'>window.onload=initAutoincrement;</script>";
 				}
 				break;
 			/////////////////////////////////////////////// perform SQL query on table
@@ -4012,8 +4023,12 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
-      			for($k=0; $k<count($headings); $k++)
+					$headings = array("Field", "Type", "Primary Key");
+					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
+					$headings[] = "Not NULL";
+					$headings[] = "Default Value";
+
+ 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
 
@@ -4034,9 +4049,12 @@ else //user is authorized - display the main application
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
 						echo "</td>";
-						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
-						echo "</td>";
+						if($db->getType() != "SQLiteDatabase")
+						{
+							echo $tdWithClass;
+							echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
+							echo "</td>";
+						}
 						echo $tdWithClass;
 						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
 						echo "</td>";
