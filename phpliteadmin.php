@@ -10,6 +10,7 @@
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
 //     Christopher Kramer (crazy4chrissi@gmail.com)
+//	   Ayman Teryaki (http://havalite.com)
 //
 //
 //  Copyright (C) 2012  phpLiteAdmin
@@ -36,7 +37,258 @@
 //////////////////////////////
 
 //password to gain access
-$password = "admin";
+$password = "";
+
+// the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
+$language = "en";
+
+$lang = array(
+	"direction" => "LTR",
+	"pla" => "phpLiteAdmin",
+	"ver" => "version",
+	"for" => "for",
+	"to" => "to",
+	"go" => "Go",
+	"yes" => "Yes",
+	"sql" => "SQL",
+	"csv" => "CSV",
+	"csv_tbl" => "Table that CSV pertains to",
+	"srch" => "Search",
+	"srch_again" => "Do Another Search",
+	"login" => "Log In",
+	"logout" => "logout",
+	"view" => "View",
+	"confirm" => "Confirm",
+	"cancel" => "Cancel",
+	"save_as" => "Save As",
+	"options" => "Options",
+	"no_opt" => "No options",
+	"help" => "Help",
+	"pdo" => "PDO",
+	"installed" => "installed",
+	"not_installed" => "not installed",
+	"done" => "done",
+	"insert" => "Insert",
+	"export" => "Export",
+	"import" => "Import",
+	"rename" => "Rename",
+	"empty" => "Empty",
+	"drop" => "Drop",
+	"tbl" => "Table",
+	"chart" => "Chart",
+	"alter_tbl" => "ALTER TABLE",
+	"alter_tbl_query" => "ALTER TABLE QUERY",
+	"tablename" => "tablename",
+	"alterdefs" => "alterdefs",
+	"table" => "table",
+	"err" => "ERROR",
+	"act" => "Action",
+	"rec" => "Records",
+	"col" => "Column",
+	"cols" => "Columns",
+	"col_escape" => "column_escape",
+	"rows" => "row(s)",
+	"def" => "def",
+	"defs" => "defs",
+	"drop" => "DROP",
+	"edit" => "Edit",
+	"del" => "Delete",
+	"add" => "Add",
+	"before" => "Before",
+	"after" => "After",
+	"passwd" => "Password",
+	"passwd_incorrect" => "Incorrect password.",
+	"parse_def" => "parse_def",
+	"preg_col_def" => "preg_column_definition",
+	"preg_col_bef" => "preg_columns_before",
+	"preg_col_2_ch" => "preg_column_to_change",
+	"chk_ext" => "Checking supported SQLite PHP extensions",
+	
+	"sqlite" => "SQLite",
+	"sqlite_db" => "SQLite Database",
+	"sqlite_ext" => "SQLite extension",
+	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",
+	"sqlite_v" => "SQLite version",
+	"sqlite_v3_error" => "It appears that your database is of SQLite version 3 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 2.",
+	"sqlite_v2_error" => "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 3.",
+	"report_issue" => "The problem cannot be diagnosed properly. Please file an issue report at",
+	"sqlite_f" => "this file contains an sqlite 2",
+	"sqlite_limit" => "Due to the limitations of SQLite, only the field name and data type can be modified.",
+	
+	"unknown_alter" => "unknown alter operation",
+	"php_v" => "PHP version",
+	
+	"db_dump" => "database dump",
+	"db_f" => "database file",
+	"db_ch" => "Change Database",
+	"db_event" => "Database Event",
+	"db_name" => "Database name",
+	"db_rename" => "Rename Database",
+	"db_renamed" => "Database '%s' has been renamed to",
+	"db_del" => "Delete Database",
+	"db_path" => "Path to database",
+	"db_size" => "Size of database",
+	"db_mod" => "Database last modified",
+	"db_create" => "Create New Database",
+	"db_vac" => "The database, '%s', has been VACUUMed.",
+	"db_not_writeable" => "The database, '%s', does not exist and cannot be created because the containing directory, '%s', is not writable. The application is unusable until you make it writable.",
+	"db_setup" => "There was a problem setting up your database, %s. An attempt will be made to find out what's going on so you can fix the problem more easily",
+	"db_exists" => "A database of the name '%s' already exists.",
+	
+	"exp_on" => "Exported on",
+	"transact" => "BEGIN TRANSACTION",
+	"struct" => "Structure",
+	"struct_for" => "structure for",
+	"on_tbl" => "on table",
+	"data_dump" => "Data dump for",
+	"total_rows" => "a total of %s rows",
+	"not_dir" => "The directory you specified to scan for databases does not exist or is not a directory.",
+	"bad_php_directive" => "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.",
+	"page_gen" => "Page generated in %s seconds.",
+	"powered" => "Powered by",
+	"remember" => "Remember me",
+	"no_db" => "Welcome to phpLiteAdmin. It appears that you have selected to scan a directory for databases to manage. However, phpLiteAdmin could not find any valid SQLite databases. You may use the form below to create your first database.",
+	"no_db2" => "The directory you specified does not contain any existing databases to manage, and the directory is not writable. This means you can't create any new databases using phpLiteAdmin. Either make the directory writable or manually upload databases to the directory.",
+	
+	"create" => "Create",
+	"created" => "has been created",
+	"create_tbl" => "Create new table",
+	"create_tbl_db" => "Create new table on database",
+	"create_trigger" => "Creating new trigger on table",
+	"create_trigger1" => "Create Trigger",
+	"create_index" => "Creating new index on table",
+	"create_index1" => "Create Index",
+	"create_view" => "Create new view on database",
+	
+	"trigger" => "Trigger",
+	"triggers" => "Triggers",
+	"trigger_name" => "Trigger name",
+	"trigger_act" => "Trigger Action",
+	"trigger_step" => "Trigger Steps (semicolon terminated)",
+	"when_exp" => "WHEN expression (type expression without 'WHEN')",
+	"index" => "Index",
+	"indexes" => "Indexes",
+	"index_name" => "Index name",
+	"name" => "Name",
+	"unique" => "Unique",
+	"seq_no" => "Seq. No.",
+	"emptied" => "has been emptied",
+	"dropped" => "has been dropped",
+	"renamed" => "has been renamed to",
+	"altered" => "has been altered successfully",
+	"inserted" => "inserted",
+	"deleted" => "deleted",
+	"affected" => "affected",
+	"blank_index" => "Index name must not be blank.",
+	"one_index" => "You must specify at least one index column.",
+	"docu" => "Documentation",
+	"license" => "License",
+	"proj_site" => "Project Site",
+	"bug_report" => "This may be a bug that needs to be reported at",
+	"return" => "Return",
+	"browse" => "Browse",
+	"fld" => "Field",
+	"fld_num" => "Number of Fields",
+	"fields" => "Fields",
+	"type" => "Type",
+	"operator" => "Operator",
+	"val" => "Value",
+	"update" => "Update",
+	"comments" => "Comments",
+	
+	"specify_fields" => "You must specify the number of table fields.",
+	"specify_tbl" => "You must specify a table name.",
+	"specify_col" => "You must specify a column.",
+	
+	"tbl_exists" => "Table of the same name already exists.",
+	"show" => "Show",
+	"show_rows" => "Showing %s row(s). ",
+	"showing" => "Showing",
+	"query_time" => "(Query took %s sec)",
+	"syntax_err" => "There is a problem with the syntax of your query (Query was not executed)",
+	"run_sql" => "Run SQL query/queries on database",
+	
+	"ques_empty" => "Are you sure you want to empty the table",
+	"ques_drop" => "Are you sure you want to drop the table",
+	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table",
+	"ques_del_db" => "Are you sure you want to delete the database",
+	"ques_del_col" => "Are you sure you want to delete column(s) %s from table",
+	"ques_del_index" => "Are you sure you want to delete index",
+	"ques_del_trigger" => "Are you sure you want to delete trigger",
+	
+	"export_struct" => "Export with structure",
+	"export_data" => "Export with data",
+	"add_drop" => "Add DROP TABLE",
+	"add_transact" => "Add TRANSACTION",
+	"fld_terminated" => "Fields terminated by",
+	"fld_enclosed" => "Fields enclosed by",
+	"fld_escaped" => "Fields escaped by",
+	"fld_names" => "Field names in first row",
+	"rep_null" => "Replace NULL by",
+	"rem_crlf" => "Remove CRLF characters within fields",
+	"put_fld" => "Put field names in first row",
+	"null_represent" => "NULL represented by",
+	"import_suc" => "Import was successful.",
+	"import_into" => "Import into",
+	"import_f" => "File to import",
+	"rename_tbl" => "Rename table '%s' to",
+	
+	"rows_records" => "row(s) starting from record # ",
+	"rows_aff" => "row(s) affected. ",
+	
+	"as_a" => "as a",
+	"readonly_tbl" => "is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records.",
+	"chk_all" => "Check All",
+	"unchk_all" => "Uncheck All",
+	"with_sel" => "With Selected",
+	
+	"no_tbl" => "No table in database.",
+	"no_chart" => "If you can read this, it means the chart could not be generated. The data you are trying to view may not be appropriate for a chart.",
+	"no_rows" => "There are no rows in the table for the range you selected.",
+	"no_sel" => "You did not select anything.",
+	
+	"chart_type" => "Chart Type",
+	"chart_bar" => "Bar Chart",
+	"chart_pie" => "Pie Chart",
+	"chart_line" => "Line Chart",
+	"lbl" => "Labels",
+	"empty_tbl" => "This table is empty.",
+	"click" => "Click here",
+	"insert_rows" => "to insert rows.",
+	"restart_insert" => "Restart insertion with ",
+	"ignore" => "Ignore",
+	"func" => "Function",
+	"new_insert" => "Insert As New Row",
+	"save_ch" => "Save Changes",
+	"def_val" => "Default Value",
+	"prim_key" => "Primary Key",
+	"tbl_end" => "field(s) at end of table",
+	"query_used" => "Query used to create this",
+	"create_index" => "Create an index on",
+	"create_trigger" => "Create a new trigger",
+	"new_fld" => "Adding new field(s) to table",
+	"add_flds" => "Add Fields",
+	"edit_col" => "Editing colum",
+	"vac" => "Vacuum",
+	"vac_desc" => "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database",
+	"event" => "Event",
+	"each_row" => "For Each Row",
+	"define_index" => "Define index properties",
+	"define_in_col" => "",
+	"dup_val" => "Duplicate values",
+	"allow" => "Allowed",
+	"not_allow" => "Not Allowed",
+	"asc" => "Ascending",
+	"desc" => "Descending",
+	"warn0" => "You have been warned.",
+	"warn_passwd" => "You are using the default password, which can be dangerous. You can change it easily at the top of ",
+	"sel_state" => "Select Statement",
+	"delimit" => "Delimiter"
+);
+
+if($language != 'en' && file_exits($language.'.php')){
+   include($language.'.php');
+}
 
 //directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
 $directory = ".";
@@ -233,7 +485,8 @@ function dir_tree($dir)
 //the function echo the help [?] links to the documentation
 function helpLink($name)
 {
-	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='Help: ".$name."'>[?]</a>";	
+	global $lang;
+	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='".$lang['help'].": ".$name."'>[?]</a>";	
 }
 
 // function to encode value into HTML just like htmlentities, but with adjusted default settings
@@ -313,6 +566,7 @@ class Database
 
 	public function __construct($data)
 	{
+		global $lang;
 		$this->data = $data;
 		$this->fns = array();
 		try
@@ -320,9 +574,9 @@ class Database
 			if(!file_exists($this->data["path"]) && !is_writable(dirname($this->data["path"]))) //make sure the containing directory is writable if the database does not exist
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
-				echo "The database, '".htmlencode($this->data["path"])."', does not exist and cannot be created because the containing directory, '".htmlencode(dirname($this->data["path"]))."', is not writable. The application is unusable until you make it writable.";
+				printf($lang['db_not_writeable'], htmlencode($this->data["path"]), htmlencode(dirname($this->data["path"])));
 				echo "<form action='".PAGE."' method='post'>";
-				echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
+				echo "<input type='submit' value='Log Out' name='".$lang['logout']."' class='btn'/>";
 				echo "</form>";
 				echo "</div><br/>";
 				exit();
@@ -412,37 +666,38 @@ class Database
 	
 	public function showError()
 	{
+		global $lang;
 		$classPDO = class_exists("PDO");
 		$classSQLite3 = class_exists("SQLite3");
 		$classSQLiteDatabase = class_exists("SQLiteDatabase");
 		if($classPDO)
-			$strPDO = "installed";
+			$strPDO = $lang['installed'];
 		else
-			$strPDO = "not installed";
+			$strPDO = $lang['not_installed'];
 		if($classSQLite3)
-			$strSQLite3 = "installed";
+			$strSQLite3 = $lang['installed'];
 		else
-			$strSQLite3 = "not installed";
+			$strSQLite3 = $lang['not_installed'];
 		if($classSQLiteDatabase)
-			$strSQLiteDatabase = "installed";
+			$strSQLiteDatabase = $lang['installed'];
 		else
-			$strSQLiteDatabase = "not installed";
+			$strSQLiteDatabase = $lang['not_installed'];
 		echo "<div class='confirm' style='margin:20px;'>";
-		echo "There was a problem setting up your database, ".$this->getPath().". An attempt will be made to find out what's going on so you can fix the problem more easily.<br/><br/>";
-		echo "<i>Checking supported SQLite PHP extensions...<br/><br/>";
-		echo "<b>PDO</b>: ".$strPDO."<br/>";
-		echo "<b>SQLite3</b>: ".$strSQLite3."<br/>";
-		echo "<b>SQLiteDatabase</b>: ".$strSQLiteDatabase."<br/><br/>...done.</i><br/><br/>";
+		printf($lang['db_setup'], $this->getPath());
+		echo ".<br/><br/><i>".$lang['chk_ext']."...<br/><br/>";
+		echo "<b>".$lang['pdo']."</b>: ".$strPDO."<br/>";
+		echo "<b>".$lang['sqlite']."3</b>: ".$strSQLite3."<br/>";
+		echo "<b>".$lang['sqlite_db']."</b>: ".$strSQLiteDatabase."<br/><br/>...".$lang['done'].".</i><br/><br/>";
 		if(!$classPDO && !$classSQLite3 && !$classSQLiteDatabase)
-			echo "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use ".PROJECT." until you install at least one of them.";
+			printf($lang['sqlite_ext_support'], PROJECT);
 		else
 		{
 			if(!$classPDO && !$classSQLite3 && $this->getVersion()==3)
-				echo "It appears that your database is of SQLite version 3 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow ".PROJECT." to create it automatically or recreate it manually as SQLite version 2.";
+				printf($lang['sqlite_v3_error'], PROJECT);
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
-				echo "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow ".PROJECT." to create it automatically or recreate it manually as SQLite version 3.";
+				printf($lang['sqlite_v2_error'], PROJECT);
 			else
-				echo "The problem cannot be diagnosed properly. Please file an issue report at http://phpliteadmin.googlecode.com.";
+				echo $lang['report_issue']." <a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>.";
 		}
 		echo "</div><br/>";
 	}
@@ -474,10 +729,11 @@ class Database
 	//get the version of the database
 	public function getVersion()
 	{
+		global $lang;
 		if(file_exists($this->data['path'])) //make sure file exists before getting its contents
 		{
 			$content = strtolower(file_get_contents($this->data['path'], NULL, NULL, 0, 40)); //get the first 40 characters of the database file
-			$p = strpos($content, "** this file contains an sqlite 2"); //this text is at the beginning of every SQLite2 database
+			$p = strpos($content, "** ".$lang['sqlite_f']); //this text is at the beginning of every SQLite2 database
 			if($p!==false) //the text is found - this is version 2
 				return 2;
 			else
@@ -540,24 +796,24 @@ class Database
 	//generic query wrapper
 	public function query($query, $ignoreAlterCase=false)
 	{
-		global $debug;
+		global $debug, $lang;
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
 			preg_match("/^\s*ALTER\s+TABLE\s+\"((?:[^\"]|\"\")+)\"\s+(.*)$/i",$query,$matches);
 			if(!isset($matches[1]) || !isset($matches[2]))
 			{
-				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
+				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>".$lang['sql']."?</span><br />";
 				return false;
 			}
 			$tablename = str_replace('""','"',$matches[1]);
 			$alterdefs = $matches[2];
-			if($debug) echo "ALTER TABLE QUERY=(".htmlencode($query)."), tablename=($tablename), alterdefs=($alterdefs)<hr>";
+			if($debug) echo $lang['alter_tbl_query']."=(".htmlencode($query)."), ".$lang['tablename']."=($tablename), ".$lang['alterdefs']."=($alterdefs)<hr>";
 			$result = $this->alterTable($tablename, $alterdefs);
 		}
 		else //this query is normal - proceed as normal
 		{
 			$result = $this->db->query($query);
-			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
+			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>".$lang['sql']."?</span><br />";
 		}
 		if(!$result)
 			return false;
@@ -699,8 +955,8 @@ class Database
 	// this has been completely debugged / rewritten by Christopher Kramer
 	public function alterTable($table, $alterdefs)
 	{
-		global $debug;
-		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
+		global $debug, $lang;
+		if($debug) echo $lang['alter_tbl'].": ".$lang['table']."=($table), ".$lang['alterdefs']."=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
 			$recreateQueries = array();
@@ -754,21 +1010,21 @@ class Database
 					$createtesttableSQL = $createtemptableSQL;
 					if(count($defs)<1)
 					{
-						if($debug) echo "ERROR: defs&lt;1<hr />";
+						if($debug) echo $lang['err'].": ".$lang['defs']."&lt;1<hr />";
 						return false;
 					}
 					foreach($defs as $def)
 					{
-						if($debug) echo "def=$def<hr />";
+						if($debug) echo $lang['def']."=$def<hr />";
 						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
-							if($debug) echo "ERROR: !parse_def<hr />";
+							if($debug) echo $lang['err'].": !".$lang['parse_def']."<hr />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
-							if($debug) echo "ERROR: !isset(matches[1])<hr />";
+							if($debug) echo $lang['err'].": !isset(matches[1])<hr />";
 							return false;
 						}
 						$action = strtolower($matches[1]);
@@ -779,7 +1035,7 @@ class Database
 							
 						$column_escaped = str_replace("'","''",$column);
 
-						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
+						if($debug) echo $lang['act']."=($action), ".$lang['col']."=($column), ".$lang['col_escaped']."=($column_escaped)<hr />";
 
 						/* we build a regex that devides the CREATE TABLE statement parts:
 						  Part example								Group	Explanation
@@ -791,7 +1047,7 @@ class Database
 						$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
 						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[) ").")+";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
-						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
+						if($debug) echo $lang['preg_col_def']."=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
 								"(".			// group $2. Keep this one unchanged!
@@ -802,7 +1058,7 @@ class Database
 								")".			// end of group $2
 								",\s*"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
-						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<hr />";
+						if($debug) echo $lang['preg_col_bef']."=(".$preg_columns_before.")<hr />";
 						$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
 												// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
 												// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
@@ -849,7 +1105,7 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
+									echo $lang['preg_col_2_ch']."=(".$preg_column_to_change.")<hr />";
 									echo $createtesttableSQL."<hr />";
 									echo $newSQL."<hr />";
 									echo $preg_pattern_change."<hr />";
@@ -887,7 +1143,7 @@ class Database
 								$table_new = $column;
 								break;
 							default:
-								if($default) echo 'ERROR: unknown alter operation!<hr />';
+								if($default) echo $lang['err'].': '.$lang['unknown_alter'].'!<hr />';
 								return false;
 						}
 					}
@@ -1132,20 +1388,21 @@ class Database
 	//export sql
 	public function export_sql($tables, $drop, $structure, $data, $transaction, $comments)
 	{
+		global $lang;
 		if($comments)
 		{
 			echo "----\r\n";
-			echo "-- phpLiteAdmin database dump (http://phpliteadmin.googlecode.com)\r\n";
-			echo "-- phpLiteAdmin version: ".VERSION."\r\n";
-			echo "-- Exported on ".date('M jS, Y, h:i:sA')."\r\n";
-			echo "-- Database file: ".$this->getPath()."\r\n";
+			echo "-- ".$lang['pla']." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
+			echo "-- ".$lang['pla']." ".$lang['ver'].": ".VERSION."\r\n";
+			echo "-- ".$lang['exp_on']." ".date('M jS, Y, h:i:sA')."\r\n";
+			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
 		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' OR type='view' OR type='trigger' ORDER BY type='trigger', type='index', type='view', type='table'";
 		$result = $this->selectArray($query);
 
 		if($transaction)
-			echo "BEGIN TRANSACTION;\r\n";
+			echo $lang['transact'].";\r\n";
 
 		//iterate through each table
 		for($i=0; $i<sizeof($result); $i++)
@@ -1163,10 +1420,10 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						echo "-- Drop ".$result[$i]['type']." for ".$result[$i]['name']."\r\n";
+						echo "-- ".$lang['drop']." ".$result[$i]['type']." ".$lang['for']." ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
-					echo "DROP ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
+					echo $lang['drop']." ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
 				if($structure)
 				{
@@ -1174,9 +1431,9 @@ class Database
 					{
 						echo "\r\n----\r\n";
 						if($result[$i]['type']=="table" || $result[$i]['type']=="view")
-							echo "-- ".ucfirst($result[$i]['type'])." structure for ".$result[$i]['tbl_name']."\r\n";
+							echo "-- ".ucfirst($result[$i]['type'])." ".$lang['struct_for']." ".$result[$i]['tbl_name']."\r\n";
 						else // index or trigger
-							echo "-- Structure for ".$result[$i]['type']." ".$result[$i]['name']." on table ".$result[$i]['tbl_name']."\r\n";
+							echo "-- ".$lang['struct_for']." ".$result[$i]['type']." ".$result[$i]['name']." ".$lang['on_tbl']." ".$result[$i]['tbl_name']."\r\n";
 						echo "----\r\n";
 					}
 					echo $result[$i]['sql'].";\r\n";
@@ -1189,7 +1446,7 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						echo "-- Data dump for ".$result[$i]['tbl_name'].", a total of ".sizeof($arr)." rows\r\n";
+						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".printf($lang['total_rows'], sizeof($arr))."\r\n";
 						echo "----\r\n";
 					}
 					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
@@ -1352,9 +1609,7 @@ if($auth->isAuthorized())
 		}
 		else //the directory is not valid - display error and exit
 		{
-			echo "<div class='confirm' style='margin:20px;'>";
-			echo "The directory you specified to scan for databases does not exist or is not a directory.";
-			echo "</div>";
+			echo "<div class='confirm' style='margin:20px;'>".$lang['not_dir']."</div>";
 			exit();
 		}
 	}
@@ -1824,7 +2079,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	);
 	?>
 	</head>
-	<body>
+	<body style="direction:<?php echo $lang['direction']; ?>;">
 	<div id='help_container'>
 	<?php
 	echo "<div class='help_list'>";
@@ -2022,13 +2277,11 @@ function PopupCenter(pageURL, title)
 /* ]]> */ 
 </script>
 </head>
-<body>
+<body style="direction:<?php echo $lang['direction']; ?>;">
 <?php
 if(ini_get("register_globals") == "on" || ini_get("register_globals")=="1") //check whether register_globals is turned on - if it is, we need to not continue
 {
-	echo "<div class='confirm' style='margin:20px;'>";
-	echo "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.";
-	echo "</div>";
+	echo "<div class='confirm' style='margin:20px;'>".$lang['bad_php_directive']."</div>";
 	echo "</body></html>";
 	exit();
 }
@@ -2039,11 +2292,11 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px; text-align:center;'>";
 	if(isset($_POST['login']))
-		echo "<span class='warning'>Incorrect password.</span><br/><br/>";
+		echo "<span class='warning'>".$lang['passwd_incorrect']."</span><br/><br/>";
 	echo "<form action='".PAGE."' method='post'>";
-	echo "Password: <input type='password' name='password'/><br/>";
-	echo "<input type='checkbox' name='remember' value='yes' checked='checked'/> Remember me<br/><br/>";
-	echo "<input type='submit' value='Log In' name='login' class='btn'/>";
+	echo $lang['passwd'].": <input type='password' name='password'/><br/>";
+	echo "<label><input type='checkbox' name='remember' value='yes' checked='checked'/> ".$lang['remember']."</label><br/><br/>";
+	echo "<input type='submit' value='".$lang['login']."' name='login' class='btn'/>";
 	echo "<input type='hidden' name='proc_login' value='true' />";
 	echo "</form>";
 	echo "</div>";
@@ -2052,8 +2305,9 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<div style='text-align:center;'>";
 	$endTimeTot = microtime(true);
 	$timeTot = round(($endTimeTot - $startTimeTot), 4);
-	echo "<span style='font-size:11px;'>Powered by <a href='http://phpliteadmin.googlecode.com' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
-	echo "</div>";
+	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://phpliteadmin.googlecode.com' target='_blank' style='font-size:11px;'>".PROJECT."</a> | "; 
+	printf($lang['page_gen'], $timeTot);
+	echo "</span></div>";
 }
 else //user is authorized - display the main application
 {
@@ -2067,18 +2321,18 @@ else //user is authorized - display the main application
 		if($directory!==false && is_writable($directory))
 		{
 			echo "<div class='confirm' style='margin:20px;'>";
-			echo "Welcome to phpLiteAdmin. It appears that you have selected to scan a directory for databases to manage. However, phpLiteAdmin could not find any valid SQLite databases. You may use the form below to create your first database.";
+			echo $lang['no_db'];
 			echo "</div>";	
-			echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b></legend>";
+			echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
 			echo "<form name='create_database' method='post' action='".PAGE."'>";
-			echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
+			echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
 		}
 		else
 		{
 			echo "<div class='confirm' style='margin:20px;'>";
-			echo "Error: The directory you specified does not contain any existing databases to manage, and the directory is not writable. This means you can't create any new databases using phpLiteAdmin. Either make the directory writable or manually upload databases to the directory.";
+			echo $lang['err'].": ".$lang['no_db2'];
 			echo "</div><br/>";	
 		}
 		exit();
@@ -2176,7 +2430,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_POST['tablename'])."' has been created.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
@@ -2188,7 +2442,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_POST['tablename'])."' has been emptied.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
@@ -2196,7 +2450,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "View '".htmlencode($_POST['viewname'])."' has been created.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
@@ -2204,7 +2458,7 @@ else //user is authorized - display the main application
 				$result=$db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_POST['tablename'])."' has been dropped.";
+				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
@@ -2212,7 +2466,7 @@ else //user is authorized - display the main application
 				$result=$db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "View '".htmlencode($_POST['viewname'])."' has been dropped.";
+				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
@@ -2223,7 +2477,7 @@ else //user is authorized - display the main application
 					$result = $db->query($query, false);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_POST['oldname'])."' has been renamed to '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			//row actions
 			/////////////////////////////////////////////// create row
@@ -2291,7 +2545,7 @@ else //user is authorized - display the main application
 						$z++;
 					}
 				}
-				$completed = $z." row(s) inserted.<br/><br/>".$completed;
+				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 				break;
 			/////////////////////////////////////////////// delete row
 			case "row_delete":
@@ -2304,7 +2558,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = sizeof($pks)." row(s) deleted.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// edit row
 			case "row_edit":
@@ -2319,7 +2573,7 @@ else //user is authorized - display the main application
 				if(isset($_POST['new_row']))
 					$completed = "";
 				else
-					$completed = sizeof($pks)." row(s) affected.<br/><br/>";
+					$completed = sizeof($pks)." ".$lang['rows']." ".$lang['affected'].".<br/><br/>";
 
 				for($i=0; $i<sizeof($pks); $i++)
 				{
@@ -2392,7 +2646,7 @@ else //user is authorized - display the main application
 					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
 				}
 				if(isset($_POST['new_row']))
-					$completed = $z." row(s) inserted.<br/><br/>".$completed;
+					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 				break;
 			//column actions
 			/////////////////////////////////////////////// create column
@@ -2423,7 +2677,7 @@ else //user is authorized - display the main application
 							$error = true;
 					}
 				}
-				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
 				break;
 			/////////////////////////////////////////////// delete column
 			case "column_delete":
@@ -2436,7 +2690,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
@@ -2444,7 +2698,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Table '".htmlencode($_GET['table'])."' has been altered successfully.";
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
@@ -2452,7 +2706,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Trigger '".htmlencode($_GET['pk'])."' deleted.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
@@ -2460,7 +2714,7 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Index '".htmlencode($_GET['pk'])."' deleted.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
@@ -2479,18 +2733,18 @@ else //user is authorized - display the main application
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
-				$completed = "Trigger created.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
 				$num = $_POST['num'];
 				if($_POST['name']=="")
 				{
-					$completed = "Index name must not be blank.";
+					$completed = $lang['blank_index'];
 				}
 				else if($_POST['0_field']=="")
 				{
-					$completed = "You must specify at least one index column.";
+					$completed = $lang['one_index'];
 				}
 				else
 				{
@@ -2509,7 +2763,7 @@ else //user is authorized - display the main application
 					$result = $db->query($query);
 					if(!$result)
 						$error = true;
-					$completed = "Index created.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+					$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				}
 				break;
 		}
@@ -2523,11 +2777,11 @@ else //user is authorized - display the main application
 	echo "</a>";
 	echo "</h1>";
 	echo "<div id='headerlinks'>";
-	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>Documentation</a> | ";
-	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>License</a> | ";
-	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank'>Project Site</a>";
+	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</a> | ";
+	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
+	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank'>".$lang['proj_site']."</a>";
 	echo "</div>";
-	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
+	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_ch']."</b></legend>";
 	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 	{
 		for($i=0; $i<sizeof($databases); $i++)
@@ -2555,7 +2809,7 @@ else //user is authorized - display the main application
 				echo "<option value='".htmlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['perms'].$databases[$i]['name'])."</option>";
 		}
 		echo "</select> ";
-		echo "<input type='submit' value='Go' class='btn'>";
+		echo "<input type='submit' value='".$lang['go']."' class='btn'>";
 		echo "</form>";
 	}
 	echo "</fieldset>";
@@ -2574,9 +2828,9 @@ else //user is authorized - display the main application
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
 			if($result[$i]['type']=="table")
-				echo "<span class='sidebar_table'><span>[table]</span></span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."'";
+				echo "<span class='sidebar_table'><span>[".$lang['tbl']."]</span></span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."'";
 			else
-				echo "<span style='font-size:11px;'>[view]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."&amp;view=1'";
+				echo "<span style='font-size:11px;'>[".$lang['view']."]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."&amp;view=1'";
 			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
 				echo " class='active_table'";
 			echo ">".htmlencode($result[$i]['name'])."</a><br/>";
@@ -2584,21 +2838,21 @@ else //user is authorized - display the main application
 		}
 	}
 	if($j==0)
-		echo "No tables in database.";
+		echo $lang['no_tbl'];
 	echo "</fieldset>";
 	
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b> ".helpLink("Creating a New Database")."</legend>";
+		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink("Creating a New Database")."</legend>";
 		echo "<form name='create_database' method='post' action='".PAGE."'>";
-		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
+		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
 		echo "</form>";
 		echo "</fieldset>";
 	}
 	
 	echo "<div style='text-align:center;'>";
 	echo "<form action='".PAGE."' method='post'>";
-	echo "<input type='submit' value='Log Out' name='logout' class='btn'/>";
+	echo "<input type='submit' value='".$lang['logout']."' name='logout' class='btn'/>";
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
@@ -2616,16 +2870,16 @@ else //user is authorized - display the main application
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
 		if(isset($error) && $error) //an error occured during the action, so show an error message
-			echo "Error: ".$db->getError().".<br/>This may be a bug that needs to be reported at <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
+			echo $lang['err'].": ".$db->getError().".<br/>".$lang['bug_report']." <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
 		else //action was performed successfully - show success message
 			echo $completed;
 		echo "</div>";
 		if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
-			echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Return</a>";
+			echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['return']."</a>";
 		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
-			echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Return</a>";
+			echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['return']."</a>";
 		else
-			echo "<br/><br/><a href='".PAGE."'>Return</a>";
+			echo "<br/><br/><a href='".PAGE."'>".$lang['return']."</a>";
 		echo "</div>";
 	}
 
@@ -2639,55 +2893,55 @@ else //user is authorized - display the main application
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Browse</a>";
+			echo ">".$lang['browse']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view' ";
 			if($_GET['action']=="column_view")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Structure</a>";
+			echo ">".$lang['struct']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_sql' ";
 			if($_GET['action']=="table_sql")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">SQL</a>";
+			echo ">".$lang['sql']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search' ";
 			if($_GET['action']=="table_search")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Search</a>";
+			echo ">".$lang['srch']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create' ";
 			if($_GET['action']=="row_create")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Insert</a>";
+			echo ">".$lang['insert']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_export' ";
 			if($_GET['action']=="table_export")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Export</a>";
+			echo ">".$lang['export']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_import' ";
 			if($_GET['action']=="table_import")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Import</a>";
+			echo ">".$lang['import']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_rename' ";
 			if($_GET['action']=="table_rename")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Rename</a>";
+			echo ">".$lang['rename']."</a>";
 			echo "<a href='".PAGE."?action=table_empty&amp;table=".urlencode($_GET['table'])."' ";
 			echo "class='tab empty'";
-			echo ">Empty</a>";
+			echo ">".$lang['empty']."</a>";
 			echo "<a href='".PAGE."?action=table_drop&amp;table=".urlencode($_GET['table'])."' ";
 			echo "class='tab drop'";
-			echo ">Drop</a>";
+			echo ">".$lang['drop']."</a>";
 			echo "<div style='clear:both;'></div>";
 		}
 		else
@@ -2697,34 +2951,34 @@ else //user is authorized - display the main application
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Browse</a>";
+			echo ">".$lang['browse']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view&amp;view=1' ";
 			if($_GET['action']=="column_view")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Structure</a>";
+			echo ">".$lang['struct']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_sql&amp;view=1' ";
 			if($_GET['action']=="table_sql")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">SQL</a>";
+			echo ">".$lang['sql']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search&amp;view=1' ";
 			if($_GET['action']=="table_search")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Search</a>";
+			echo ">".$lang['srch']."</a>";
 			echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_export&amp;view=1' ";
 			if($_GET['action']=="table_export")
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Export</a>";
+			echo ">".$lang['export']."</a>";
 			echo "<a href='".PAGE."?action=view_drop&amp;table=".urlencode($_GET['table'])."&amp;view=1' ";
 			echo "class='tab drop'";
-			echo ">Drop</a>";
+			echo ">".$lang['drop']."</a>";
 			echo "<div style='clear:both;'></div>";
 		}
 	}
@@ -2744,13 +2998,13 @@ else //user is authorized - display the main application
 					$exists = true;
 				else
 					$exists = false;
-				echo "<h2>Creating new table: '".htmlencode($_POST['tablename'])."'</h2>";
+				echo "<h2>".$lang['create_tbl'].": '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
-					echo "You must specify the number of table fields.";
+					echo $lang['specify_fields'];
 				else if($_POST['tablename']=="")
-					echo "You must specify a table name.";
+					echo $lang['specify_tbl'];
 				else if($exists)
-					echo "Table of the same name already exists.";
+					echo $lang['tbl_exists'];
 				else
 				{
 					$num = intval($_POST['tablefields']);
@@ -2783,16 +3037,16 @@ else //user is authorized - display the main application
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_primarykey' id='i".$i."_primarykey' onclick='toggleNull(".$i."); toggleAutoincrement(".$i.");'/> Yes";
+						echo "<label><input type='checkbox' name='".$i."_primarykey' id='i".$i."_primarykey' onclick='toggleNull(".$i."); toggleAutoincrement(".$i.");'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						if($db->getType() != "SQLiteDatabase")
 						{
 							echo $tdWithClass;
-							echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
+							echo "<label><input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> ".$lang['yes']."</label>";
 							echo "</td>";
 						} else echo "NIO";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> Yes";
+						echo "<label><input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;'/>";
@@ -2801,7 +3055,7 @@ else //user is authorized - display the main application
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
-					echo "<input type='submit' value='Create' class='btn'/> ";
+					echo "<input type='submit' value='".$lang['create']."' class='btn'/> ";
 					echo "<a href='".PAGE."'>Cancel</a>";
 					echo "</td>";
 					echo "</tr>";
@@ -2845,19 +3099,19 @@ else //user is authorized - display the main application
 								if($isSelect)
 								{
 									$affected = sizeof($result);
-									echo "Showing ".$affected." row(s). ";
+									echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
 								}
 								else
 								{
 									$affected = $db->getAffectedRows();
-									echo $affected." row(s) affected. ";
+									echo $affected." ".$lang['rows']." ".$lang['affected'].". ";
 								}
-								echo "(Query took ".$time." sec)</b><br/>";
+								printf($lang['query_time'], $time);
+								echo "</b><br/>";
 							}
 							else
 							{
-								echo "There is a problem with the syntax of your query ";
-								echo "(Query was not executed)</b><br/>";
+								echo $lang['syntax_err']."</b><br/>";
 							}
 							echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 							echo "</div><br/>";
@@ -2901,7 +3155,7 @@ else //user is authorized - display the main application
 				}
 
 				echo "<fieldset>";
-				echo "<legend><b>Run SQL query/queries on database '".htmlencode($db->getName())."'</b></legend>";
+				echo "<legend><b>".$lang['run_sql']." '".htmlencode($db->getName())."'</b></legend>";
 				if(!isset($_GET['view']))
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_sql' method='post'>";
 				else
@@ -2910,7 +3164,7 @@ else //user is authorized - display the main application
 				echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval'>".htmlencode($queryStr)."</textarea>";
 				echo "</div>";
 				echo "<div style='float:left; width:28%; padding-left:10px;'>";
-				echo "Fields<br/>";
+				echo $lang['fields']."<br/>";
 				echo "<select multiple='multiple' style='width:100%;' id='fieldcontainer'>";
 				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
@@ -2923,7 +3177,7 @@ else //user is authorized - display the main application
 				echo "</div>";
 				echo "<div style='clear:both;'></div>";
 				echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
-				echo "<input type='submit' name='query' value='Go' class='btn'/>";
+				echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// empty table
@@ -2931,9 +3185,9 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=table_empty&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to empty the table '".htmlencode($_GET['table'])."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm' class='btn'/> ";
-				echo "<a href='".PAGE."'>Cancel</a>";
+				echo $lang['ques_empty']." '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
 				break;
 			/////////////////////////////////////////////// drop table
@@ -2941,9 +3195,9 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=table_drop&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to drop the table '".htmlencode($_GET['table'])."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm' class='btn'/> ";
-				echo "<a href='".PAGE."'>Cancel</a>";
+				echo $lang['ques_drop']." '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
 				break;
 			/////////////////////////////////////////////// drop view
@@ -2952,50 +3206,50 @@ else //user is authorized - display the main application
 				echo "<input type='hidden' name='viewname' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
 				echo "Are you sure you want to drop the view '".htmlencode($_GET['table'])."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm' class='btn'/> ";
-				echo "<a href='".PAGE."'>Cancel</a>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
 				break;
 			/////////////////////////////////////////////// export table
 			case "table_export":
 				echo "<form method='post' action='".PAGE."'>";
-				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Export</b></legend>";
+				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
 				echo "<input type='hidden' value='".htmlencode($_GET['table'])."' name='single_table'/>";
-				echo "<input type='radio' name='export_type' checked='checked' value='sql' onclick='toggleExports(\"sql\");'/> SQL";
-				echo "<br/><input type='radio' name='export_type' value='csv' onclick='toggleExports(\"csv\");'/> CSV";
+				echo "<label><input type='radio' name='export_type' checked='checked' value='sql' onclick='toggleExports(\"sql\");'/> ".$lang['sql']."</label>";
+				echo "<br/><label><input type='radio' name='export_type' value='csv' onclick='toggleExports(\"csv\");'/> ".$lang['csv']."</label>";
 				echo "</fieldset>";
 				
-				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-				echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure ".helpLink("Export Structure to SQL File")."<br/>";
-				echo "<input type='checkbox' checked='checked' name='data'/> Export with data ".helpLink("Export Data to SQL File")."<br/>";
-				echo "<input type='checkbox' name='drop'/> Add DROP TABLE ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
-				echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION ".helpLink("Add Transaction to Exported SQL File")."<br/>";
-				echo "<input type='checkbox' checked='checked' name='comments'/> Comments ".helpLink("Add Comments to Exported SQL File")."<br/>";
+				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
+				echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='data'/> ".$lang['export_data']."</label> ".helpLink("Export Data to SQL File")."<br/>";
+				echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";
 				echo "</fieldset>";
 				
-				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
-				echo "<div style='float:left;'>Fields terminated by</div>";
+				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
+				echo "<div style='float:left;'>".$lang['fld_terminated']."</div>";
 				echo "<input type='text' value=';' name='export_csv_fieldsterminated' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Fields enclosed by</div>";
+				echo "<div style='float:left;'>".$lang['fld_enclosed']."</div>";
 				echo "<input type='text' value='\"' name='export_csv_fieldsenclosed' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Fields escaped by</div>";
+				echo "<div style='float:left;'>".$lang['fld_escaped']."</div>";
 				echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Replace NULL by</div>";
+				echo "<div style='float:left;'>".$lang['rep_null']."</div>";
 				echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<input type='checkbox' name='export_csv_crlf'/> Remove CRLF characters within fields<br/>";
-				echo "<input type='checkbox' checked='checked' name='export_csv_fieldnames'/> Put field names in first row";
+				echo "<label><input type='checkbox' name='export_csv_crlf'/> ".$lang['rem_crlf']."</label><br/>";
+				echo "<label><input type='checkbox' checked='checked' name='export_csv_fieldnames'/> ".$lang['put_fld']."</label>";
 				echo "</fieldset>";
 				
 				echo "<div style='clear:both;'></div>";
 				echo "<br/><br/>";
-				echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
+				echo "<fieldset style='float:left;'><legend><b>".$lang['save_as']."</b></legend>";
 				$file = pathinfo($db->getPath());
 				$name = $file['filename'];
-				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
+				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
 				break;
@@ -3005,50 +3259,51 @@ else //user is authorized - display the main application
 				{
 					echo "<div class='confirm'>";
 					if($importSuccess===true)
-						echo "Import was successful.";
+						echo $lang['import_suc'];
 					else
 						echo $importSuccess;
 					echo "</div><br/>";
 				}
 				echo "<form method='post' action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_import' enctype='multipart/form-data'>";
-				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import into ".htmlencode($_GET['table'])."</b></legend>";
-				echo "<input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> SQL";
-				echo "<br/><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> CSV";
+				echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['import_into']." ".htmlencode($_GET['table'])."</b></legend>";
+				echo "<label><input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> ".$lang['sql']."</label>";
+				echo "<br/><label><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> ".$lang['csv']."</label>";
 				echo "</fieldset>";
 				
-				echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>Options</b></legend>";
-				echo "No options";
+				echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>".$lang['options']."</b></legend>";
+				echo $lang['no_opt'];
 				echo "</fieldset>";
 				
-				echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
+				echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>".$lang['options']."</b></legend>";
 				echo "<input type='hidden' value='".htmlencode($_GET['table'])."' name='single_table'/>";
-				echo "<div style='float:left;'>Fields terminated by</div>";
+				echo "<div style='float:left;'>".$lang['fld_terminated']."</div>";
 				echo "<input type='text' value=';' name='import_csv_fieldsterminated' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Fields enclosed by</div>";
+				echo "<div style='float:left;'>".$lang['fld_enclosed']."</div>";
 				echo "<input type='text' value='\"' name='import_csv_fieldsenclosed' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>Fields escaped by</div>";
+				echo "<div style='float:left;'>".$lang['fld_escaped']."</div>";
 				echo "<input type='text' value='\' name='import_csv_fieldsescaped' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<div style='float:left;'>NULL represented by</div>";
+				echo "<div style='float:left;'>".$lang['rep_null']."</div>";
 				echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<input type='checkbox' checked='checked' name='import_csv_fieldnames'/> Field names in first row";
+				echo "<label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['put_fld']."</label>";
 				echo "</fieldset>";
 				
 				echo "<div style='clear:both;'></div>";
 				echo "<br/><br/>";
 				
-				echo "<fieldset><legend><b>File to import</b></legend>";
-				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
+				echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
+				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='".$lang['import']."' class='btn'/>";
 				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
 				echo "<form action='".PAGE."?action=table_rename&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='oldname' value='".htmlencode($_GET['table'])."'/>";
-				echo "Rename table '".htmlencode($_GET['table'])."' to <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='Rename' name='rename' class='btn'/>";
+				printf($lang['rename_tbl'], htmlencode($_GET['table']));
+				echo " <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// search table
@@ -3093,13 +3348,13 @@ else //user is authorized - display the main application
 					if($result!==false)
 					{
 						$affected = sizeof($result);
-						echo "Showing ".$affected." row(s). ";
-						echo "(Query took ".$time." sec)</b><br/>";
+						echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
+						printf($lang['query_time'], $time);
+						echo "</b><br/>";
 					}
 					else
 					{
-						echo "There is a problem with the syntax of your query ";
-						echo "(Query was not executed)</b><br/>";
+						echo $lang['syntax_err']."</b><br/>";
 					}
 					echo "<span style='font-size:11px;'>".htmlencode($query)."</span>";
 					echo "</div><br/>";
@@ -3133,9 +3388,9 @@ else //user is authorized - display the main application
 					}
 					
 					if(!isset($_GET['view']))
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search'>Do Another Search</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search'>".$lang['srch_again']."</a>";
 					else
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search&amp;view=1'>Do Another Search</a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_search&amp;view=1'>".$lang['srch_again']."</a>";
 				}
 				else
 				{
@@ -3149,10 +3404,10 @@ else //user is authorized - display the main application
 						
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					echo "<td class='tdheader'>Field</td>";
-					echo "<td class='tdheader'>Type</td>";
-					echo "<td class='tdheader'>Operator</td>";
-					echo "<td class='tdheader'>Value</td>";
+					echo "<td class='tdheader'>".$lang['fld']."</td>";
+					echo "<td class='tdheader'>".$lang['type']."</td>";
+					echo "<td class='tdheader'>".$lang['operator']."</td>";
+					echo "<td class='tdheader'>".$lang['val']."</td>";
 					echo "</tr>";
 
 					for($i=0; $i<sizeof($result); $i++)
@@ -3201,7 +3456,7 @@ else //user is authorized - display the main application
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='4'>";
-					echo "<input type='submit' value='Search' class='btn'/>";
+					echo "<input type='submit' value='".$lang['srch']."' class='btn'/>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -3261,24 +3516,24 @@ else //user is authorized - display the main application
 				//show certain number buttons
 				echo "<div style='float:left; overflow:hidden;'>";
 				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
-				echo "<input type='submit' value='Show : ' name='show' class='btn'/> ";
+				echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
-				echo "row(s) starting from record # ";
+				echo $lang['rows_records'];
 				if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows']) < $rowCount)
 					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 				else
-					echo "<input type='text' name='startRow' style='width:90px;' value='0'/>";
-				echo " as a ";
-				echo "<select name='viewtype'>";
+					echo "<input type='text' name='startRow' style='width:90px;' value='0'/> ";
+				echo $lang['as_a'];
+				echo " <select name='viewtype'>";
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
-					echo "<option value='table' selected='selected'>Table</option>";
-					echo "<option value='chart'>Chart</option>";
+					echo "<option value='table' selected='selected'>".$lang['tbl']."</option>";
+					echo "<option value='chart'>".$lang['chart']."</option>";
 				}
 				else
 				{
-					echo "<option value='table'>Table</option>";
-					echo "<option value='chart' selected='selected'>Chart</option>";
+					echo "<option value='table'>".$lang['tbl']."</option>";
+					echo "<option value='chart' selected='selected'>".$lang['chart']."</option>";
 				}
 				echo "</select>";
 				echo "</form>";
@@ -3343,13 +3598,13 @@ else //user is authorized - display the main application
 				if(sizeof($arr)>0)
 				{
 					echo "<br/><div class='confirm'>";
-					echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." total, Query took ".$time." sec)</b><br/>";
+					echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." ".$lang['query_time']."</b><br/>";
 					echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
 					echo "</div><br/>";
 					
 					if(isset($_GET['view']))
 					{
-						echo "'".htmlencode($_GET['table'])."' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records. <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo "'".htmlencode($_GET['table'])."' ".$lang['readonly_tbl']." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
 						echo "<br/><br/>";	
 					}
 					
@@ -3398,10 +3653,10 @@ else //user is authorized - display the main application
 								echo "</td>";
 								echo $tdWithClass;
 								// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='edit' class='edit'><span>edit</span></a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a>";
 								echo "</td>";
 								echo $tdWithClass;
-								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='delete' class='delete'><span>delete</span></a>";
+								echo "<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
 								echo "</td>";
 							}
 							for($j=0; $j<sizeof($result); $j++)
@@ -3423,12 +3678,12 @@ else //user is authorized - display the main application
 						echo "</table>";
 						if(!isset($_GET['view']))
 						{
-							echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
+							echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 							echo "<select name='type'>";
-							echo "<option value='edit'>Edit</option>";
-							echo "<option value='delete'>Delete</option>";
+							echo "<option value='edit'>".$lang['edit']."</option>";
+							echo "<option value='delete'>".$lang['del']."</option>";
 							echo "</select> ";
-							echo "<input type='submit' value='Go' name='massGo' class='btn'/>";
+							echo "<input type='submit' value='".$lang['go']."' name='massGo' class='btn'/>";
 						}
 						echo "</form>";
 					}
@@ -3518,26 +3773,26 @@ else //user is authorized - display the main application
 							chart.draw(data, options);
 						}
 						</script>
-						<div id="chart_div" style="float:left;">If you can read this, it means the chart could not be generated. The data you are trying to view may not be appropriate for a chart.</div>
+						<div id="chart_div" style="float:left;"><?php echo $lang['no_chart']; ?></div>
 						<?php
 						echo "<fieldset style='float:right; text-align:center;' id='chartsettingsbox'><legend><b>Chart Settings</b></legend>";
 						echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
-						echo "Chart Type: <select name='charttype'>";
+						echo $lang['chart_type'].": <select name='charttype'>";
 						echo "<option value='bar'";
 						if($_SESSION[COOKIENAME.'charttype']=="bar")
 							echo " selected='selected'";
-						echo ">Bar Chart</option>";
+						echo ">".$lang['chart_bar']."</option>";
 						echo "<option value='pie'";
 						if($_SESSION[COOKIENAME.'charttype']=="pie")
 							echo " selected='selected'";
-						echo ">Pie Chart</option>";
+						echo ">".$lang['chart_pie']."</option>";
 						echo "<option value='line'";
 						if($_SESSION[COOKIENAME.'charttype']=="line")
 							echo " selected='selected'";
-						echo ">Line Chart</option>";
+						echo ">".$lang['chart_pie']."</option>";
 						echo "</select>";
 						echo "<br/><br/>";
-						echo "Labels: <select name='chartlabels'>";
+						echo $lang['lbl']."Labels: <select name='chartlabels'>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']) && $_SESSION[COOKIENAME.$_GET['table'].'chartlabels']==$i)
@@ -3547,7 +3802,7 @@ else //user is authorized - display the main application
 						}
 						echo "</select>";
 						echo "<br/><br/>";
-						echo "Values: <select name='chartvalues'>";
+						echo $lang['val'].": <select name='chartvalues'>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							if(strtolower($result[$i][2])=="integer" || strtolower($result[$i][2])=="float" || strtolower($result[$i][2])=="real")
@@ -3560,7 +3815,7 @@ else //user is authorized - display the main application
 						}
 						echo "</select>";
 						echo "<br/><br/>";
-						echo "<input type='submit' name='chartsettings' value='Update' class='btn'/>";
+						echo "<input type='submit' name='chartsettings' value='".$lang['update']."' class='btn'/>";
 						echo "</form>";
 						echo "</fieldset>";
 						echo "<div style='clear:both;'></div>";
@@ -3569,11 +3824,11 @@ else //user is authorized - display the main application
 				}
 				else if($rowCount>0)//no rows - do nothing
 				{
-					echo "<br/><br/>There are no rows in the table for the range you selected.";
+					echo "<br/><br/>".$lang['no_rows'];
 				}
 				else
 				{
-					echo "<br/><br/>This table is empty. <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create'>Click here</a> to insert rows.";
+					echo "<br/><br/>".$lang['empty_tbl']." <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create'>".$lang['click']."</a> ".$lang['insert_rows'];
 				}
 
 				break;
@@ -3581,8 +3836,8 @@ else //user is authorized - display the main application
 			case "row_create":
 				$fieldStr = "";
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create' method='post'>";
-				echo "Restart insertion with ";
-				echo "<select name='num'>";
+				echo $lang['restart_insert'];
+				echo " <select name='num'>";
 				for($i=1; $i<=40; $i++)
 				{
 					if(isset($_POST['num']) && $_POST['num']==$i)
@@ -3590,9 +3845,9 @@ else //user is authorized - display the main application
 					else
 						echo "<option value='".$i."'>".$i."</option>";
 				}
-				echo "</select>";
-				echo " rows ";
-				echo "<input type='submit' value='Go' class='btn'/>";
+				echo "</select> ";
+				echo $lang['rows'];
+				echo " <input type='submit' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
 				echo "<br/>";
 				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
@@ -3606,14 +3861,14 @@ else //user is authorized - display the main application
 				for($j=0; $j<$num; $j++)
 				{
 					if($j>0)
-						echo "<input type='checkbox' value='ignore' name='".$j.":ignore' id='row_".$j."_ignore' checked='checked'/> Ignore<br/>";
+						echo "<label><input type='checkbox' value='ignore' name='".$j.":ignore' id='row_".$j."_ignore' checked='checked'/> ".$lang['ignore']."</label><br/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					echo "<td class='tdheader'>Field</td>";
-					echo "<td class='tdheader'>Type</td>";
-					echo "<td class='tdheader'>Function</td>";
+					echo "<td class='tdheader'>".$lang['fld']."</td>";
+					echo "<td class='tdheader'>".$lang['type']."</td>";
+					echo "<td class='tdheader'>".$lang['func']."</td>";
 					echo "<td class='tdheader'>Null</td>";
-					echo "<td class='tdheader'>Value</td>";
+					echo "<td class='tdheader'>".$lang['val']."</td>";
 					echo "</tr>";
 
 					for($i=0; $i<sizeof($result); $i++)
@@ -3668,7 +3923,7 @@ else //user is authorized - display the main application
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
-					echo "<input type='submit' value='Insert' class='btn'/>";
+					echo "<input type='submit' value='".$lang['insert']."' class='btn'/>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table><br/>";
@@ -3693,9 +3948,9 @@ else //user is authorized - display the main application
 				if($str=="") //nothing was selected so show an error
 				{
 					echo "<div class='confirm'>";
-					echo "Error: You did not select anything.";
+					echo $lang['err'].": ".$lang['no_sel'];
 					echo "</div>";
-					echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Return</a>";
+					echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['return']."</a>";
 				}
 				else
 				{
@@ -3720,11 +3975,11 @@ else //user is authorized - display the main application
 
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 							echo "<tr>";
-							echo "<td class='tdheader'>Field</td>";
-							echo "<td class='tdheader'>Type</td>";
-							echo "<td class='tdheader'>Function</td>";
+							echo "<td class='tdheader'>".$lang['fld']."</td>";
+							echo "<td class='tdheader'>".$lang['type']."</td>";
+							echo "<td class='tdheader'>".$lang['func']."</td>";
 							echo "<td class='tdheader'>Null</td>";
-							echo "<td class='tdheader'>Value</td>";
+							echo "<td class='tdheader'>".$lang['val']."</td>";
 							echo "</tr>";
 
 							for($i=0; $i<sizeof($result); $i++)
@@ -3764,15 +4019,15 @@ else //user is authorized - display the main application
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='".$field."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
 							echo "<tr>";
 							echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
-							echo "<input type='submit' name='new_row' value='Insert As New Row' class='btn'/> ";
-							echo "<input type='submit' value='Save Changes' class='btn'/> ";
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Cancel</a>";
+							echo "<input type='submit' name='new_row' value='".$lang['new_insert']."' class='btn'/> ";
+							echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['cancel']."</a>";
 							echo "</td>";
 							echo "</tr>";
 							echo "</table>";
@@ -3784,9 +4039,10 @@ else //user is authorized - display the main application
 					{
 						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 						echo "<div class='confirm'>";
-						echo "Are you sure you want to delete row(s) ".htmlencode($str)." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
-						echo "<input type='submit' value='Confirm' class='btn'/> ";
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>Cancel</a>";
+						printf($lang['ques_del_rows'], htmlencode($str));
+						echo " '".htmlencode($_GET['table'])."'?<br/><br/>";
+						echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['cancel']."</a>";
 						echo "</div>";
 					}
 				}
@@ -3802,12 +4058,12 @@ else //user is authorized - display the main application
 				echo "<tr>";
 				if(!isset($_GET['view']))
 					echo "<td colspan='3'></td>";
-				echo "<td class='tdheader'>Column #</td>";
-				echo "<td class='tdheader'>Field</td>";
-				echo "<td class='tdheader'>Type</td>";
+				echo "<td class='tdheader'>".$lang['col']." #</td>";
+				echo "<td class='tdheader'>".$lang['fld']."</td>";
+				echo "<td class='tdheader'>".$lang['type']."</td>";
 				echo "<td class='tdheader'>Not Null</td>";
-				echo "<td class='tdheader'>Default Value</td>";
-				echo "<td class='tdheader'>Primary Key</td>";
+				echo "<td class='tdheader'>".$lang['def_val']."</td>";
+				echo "<td class='tdheader'>".$lang['prim_key']."</td>";
 				echo "</tr>";
 
 				for($i=0; $i<sizeof($result); $i++)
@@ -3837,10 +4093,10 @@ else //user is authorized - display the main application
 						echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal)."' id='check_".$i."'/>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' title='edit' class='edit'><span>edit</span></a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' title='delete' class='delete'><span>delete</span></a>";
+						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
 						echo "</td>";
 					}
 					echo $tdWithClass;
@@ -3867,13 +4123,13 @@ else //user is authorized - display the main application
 				echo "</table>";
 				if(!isset($_GET['view']))
 				{
-					echo "<a onclick='checkAll()'>Check All</a> / <a onclick='uncheckAll()'>Uncheck All</a> <i>With selected:</i> ";
+					echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 					echo "<select name='massType'>";
 					//echo "<option value='edit'>Edit</option>";
-					echo "<option value='delete'>Delete</option>";
+					echo "<option value='delete'>".$lang['del']."</option>";
 					echo "</select> ";
 					echo "<input type='hidden' name='structureDel' value='true'/>";
-					echo "<input type='submit' value='Go' name='massGo' class='btn'/>";
+					echo "<input type='submit' value='".$lang['go']."' name='massGo' class='btn'/>";
 				}
 				echo "</form>";
 				if(!isset($_GET['view']))
@@ -3881,7 +4137,7 @@ else //user is authorized - display the main application
 					echo "<br/>";
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_create' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
-					echo "Add <input type='text' name='tablefields' style='width:30px;' value='1'/> field(s) at end of table <input type='submit' value='Go' name='addfields' class='btn'/>";
+					echo $lang['add']." <input type='text' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
 					echo "</form>";
 				}
 				
@@ -3895,7 +4151,7 @@ else //user is authorized - display the main application
 					$typ = "view";
 				echo "<br/>";
 				echo "<div class='confirm'>";
-				echo "<b>Query used to create this ".$typ."</b><br/>";
+				echo "<b>".$lang['query_used']." ".$typ."</b><br/>";
 				echo "<span style='font-size:11px;'>".htmlencode($master[0]['sql'])."</span>";
 				echo "</div>";
 				echo "<br/>";
@@ -3907,16 +4163,16 @@ else //user is authorized - display the main application
 					$result = $db->selectArray($query);
 					if(sizeof($result)>0)
 					{
-						echo "<h2>Indexes:</h2>";
+						echo "<h2>".$lang['indexes'].":</h2>";
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						echo "<td colspan='1'>";
 						echo "</td>";
-						echo "<td class='tdheader'>Name</td>";
-						echo "<td class='tdheader'>Unique</td>";
-						echo "<td class='tdheader'>Seq. No.</td>";
-						echo "<td class='tdheader'>Column #</td>";
-						echo "<td class='tdheader'>Field</td>";
+						echo "<td class='tdheader'>".$lang['name']."</td>";
+						echo "<td class='tdheader'>".$lang['unique']."</td>";
+						echo "<td class='tdheader'>".$lang['seq_no']."</td>";
+						echo "<td class='tdheader'>".$lang['col']." #</td>";
+						echo "<td class='tdheader'>".$lang['fld']."</td>";
 						echo "</tr>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
@@ -3935,7 +4191,7 @@ else //user is authorized - display the main application
 							$tdWithClassLeftSpan = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;' rowspan='".$span."'>";
 							echo "<tr>";
 							echo $tdWithClassSpan;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' title='delete' class='delete'><span>delete</span></a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($result[$i]['name'])."' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
 							echo "</td>";
 							echo $tdWithClassLeftSpan;
 							echo $result[$i]['name'];
@@ -3967,20 +4223,20 @@ else //user is authorized - display the main application
 					//print_r($result);
 					if(sizeof($result)>0)
 					{
-						echo "<h2>Triggers:</h2>";
+						echo "<h2>".$lang['triggers'].":</h2>";
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						echo "<td colspan='1'>";
 						echo "</td>";
-						echo "<td class='tdheader'>Name</td>";
-						echo "<td class='tdheader'>SQL</td>";
+						echo "<td class='tdheader'>".$lang['name']."</td>";
+						echo "<td class='tdheader'>".$lang['sql']."</td>";
 						echo "</tr>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' title='delete' class='delete'><span>delete</span></a>";
+							echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($result[$i]['name'])."' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo htmlencode($result[$i]['name']);
@@ -3995,25 +4251,25 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_create' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 					echo "<br/><div class='tdheader'>";
-					echo "Create an index on <input type='text' name='numcolumns' style='width:30px;' value='1'/> columns <input type='submit' value='Go' name='addindex' class='btn'/>";
+					echo $lang['create_index']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
 					
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_create' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 					echo "<br/><div class='tdheader'>";
-					echo "Create a new trigger <input type='submit' value='Go' name='addindex' class='btn'/>";
+					echo $lang['create_trigger']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
 				}
 				break;
 			/////////////////////////////////////////////// create column
 			case "column_create":
-				echo "<h2>Adding new field(s) to table '".htmlencode($_POST['tablename'])."'</h2>";
+				echo "<h2>".$lang['new_fld']." '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
-					echo "You must specify the number of table fields.";
+					echo $lang['specify_fields'];
 				else if($_POST['tablename']=="")
-					echo "You must specify a table name.";
+					echo $lang['specify_tbl'];
 				else
 				{
 					$num = intval($_POST['tablefields']);
@@ -4027,8 +4283,8 @@ else //user is authorized - display the main application
 					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
 					$headings[] = "Not NULL";
 					$headings[] = "Default Value";
-
- 					for($k=0; $k<count($headings); $k++)
+					
+      				for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
 
@@ -4047,16 +4303,16 @@ else //user is authorized - display the main application
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
+						echo "<label><input type='checkbox' name='".$i."_primarykey'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						if($db->getType() != "SQLiteDatabase")
 						{
 							echo $tdWithClass;
-							echo "<input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> Yes";
+							echo "<label><input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> ".$lang['yes']."</label>";
 							echo "</td>";
 						}
 						echo $tdWithClass;
-						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
+						echo "<label><input type='checkbox' name='".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;'/>";
@@ -4065,8 +4321,8 @@ else //user is authorized - display the main application
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
-					echo "<input type='submit' value='Add Field(s)' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
+					echo "<input type='submit' value='".$lang['add_flds']."' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -4084,9 +4340,9 @@ else //user is authorized - display the main application
 				if(sizeof($pks)==0) //nothing was selected so show an error
 				{
 					echo "<div class='confirm'>";
-					echo "Error: You did not select anything.";
+					echo $lang['err'].": ".$lang['no_sel'];
 					echo "</div>";
-					echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Return</a>";
+					echo "<br/><br/><a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['return']."</a>";
 				}
 				else
 				{
@@ -4099,20 +4355,21 @@ else //user is authorized - display the main application
 					}
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 					echo "<div class='confirm'>";
-					echo "Are you sure you want to delete column(s) ".htmlencode($str)." from table '".htmlencode($_GET['table'])."'?<br/><br/>";
-					echo "<input type='submit' value='Confirm' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
+					printf($lang['ques_del_col'], htmlencode($str));
+					echo " '".htmlencode($_GET['table'])."'?<br/><br/>";
+					echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</div>";
 				}
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				echo "<h2>Editing column '".htmlencode($_GET['pk'])."' on table '".htmlencode($_GET['table'])."'</h2>";
-				echo "Due to the limitations of SQLite, only the field name and data type can be modified.<br/><br/>";
+				echo "<h2>".$lang['edit_col']." '".htmlencode($_GET['pk'])."' ".$lang['on_tbl']." '".htmlencode($_GET['table'])."'</h2>";
+				echo $lang['sqlite_limit']."<br/><br/>";
 				if(!isset($_GET['pk']))
-					echo "You must specify a column.";
+					echo $lang['specify_col'];
 				else if(!isset($_GET['table']) || $_GET['table']=="")
-					echo "You must specify a table name.";
+					echo $lang['specify_tbl'];
 				else
 				{
 					$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
@@ -4189,8 +4446,8 @@ else //user is authorized - display the main application
 
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
-					echo "<input type='submit' value='Save Changes' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
+					echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -4201,9 +4458,9 @@ else //user is authorized - display the main application
 			case "index_delete":
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to delete index '".htmlencode($_GET['pk'])."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm' class='btn'/> ";
-				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
+				echo $lang['ques_del_index']." '".htmlencode($_GET['pk'])."'?<br/><br/>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 				echo "</div>";
 				echo "</form>";
 				break;
@@ -4211,23 +4468,23 @@ else //user is authorized - display the main application
 			case "trigger_delete":
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to delete trigger '".htmlencode($_GET['pk'])."'?<br/><br/>";
-				echo "<input type='submit' value='Confirm' class='btn'/> ";
-				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>Cancel</a>";
+				echo $lang['ques_del_trigger']." '".htmlencode($_GET['pk'])."'?<br/><br/>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 				echo "</div>";
 				echo "</form>";
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
-				echo "<h2>Creating new trigger on table '".htmlencode($_POST['tablename'])."'</h2>";
+				echo "<h2>".$lang['create_trigger']." '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['tablename']=="")
-					echo "You must specify a table name.";
+					echo $lang['specify_tbl'];
 				else
 				{
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=trigger_create&amp;confirm=1' method='post'>";
-					echo "Trigger name: <input type='text' name='trigger_name'/><br/><br/>";
-					echo "<fieldset><legend>Database Event</legend>";
-					echo "Before/After: ";
+					echo $lang['trigger_name'].": <input type='text' name='trigger_name'/><br/><br/>";
+					echo "<fieldset><legend>".$lang['db_event']."</legend>";
+					echo $lang['before']."/".$lang['after'].": ";
 					echo "<select name='beforeafter'>";
 					echo "<option value=''></option>";
 					echo "<option value='BEFORE'>BEFORE</option>";
@@ -4235,67 +4492,67 @@ else //user is authorized - display the main application
 					echo "<option value='INSTEAD OF'>INSTEAD OF</option>";
 					echo "</select>";
 					echo "<br/><br/>";
-					echo "Event: ";
+					echo $lang['event'].": ";
 					echo "<select name='event'>";
 					echo "<option value='DELETE'>DELETE</option>";
 					echo "<option value='INSERT'>INSERT</option>";
 					echo "<option value='UPDATE'>UPDATE</option>";
 					echo "</select>";
 					echo "</fieldset><br/><br/>";
-					echo "<fieldset><legend>Trigger Action</legend>";
-					echo "<input type='checkbox' name='foreachrow'/> For Each Row<br/><br/>";
-					echo "WHEN expression (type expression without 'WHEN'):<br/>";
+					echo "<fieldset><legend>".$lang['trigger_act']."</legend>";
+					echo "<label><input type='checkbox' name='foreachrow'/> ".$lang['each_row']."</label><br/><br/>";
+					echo $lang['when_exp'].":<br/>";
 					echo "<textarea name='whenexpression' style='width:500px; height:100px;'></textarea>";
 					echo "<br/><br/>";
-					echo "Trigger Steps (semicolon terminated):<br/>";
+					echo $lang['trigger_step'].":<br/>";
 					echo "<textarea name='triggersteps' style='width:500px; height:100px;'></textarea>";
 					echo "</fieldset><br/><br/>";
-					echo "<input type='submit' value='Create Trigger' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
+					echo "<input type='submit' value='".$lang['create_trigger']."' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</form>";
 				}
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
-				echo "<h2>Creating new index on table '".htmlencode($_POST['tablename'])."'</h2>";
+				echo "<h2>".$lang['create_index']." '".htmlencode($_POST['tablename'])."'</h2>";
 				if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
-					echo "You must specify the number of table fields.";
+					echo $lang['specify_fields'];
 				else if($_POST['tablename']=="")
-					echo "You must specify a table name.";
+					echo $lang['specify_tbl'];
 				else
 				{
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=index_create&amp;confirm=1' method='post'>";
 					$num = intval($_POST['numcolumns']);
 					$query = "PRAGMA table_info(".$db->quote_id($_POST['tablename']).")";
 					$result = $db->selectArray($query);
-					echo "<fieldset><legend>Define index properties</legend>";
-					echo "Index name: <input type='text' name='name'/><br/>";
-					echo "Duplicate values: ";
+					echo "<fieldset><legend>".$lang['define_index']."</legend>";
+					echo $lang['index_name'].": <input type='text' name='name'/><br/>";
+					echo $lang['dup_val'].": ";
 					echo "<select name='duplicate'>";
-					echo "<option value='yes'>Allowed</option>";
-					echo "<option value='no'>Not Allowed</option>";
+					echo "<option value='yes'>".$lang['allow']."</option>";
+					echo "<option value='no'>".$lang['not_allow']."</option>";
 					echo "</select><br/>";
 					echo "</fieldset>";
 					echo "<br/>";
-					echo "<fieldset><legend>Define index columns</legend>";
+					echo "<fieldset><legend>".$lang['define_in_col']."</legend>";
 					for($i=0; $i<$num; $i++)
 					{
 						echo "<select name='".$i."_field'>";
-						echo "<option value=''>--Ignore--</option>";
+						echo "<option value=''>--".$lang['ignore']."--</option>";
 						for($j=0; $j<sizeof($result); $j++)
 							echo "<option value='".htmlencode($result[$j][1])."'>".htmlencode($result[$j][1])."</option>";
 						echo "</select> ";
 						echo "<select name='".$i."_order'>";
 						echo "<option value=''></option>";
-						echo "<option value=' ASC'>Ascending</option>";
-						echo "<option value=' DESC'>Descending</option>";
+						echo "<option value=' ASC'>".$lang['asc']."</option>";
+						echo "<option value=' DESC'>".$lang['desc']."</option>";
 						echo "</select><br/>";
 					}
 					echo "</fieldset>";
 					echo "<br/><br/>";
 					echo "<input type='hidden' name='num' value='".$num."'/>";
-					echo "<input type='submit' value='Create Index' class='btn'/> ";
-					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>Cancel</a>";
+					echo "<input type='submit' value='".$lang['create_index1']."' class='btn'/> ";
+					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</form>";
 				}
 				break;
@@ -4317,31 +4574,31 @@ else //user is authorized - display the main application
 			echo "class='tab_pressed'";
 		else
 			echo "class='tab'";
-		echo ">Structure</a>";
+		echo ">".$lang['struct']."</a>";
 		echo "<a href='".PAGE."?view=sql' ";
 		if($view=="sql")
 			echo "class='tab_pressed'";
 		else
 			echo "class='tab'";
-		echo ">SQL</a>";
+		echo ">".$lang['sql']."</a>";
 		echo "<a href='".PAGE."?view=export' ";
 		if($view=="export")
 			echo "class='tab_pressed'";
 		else
 			echo "class='tab'";
-		echo ">Export</a>";
+		echo ">".$lang['export']."</a>";
 		echo "<a href='".PAGE."?view=import' ";
 		if($view=="import")
 			echo "class='tab_pressed'";
 		else
 			echo "class='tab'";
-		echo ">Import</a>";
+		echo ">".$lang['import']."</a>";
 		echo "<a href='".PAGE."?view=vacuum' ";
 		if($view=="vacuum")
 			echo "class='tab_pressed'";
 		else
 			echo "class='tab'";
-		echo ">Vacuum</a>";
+		echo ">".$lang['vac']."</a>";
 		if($directory!==false && is_writable($directory))
 		{
 			echo "<a href='".PAGE."?view=rename' ";
@@ -4349,14 +4606,14 @@ else //user is authorized - display the main application
 				echo "class='tab_pressed'";
 			else
 				echo "class='tab'";
-			echo ">Rename Database</a>";
+			echo ">".$lang['db_rename']."</a>";
 			
 			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";
 			if($view=="delete")
 				echo "class='tab_pressed delete_db'";
 			else
 				echo "class='tab delete_db'";
-			echo "><span>Delete Database</span></a>";
+			echo "><span>".$lang['db_del']."</span></a>";
 		}
 		echo "<div style='clear:both;'></div>";
 		echo "<div id='main'>";
@@ -4371,17 +4628,17 @@ else //user is authorized - display the main application
 			if(SYSTEMPASSWORD=="admin")
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
-				echo "You are using the default password, which can be dangerous. You can change it easily at the top of phpliteadmin.php<br />You have been warned.";
+				echo $lang['warn_passwd']." phpliteadmin.php<br />".$lang['warn0'];
 				echo "</div>";
 			}
 			
-			echo "<b>Database name</b>: ".htmlencode($db->getName())."<br/>";
-			echo "<b>Path to database</b>: ".htmlencode($db->getPath())."<br/>";
-			echo "<b>Size of database</b>: ".$db->getSize()."<br/>";
-			echo "<b>Database last modified</b>: ".$db->getDate()."<br/>";
-			echo "<b>SQLite version</b>: ".$realVersion."<br/>";
-			echo "<b>SQLite extension</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";
-			echo "<b>PHP version</b>: ".phpversion()."<br/><br/>";
+			echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
+			echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
+			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()."<br/>";
+			echo "<b>".$lang['db_modt']."</b>: ".$db->getDate()."<br/>";
+			echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
+			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";
+			echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
 			
 			if(isset($_GET['sort']))
 				$_SESSION[COOKIENAME.'sort'] = $_GET['sort'];
@@ -4407,7 +4664,7 @@ else //user is authorized - display the main application
 					$j++;
 
 			if($j==0)
-				echo "No tables in database.<br/><br/>";
+				echo $lang['no_tbl']."<br/><br/>";
 			else
 			{
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -4420,7 +4677,7 @@ else //user is authorized - display the main application
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
-				echo "'>Type</a> ".helpLink("Tables vs. Views");
+				echo "'>".$lang['type']."</a> ".helpLink("Tables vs. Views");
 				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="type")
 					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
@@ -4432,13 +4689,13 @@ else //user is authorized - display the main application
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
-				echo "'>Name</a>";
+				echo "'>".$lang['name']."</a>";
 				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="name")
 					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
 				
-				echo "<td class='tdheader' colspan='10'>Action</td>";
-				echo "<td class='tdheader'>Records</td>";
+				echo "<td class='tdheader' colspan='10'>".$lang['act']."</td>";
+				echo "<td class='tdheader'>".$lang['rec']."</td>";
 				echo "</tr>";
 				
 				$totalRecords = 0;
@@ -4461,34 +4718,34 @@ else //user is authorized - display the main application
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>Browse</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".$lang['browse']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>Structure</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>".$lang['struct']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>SQL</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>".$lang['sql']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>Search</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>".$lang['srch']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_create'>Insert</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_create'>".$lang['insert']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>Export</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>".$lang['export']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_import'>Import</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_import'>".$lang['import']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>Rename</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>".$lang['rename']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>Empty</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>".$lang['empty']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>Drop</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>".$lang['drop']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo $records;
@@ -4505,34 +4762,34 @@ else //user is authorized - display the main application
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".htmlencode($result[$i]['name'])."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>Browse</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".$lang['browse']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view&amp;view=1'>Structure</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view&amp;view=1'>".$lang['struct']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql&amp;view=1'>SQL</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql&amp;view=1'>".$lang['sql']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search&amp;view=1'>Search</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export&amp;view=1'>Export</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search&amp;view=1'>".$lang['srch']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo "";
 							echo "</td>";
 							echo $tdWithClass;
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export&amp;view=1'>".$lang['export']."</a>";
+							echo "</td>";
+							echo $tdWithClass;
+							echo "";
+							echo "</td>";
+							echo $tdWithClass;
 							echo "";
 							echo "</td>";
 							echo $tdWithClass;
 							echo "";
 							echo "</td>";
 							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' class='drop'>Drop</a>";
+							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' class='drop'>".$lang['drop']."</a>";
 							echo "</td>";
 							echo $tdWithClass;
 							echo $records;
@@ -4549,20 +4806,20 @@ else //user is authorized - display the main application
 				echo "<br/>";
 			}
 			echo "<fieldset>";
-			echo "<legend><b>Create new table on database '".htmlencode($db->getName())."'</b></legend>";
+			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?action=table_create' method='post'>";
-			echo "Name: <input type='text' name='tablename' style='width:200px;'/> ";
-			echo "Number of Fields: <input type='text' name='tablefields' style='width:90px;'/> ";
-			echo "<input type='submit' name='createtable' value='Go' class='btn'/>";
+			echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
+			echo $lang['fld_num'].": <input type='text' name='tablefields' style='width:90px;'/> ";
+			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
 			echo "<br/>";
 			echo "<fieldset>";
-			echo "<legend><b>Create new view on database '".htmlencode($db->getName())."'</b></legend>";
+			echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&amp;confirm=1' method='post'>";
-			echo "Name: <input type='text' name='viewname' style='width:200px;'/> ";
-			echo "Select Statement ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";
-			echo "<input type='submit' name='createtable' value='Go' class='btn'/>";
+			echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
+			echo $lang['sel_state']." ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";
+			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
 		}
@@ -4601,19 +4858,19 @@ else //user is authorized - display the main application
 							if($isSelect)
 							{
 								$affected = sizeof($result);
-								echo "Showing ".$affected." row(s). ";
+								printf($lang['show_rows'], $affected);
 							}
 							else
 							{
 								$affected = $db->getAffectedRows();
-								echo $affected." row(s) affected. ";
+								echo $affected." ".$lang['rows_aff']." ";
 							}
-							echo "(Query took ".$time." sec)</b><br/>";
+							printf($lang['query_time'], $time);
+							echo "</b><br/>";
 						}
 						else
 						{
-							echo "There is a problem with the syntax of your query ";
-							echo "(Query was not executed)</b><br/>";
+							echo $lang['syntax_err']."</b><br/>";
 						}
 						echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 						echo "</div><br/>";
@@ -4657,11 +4914,11 @@ else //user is authorized - display the main application
 			}
 
 			echo "<fieldset>";
-			echo "<legend><b>Run SQL query/queries on database '".htmlencode($db->getName())."'</b></legend>";
+			echo "<legend><b>".$lang['run_sql']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?view=sql' method='post'>";
 			echo "<textarea style='width:100%; height:300px;' name='queryval'>".htmlencode($queryStr)."</textarea>";
-			echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
-			echo "<input type='submit' name='query' value='Go' class='btn'/>";
+			echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
+			echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
 		}
@@ -4672,19 +4929,19 @@ else //user is authorized - display the main application
 				$query = "VACUUM";
 				$db->query($query);
 				echo "<div class='confirm'>";
-				echo "The database, '".htmlencode($db->getName())."', has been VACUUMed.";
+				printf($lang['db_vac'], htmlencode($db->getName()));
 				echo "</div><br/>";
 			}
 			echo "<form method='post' action='".PAGE."?view=vacuum'>";
-			echo "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database, '".htmlencode($db->getName())."'.";
+			echo $lang['vac_desc'].", '".htmlencode($db->getName())."'.";
 			echo "<br/><br/>";
-			echo "<input type='submit' value='VACUUM' name='vacuum' class='btn'/>";
+			echo "<input type='submit' value='".$lang['vac']."' name='vacuum' class='btn'/>";
 			echo "</form>";
 		}
 		else if($view=="export")
 		{
 			echo "<form method='post' action='".PAGE."?view=export'>";
-			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Export</b></legend>";
+			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
 			echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
 			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 			$result = $db->selectArray($query);
@@ -4695,41 +4952,41 @@ else //user is authorized - display the main application
 			}
 			echo "</select>";
 			echo "<br/><br/>";
-			echo "<input type='radio' name='export_type' checked='checked' value='sql' onclick='toggleExports(\"sql\");'/> SQL";
-			echo "<br/><input type='radio' name='export_type' value='csv' onclick='toggleExports(\"csv\");'/> CSV";
+			echo "<label><input type='radio' name='export_type' checked='checked' value='sql' onclick='toggleExports(\"sql\");'/> ".$lang['sql']."</label>";
+			echo "<br/><label><input type='radio' name='export_type' value='csv' onclick='toggleExports(\"csv\");'/> ".$lang['csv']."</label>";
 			echo "</fieldset>";
 			
-			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>Options</b></legend>";
-			echo "<input type='checkbox' checked='checked' name='structure'/> Export with structure ".helpLink("Export Structure to SQL File")."<br/>";
-			echo "<input type='checkbox' checked='checked' name='data'/> Export with data ".helpLink("Export Data to SQL File")."<br/>";
-			echo "<input type='checkbox' name='drop'/> Add DROP TABLE ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
-			echo "<input type='checkbox' checked='checked' name='transaction'/> Add TRANSACTION ".helpLink("Add Transaction to Exported SQL File")."<br/>";
-			echo "<input type='checkbox' checked='checked' name='comments'/> Comments ".helpLink("Add Comments to Exported SQL File")."<br/>";
+			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
+			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink("Export Data to SQL File")."<br/>";
+			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_tansact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";
 			echo "</fieldset>";
 			
-			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>Options</b></legend>";
-			echo "<div style='float:left;'>Fields terminated by</div>";
+			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
+			echo "<div style='float:left;'>".$lang['fld_terminated']."</div>";
 			echo "<input type='text' value=';' name='export_csv_fieldsterminated' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Fields enclosed by</div>";
+			echo "<div style='float:left;'>".$lang['fld_enclosed']."</div>";
 			echo "<input type='text' value='\"' name='export_csv_fieldsenclosed' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Fields escaped by</div>";
+			echo "<div style='float:left;'>".$lang['fld_escaped']."</div>";
 			echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Replace NULL by</div>";
+			echo "<div style='float:left;'>".$lang['rep_null']."</div>";
 			echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<input type='checkbox' name='export_csv_crlf'/> Remove CRLF characters within fields<br/>";
-			echo "<input type='checkbox' checked='checked' name='export_csv_fieldnames'/> Put field names in first row";
+			echo "<label><input type='checkbox' name='export_csv_crlf'/> ".$lang['rem_crlf']."</label><br/>";
+			echo "<label><input type='checkbox' checked='checked' name='export_csv_fieldnames'/> ".$lang['put_fld']."</label>";
 			echo "</fieldset>";
 			
 			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
-			echo "<fieldset style='float:left;'><legend><b>Save As</b></legend>";
+			echo "<fieldset style='float:left;'><legend><b>".$lang['save_as']."</b></legend>";
 			$file = pathinfo($db->getPath());
 			$name = $file['filename'];
-			echo "<input type='text' name='filename' value='".htmlencode($name).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='Export' class='btn'/>";
+			echo "<input type='text' name='filename' value='".htmlencode($name).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 			echo "</fieldset>";
 			echo "</form>";
 		}
@@ -4739,24 +4996,24 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				if($importSuccess===true)
-					echo "Import was successful.";
+					echo $lang['import_suc'];
 				else
 					echo $importSuccess;
 				echo "</div><br/>";
 			}
 			
 			echo "<form method='post' action='".PAGE."?view=import' enctype='multipart/form-data'>";
-			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>Import</b></legend>";
-			echo "<input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> SQL";
-			echo "<br/><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> CSV";
+			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['import']."</b></legend>";
+			echo "<label><input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> ".$lang['sql']."</label>";
+			echo "<br/><label><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> ".$lang['csv']."</label>";
 			echo "</fieldset>";
 			
-			echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>Options</b></legend>";
-			echo "No options";
+			echo "<fieldset style='float:left; max-width:350px;' id='importoptions_sql'><legend><b>".$lang['options']."</b></legend>";
+			echo $lang['no_opt'];
 			echo "</fieldset>";
 			
-			echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>Options</b></legend>";
-			echo "<div style='float:left;'>Table that CSV pertains to</div>";
+			echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>".$lang['options']."</b></legend>";
+			echo "<div style='float:left;'>".$lang['csv_tbl']."</div>";
 			echo "<select name='single_table' style='float:right;'>";
 			$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 			$result = $db->selectArray($query);
@@ -4767,26 +5024,26 @@ else //user is authorized - display the main application
 			}
 			echo "</select>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Fields terminated by</div>";
+			echo "<div style='float:left;'>".$lang['fld_terminated']."</div>";
 			echo "<input type='text' value=';' name='import_csv_fieldsterminated' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Fields enclosed by</div>";
+			echo "<div style='float:left;'>".$lang['fld_enclosed']."</div>";
 			echo "<input type='text' value='\"' name='import_csv_fieldsenclosed' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>Fields escaped by</div>";
+			echo "<div style='float:left;'>".$lang['fld_escaped']."</div>";
 			echo "<input type='text' value='\' name='import_csv_fieldsescaped' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<div style='float:left;'>NULL represented by</div>";
+			echo "<div style='float:left;'>".$lang['null_represent']."</div>";
 			echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "<input type='checkbox' checked='checked' name='import_csv_fieldnames'/> Field names in first row";
+			echo "</label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['fld_names']."</label>";
 			echo "</fieldset>";
 			
 			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
 			
-			echo "<fieldset><legend><b>File to import</b></legend>";
-			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='import' class='btn'/>";
+			echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
+			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 			echo "</fieldset>";
 		}
 		else if($view=="rename")
@@ -4795,30 +5052,33 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				if($oldpath==$newpath)
-					echo "Error: You didn't change the value dumbass ;-)";
-				else
-					echo "Error: A database of the name '".htmlencode($newpath)."' already exists.";
+					echo $lang['err'].": You didn't change the value dumbass ;-)";
+				else{
+					echo $lang['err'].": "; 
+					printf($lang['db_exists'], htmlencode($newpath));
+				}
 				echo "</div><br/>";
 			}
 			if(isset($justrenamed))
 			{
 				echo "<div class='confirm'>";
-				echo "Database '".htmlencode($oldpath)."' has been renamed to '".htmlencode($newpath)."'.";
+				printf($lang['db_renamed'], htmlencode($oldpath));
+				echo " '".htmlencode($newpath)."'.";
 				echo "</div><br/>";
 			}
 			echo "<form action='".PAGE."?view=rename&amp;database_rename=1' method='post'>";
 			echo "<input type='hidden' name='oldname' value='".htmlencode($db->getPath())."'/>";
-			echo "Rename database '".htmlencode($db->getPath())."' to <input type='text' name='newname' style='width:200px;' value='".htmlencode($db->getPath())."'/> <input type='submit' value='Rename' name='rename' class='btn'/>";
+			echo $lang['db_rename']." '".htmlencode($db->getPath())."' ".$lang['to']." <input type='text' name='newname' style='width:200px;' value='".htmlencode($db->getPath())."'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 			echo "</form>";	
 		}
 		else if($view=="delete")
 		{
 			echo "<form action='".PAGE."?database_delete=1' method='post'>";
 			echo "<div class='confirm'>";
-			echo "Are you sure you want to delete the database '".htmlencode($db->getPath())."'?<br/><br/>";
+			echo $lang['ques_del_db']." '".htmlencode($db->getPath())."'?<br/><br/>";
 			echo "<input name='database_delete' value='".htmlencode($db->getPath())."' type='hidden'/>";
-			echo "<input type='submit' value='Confirm' class='btn'/> ";
-			echo "<a href='".PAGE."'>Cancel</a>";
+			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 			echo "</div>";
 			echo "</form>";	
 		}
@@ -4829,8 +5089,9 @@ else //user is authorized - display the main application
 	echo "<br/>";
 	$endTimeTot = microtime(true); //get the current time at this point in the execution
 	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
-	echo "<span style='font-size:11px;'>Powered by <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | Page generated in ".$timeTot." seconds.</span>";
-	echo "</div>";
+	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
+	printf($lang['page_gen'], $timeTot);
+	echo "</span></div>";
 	echo "</div>";
 	$db->close(); //close the database
 }
