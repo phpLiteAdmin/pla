@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-09
+//  Last updated: 2012-11-10
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -2996,7 +2996,7 @@ else //user is authorized - display the main application
 					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
 					$headings[] = "Not NULL";
 					$headings[] = "Default Value";
-      			for($k=0; $k<count($headings); $k++)
+					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
 
@@ -3897,8 +3897,8 @@ else //user is authorized - display the main application
 							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 						else
 							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
-            		echo "</td>";
-            		echo "</tr>";
+					echo "</td>";
+					echo "</tr>";
 					}
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
@@ -3998,7 +3998,7 @@ else //user is authorized - display the main application
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
@@ -4376,7 +4376,7 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
 					$headings = array("Field", "Type");
-      			for($k=0; $k<count($headings); $k++)
+					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>".$headings[$k]."</td>";
 					echo "</tr>";
 				
