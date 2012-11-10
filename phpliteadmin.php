@@ -3917,7 +3917,8 @@ else //user is authorized - display the main application
 					$pks = $_POST['check'];
 				else if(isset($_GET['pk']))
 					$pks = array($_GET['pk']);
-				$str = $pks[0];
+				else $pks[0] = "";
+        $str = $pks[0];
 				$pkVal = $pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
