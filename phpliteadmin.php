@@ -9,8 +9,8 @@
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
-//     Christopher Kramer (crazy4chrissi@gmail.com)
-//	   Ayman Teryaki (http://havalite.com)
+//     Christopher Kramer (crazy4chrissi@gmail.com, http://en.christosoft.de)
+//     Ayman Teryaki (http://havalite.com)
 //
 //
 //  Copyright (C) 2012  phpLiteAdmin
@@ -37,14 +37,13 @@
 //////////////////////////////
 
 //password to gain access
-$password = "";
+$password = "admin";
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
 $language = "en";
 
 $lang = array(
 	"direction" => "LTR",
-	"pla" => "phpLiteAdmin",
 	"ver" => "version",
 	"for" => "for",
 	"to" => "to",
@@ -64,7 +63,6 @@ $lang = array(
 	"options" => "Options",
 	"no_opt" => "No options",
 	"help" => "Help",
-	"pdo" => "PDO",
 	"installed" => "installed",
 	"not_installed" => "not installed",
 	"done" => "done",
@@ -76,21 +74,12 @@ $lang = array(
 	"drop" => "Drop",
 	"tbl" => "Table",
 	"chart" => "Chart",
-	"alter_tbl" => "ALTER TABLE",
-	"alter_tbl_query" => "ALTER TABLE QUERY",
-	"tablename" => "tablename",
-	"alterdefs" => "alterdefs",
-	"table" => "table",
 	"err" => "ERROR",
 	"act" => "Action",
 	"rec" => "Records",
 	"col" => "Column",
 	"cols" => "Columns",
-	"col_escape" => "column_escape",
 	"rows" => "row(s)",
-	"def" => "def",
-	"defs" => "defs",
-	"drop" => "DROP",
 	"edit" => "Edit",
 	"del" => "Delete",
 	"add" => "Add",
@@ -98,24 +87,16 @@ $lang = array(
 	"after" => "After",
 	"passwd" => "Password",
 	"passwd_incorrect" => "Incorrect password.",
-	"parse_def" => "parse_def",
-	"preg_col_def" => "preg_column_definition",
-	"preg_col_bef" => "preg_columns_before",
-	"preg_col_2_ch" => "preg_column_to_change",
 	"chk_ext" => "Checking supported SQLite PHP extensions",
 	
-	"sqlite" => "SQLite",
-	"sqlite_db" => "SQLite Database",
 	"sqlite_ext" => "SQLite extension",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",
 	"sqlite_v" => "SQLite version",
 	"sqlite_v3_error" => "It appears that your database is of SQLite version 3 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 2.",
 	"sqlite_v2_error" => "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 3.",
 	"report_issue" => "The problem cannot be diagnosed properly. Please file an issue report at",
-	"sqlite_f" => "this file contains an sqlite 2",
 	"sqlite_limit" => "Due to the limitations of SQLite, only the field name and data type can be modified.",
 	
-	"unknown_alter" => "unknown alter operation",
 	"php_v" => "PHP version",
 	
 	"db_dump" => "database dump",
@@ -136,7 +117,6 @@ $lang = array(
 	"db_exists" => "A database of the name '%s' already exists.",
 	
 	"exp_on" => "Exported on",
-	"transact" => "BEGIN TRANSACTION",
 	"struct" => "Structure",
 	"struct_for" => "structure for",
 	"on_tbl" => "on table",
@@ -155,7 +135,6 @@ $lang = array(
 	"create_tbl" => "Create new table",
 	"create_tbl_db" => "Create new table on database",
 	"create_trigger" => "Creating new trigger on table",
-	"create_trigger1" => "Create Trigger",
 	"create_index" => "Creating new index on table",
 	"create_index1" => "Create Index",
 	"create_view" => "Create new view on database",
@@ -264,8 +243,8 @@ $lang = array(
 	"prim_key" => "Primary Key",
 	"tbl_end" => "field(s) at end of table",
 	"query_used" => "Query used to create this",
-	"create_index" => "Create an index on",
-	"create_trigger" => "Create a new trigger",
+	"create_index2" => "Create an index on",
+	"create_trigger2" => "Create a new trigger",
 	"new_fld" => "Adding new field(s) to table",
 	"add_flds" => "Add Fields",
 	"edit_col" => "Editing colum",
@@ -287,7 +266,7 @@ $lang = array(
 );
 
 if($language != 'en' && file_exits($language.'.php')){
-   include($language.'.php');
+	include($language.'.php');
 }
 
 //directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
@@ -685,9 +664,9 @@ class Database
 		echo "<div class='confirm' style='margin:20px;'>";
 		printf($lang['db_setup'], $this->getPath());
 		echo ".<br/><br/><i>".$lang['chk_ext']."...<br/><br/>";
-		echo "<b>".$lang['pdo']."</b>: ".$strPDO."<br/>";
-		echo "<b>".$lang['sqlite']."3</b>: ".$strSQLite3."<br/>";
-		echo "<b>".$lang['sqlite_db']."</b>: ".$strSQLiteDatabase."<br/><br/>...".$lang['done'].".</i><br/><br/>";
+		echo "<b>PDO</b>: ".$strPDO."<br/>";
+		echo "<b>SQLite3</b>: ".$strSQLite3."<br/>";
+		echo "<b>SQLiteDatabase</b>: ".$strSQLiteDatabase."<br/><br/>...".$lang['done'].".</i><br/><br/>";
 		if(!$classPDO && !$classSQLite3 && !$classSQLiteDatabase)
 			printf($lang['sqlite_ext_support'], PROJECT);
 		else
@@ -729,11 +708,10 @@ class Database
 	//get the version of the database
 	public function getVersion()
 	{
-		global $lang;
 		if(file_exists($this->data['path'])) //make sure file exists before getting its contents
 		{
 			$content = strtolower(file_get_contents($this->data['path'], NULL, NULL, 0, 40)); //get the first 40 characters of the database file
-			$p = strpos($content, "** ".$lang['sqlite_f']); //this text is at the beginning of every SQLite2 database
+			$p = strpos($content, "** this file contains an sqlite 2"); //this text is at the beginning of every SQLite2 database
 			if($p!==false) //the text is found - this is version 2
 				return 2;
 			else
@@ -796,24 +774,24 @@ class Database
 	//generic query wrapper
 	public function query($query, $ignoreAlterCase=false)
 	{
-		global $debug, $lang;
+		global $debug;
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
 			preg_match("/^\s*ALTER\s+TABLE\s+\"((?:[^\"]|\"\")+)\"\s+(.*)$/i",$query,$matches);
 			if(!isset($matches[1]) || !isset($matches[2]))
 			{
-				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>".$lang['sql']."?</span><br />";
+				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
 				return false;
 			}
 			$tablename = str_replace('""','"',$matches[1]);
 			$alterdefs = $matches[2];
-			if($debug) echo $lang['alter_tbl_query']."=(".htmlencode($query)."), ".$lang['tablename']."=($tablename), ".$lang['alterdefs']."=($alterdefs)<hr>";
+			if($debug) echo "ALTER TABLE QUERY=(".htmlencode($query)."), tablename=($tablename), alterdefs=($alterdefs)<hr>";
 			$result = $this->alterTable($tablename, $alterdefs);
 		}
 		else //this query is normal - proceed as normal
 		{
 			$result = $this->db->query($query);
-			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>".$lang['sql']."?</span><br />";
+			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
 		}
 		if(!$result)
 			return false;
@@ -955,8 +933,8 @@ class Database
 	// this has been completely debugged / rewritten by Christopher Kramer
 	public function alterTable($table, $alterdefs)
 	{
-		global $debug, $lang;
-		if($debug) echo $lang['alter_tbl'].": ".$lang['table']."=($table), ".$lang['alterdefs']."=($alterdefs)<hr>";
+		global $debug;
+		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
 			$recreateQueries = array();
@@ -1010,21 +988,21 @@ class Database
 					$createtesttableSQL = $createtemptableSQL;
 					if(count($defs)<1)
 					{
-						if($debug) echo $lang['err'].": ".$lang['defs']."&lt;1<hr />";
+						if($debug) echo "ERROR: defs&lt;1<hr />";
 						return false;
 					}
 					foreach($defs as $def)
 					{
-						if($debug) echo $lang['def']."=$def<hr />";
+						if($debug) echo "def=$def<hr />";
 						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
-							if($debug) echo $lang['err'].": !".$lang['parse_def']."<hr />";
+							if($debug) echo "ERROR: !parse_def<hr />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
-							if($debug) echo $lang['err'].": !isset(matches[1])<hr />";
+							if($debug) echo "ERROR: !isset(matches[1])<hr />";
 							return false;
 						}
 						$action = strtolower($matches[1]);
@@ -1035,7 +1013,7 @@ class Database
 							
 						$column_escaped = str_replace("'","''",$column);
 
-						if($debug) echo $lang['act']."=($action), ".$lang['col']."=($column), ".$lang['col_escaped']."=($column_escaped)<hr />";
+						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
 
 						/* we build a regex that devides the CREATE TABLE statement parts:
 						  Part example								Group	Explanation
@@ -1047,7 +1025,7 @@ class Database
 						$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
 						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[) ").")+";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
-						if($debug) echo $lang['preg_col_def']."=(".$preg_column_definiton.")<hr />";
+						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
 								"(".			// group $2. Keep this one unchanged!
@@ -1058,7 +1036,7 @@ class Database
 								")".			// end of group $2
 								",\s*"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
-						if($debug) echo $lang['preg_col_bef']."=(".$preg_columns_before.")<hr />";
+						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<hr />";
 						$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
 												// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
 												// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
@@ -1105,7 +1083,7 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									echo $lang['preg_col_2_ch']."=(".$preg_column_to_change.")<hr />";
+									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
 									echo $createtesttableSQL."<hr />";
 									echo $newSQL."<hr />";
 									echo $preg_pattern_change."<hr />";
@@ -1143,7 +1121,7 @@ class Database
 								$table_new = $column;
 								break;
 							default:
-								if($default) echo $lang['err'].': '.$lang['unknown_alter'].'!<hr />';
+								if($default) echo 'ERROR: unknown alter operation!<hr />';
 								return false;
 						}
 					}
@@ -1392,8 +1370,8 @@ class Database
 		if($comments)
 		{
 			echo "----\r\n";
-			echo "-- ".$lang['pla']." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
-			echo "-- ".$lang['pla']." ".$lang['ver'].": ".VERSION."\r\n";
+			echo "-- ".PROJECT." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
+			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION."\r\n";
 			echo "-- ".$lang['exp_on']." ".date('M jS, Y, h:i:sA')."\r\n";
 			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
 			echo "----\r\n";
@@ -1402,7 +1380,7 @@ class Database
 		$result = $this->selectArray($query);
 
 		if($transaction)
-			echo $lang['transact'].";\r\n";
+			echo "BEGIN TRANSACTION;\r\n";
 
 		//iterate through each table
 		for($i=0; $i<sizeof($result); $i++)
@@ -1423,7 +1401,7 @@ class Database
 						echo "-- ".$lang['drop']." ".$result[$i]['type']." ".$lang['for']." ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
-					echo $lang['drop']." ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
+					echo "DROP ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
 				if($structure)
 				{
@@ -3161,7 +3139,7 @@ else //user is authorized - display the main application
 				else
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_sql&amp;view=1' method='post'>";
 				echo "<div style='float:left; width:70%;'>";
-				echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval'>".htmlencode($queryStr)."</textarea>";
+				echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 				echo "</div>";
 				echo "<div style='float:left; width:28%; padding-left:10px;'>";
 				echo $lang['fields']."<br/>";
@@ -3179,6 +3157,7 @@ else //user is authorized - display the main application
 				echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 				echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
+				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
@@ -3295,7 +3274,7 @@ else //user is authorized - display the main application
 				echo "<br/><br/>";
 				
 				echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='Import' name='".$lang['import']."' class='btn'/>";
+				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// rename table
@@ -3789,7 +3768,7 @@ else //user is authorized - display the main application
 						echo "<option value='line'";
 						if($_SESSION[COOKIENAME.'charttype']=="line")
 							echo " selected='selected'";
-						echo ">".$lang['chart_pie']."</option>";
+						echo ">".$lang['chart_line']."</option>";
 						echo "</select>";
 						echo "<br/><br/>";
 						echo $lang['lbl']."Labels: <select name='chartlabels'>";
@@ -4019,7 +3998,7 @@ else //user is authorized - display the main application
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='".$field."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
@@ -4251,14 +4230,14 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_create' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 					echo "<br/><div class='tdheader'>";
-					echo $lang['create_index']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
+					echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
 					
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_create' method='post'>";
 					echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 					echo "<br/><div class='tdheader'>";
-					echo $lang['create_trigger']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
+					echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
 				}
@@ -4284,7 +4263,7 @@ else //user is authorized - display the main application
 					$headings[] = "Not NULL";
 					$headings[] = "Default Value";
 					
-      				for($k=0; $k<count($headings); $k++)
+					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
 
@@ -4502,12 +4481,12 @@ else //user is authorized - display the main application
 					echo "<fieldset><legend>".$lang['trigger_act']."</legend>";
 					echo "<label><input type='checkbox' name='foreachrow'/> ".$lang['each_row']."</label><br/><br/>";
 					echo $lang['when_exp'].":<br/>";
-					echo "<textarea name='whenexpression' style='width:500px; height:100px;'></textarea>";
+					echo "<textarea name='whenexpression' style='width:500px; height:100px;' rows='8' cols='50'></textarea>";
 					echo "<br/><br/>";
 					echo $lang['trigger_step'].":<br/>";
-					echo "<textarea name='triggersteps' style='width:500px; height:100px;'></textarea>";
+					echo "<textarea name='triggersteps' style='width:500px; height:100px;' rows='8' cols='50'></textarea>";
 					echo "</fieldset><br/><br/>";
-					echo "<input type='submit' value='".$lang['create_trigger']."' class='btn'/> ";
+					echo "<input type='submit' value='".$lang['create_trigger2']."' class='btn'/> ";
 					echo "<a href='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</form>";
 				}
@@ -4635,7 +4614,7 @@ else //user is authorized - display the main application
 			echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
 			echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
 			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()."<br/>";
-			echo "<b>".$lang['db_modt']."</b>: ".$db->getDate()."<br/>";
+			echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 			echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
 			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";
 			echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
@@ -4916,7 +4895,7 @@ else //user is authorized - display the main application
 			echo "<fieldset>";
 			echo "<legend><b>".$lang['run_sql']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?view=sql' method='post'>";
-			echo "<textarea style='width:100%; height:300px;' name='queryval'>".htmlencode($queryStr)."</textarea>";
+			echo "<textarea style='width:100%; height:300px;' name='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 			echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 			echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
@@ -4960,7 +4939,7 @@ else //user is authorized - display the main application
 			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";
 			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink("Export Data to SQL File")."<br/>";
 			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
-			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_tansact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
 			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";
 			echo "</fieldset>";
 			
@@ -5036,7 +5015,7 @@ else //user is authorized - display the main application
 			echo "<div style='float:left;'>".$lang['null_represent']."</div>";
 			echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
 			echo "<div style='clear:both;'>";
-			echo "</label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['fld_names']."</label>";
+			echo "<label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['fld_names']."</label>";
 			echo "</fieldset>";
 			
 			echo "<div style='clear:both;'></div>";
