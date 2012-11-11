@@ -125,6 +125,7 @@ $lang = array(
 	"on_tbl" => "on table",
 	"data_dump" => "Data dump for",
 	"total_rows" => "a total of %s rows",
+  "total" => "Total",
 	"not_dir" => "The directory you specified to scan for databases does not exist or is not a directory.",
 	"bad_php_directive" => "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.",
 	"page_gen" => "Page generated in %s seconds.",
@@ -186,6 +187,7 @@ $lang = array(
 	"show" => "Show",
 	"show_rows" => "Showing %s row(s). ",
 	"showing" => "Showing",
+  "showing_rows" => "Showing rows",
 	"query_time" => "(Query took %s sec)",
 	"syntax_err" => "There is a problem with the syntax of your query (Query was not executed)",
 	"run_sql" => "Run SQL query/queries on database",
@@ -2751,11 +2753,9 @@ else //user is authorized - display the main application
 
 	echo "<div id='container'>";
 	echo "<div id='leftNav'>";
-	echo "<h1>";
-	echo "<a href='".PAGE."'>";
+	echo "<a href='".PAGE."'><h1>";
 	echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
-	echo "</a>";
-	echo "</h1>";
+	echo "</h1></a>";
 	echo "<div id='headerlinks'>";
 	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</a> | ";
 	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
@@ -3579,7 +3579,9 @@ else //user is authorized - display the main application
 				if(sizeof($arr)>0)
 				{
 					echo "<br/><div class='confirm'>";
-					echo "<b>Showing rows ".$startRow." - ".($startRow + sizeof($arr)-1)." (".$total." ".$lang['query_time']."</b><br/>";
+          echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$total." ";
+          printf($lang['query_time'], $time);
+          echo "</b><br/>";
 					echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
 					echo "</div><br/>";
 					
