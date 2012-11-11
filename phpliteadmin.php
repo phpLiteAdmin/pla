@@ -125,7 +125,7 @@ $lang = array(
 	"on_tbl" => "on table",
 	"data_dump" => "Data dump for",
 	"total_rows" => "a total of %s rows",
-  "total" => "Total",
+	"total" => "Total",
 	"not_dir" => "The directory you specified to scan for databases does not exist or is not a directory.",
 	"bad_php_directive" => "It appears that the PHP directive, 'register_globals' is enabled. This is bad. You need to disable it before continuing.",
 	"page_gen" => "Page generated in %s seconds.",
@@ -2037,7 +2037,7 @@ else //an external stylesheet exists - import it
 }
 if(isset($_GET['help'])) //this page is used as the popup help section
 {
-	//help section array
+	//help section array                   #TODO: $lang
 	$help = array
 	(
 		'SQLite Library Extensions' => 
@@ -2065,7 +2065,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	<div id='help_container'>
 	<?php
 	echo "<div class='help_list'>";
-	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";
+	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";        # TODO: $lang
 	foreach((array)$help as $key => $val)
 	{
 		echo "<a href='#".$key."'>".$key."</a><br/>";
@@ -2079,7 +2079,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 		echo "<div class='help_inner'>";
 		echo $val;
 		echo "</div>";
-		echo "<a class='help_top' href='#top'>Back to Top</a>";
+		echo "<a class='help_top' href='#top'>Back to Top</a>";         #todo: $lang
 		echo "</div>";
 	}
 	?>
@@ -2823,7 +2823,7 @@ else //user is authorized - display the main application
 	
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink("Creating a New Database")."</legend>";
+		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink("Creating a New Database")."</legend>";               #todo: $lang
 		echo "<form name='create_database' method='post' action='".PAGE."'>";
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
 		echo "</form>";
@@ -2994,10 +2994,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key");
-					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
-					$headings[] = "Not NULL";
-					$headings[] = "Default Value";
+					$headings = array("Field", "Type", "Primary Key");                                                     #todo: $lang
+					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";                                  #todo: $lang
+					$headings[] = "Not NULL";                                                                             #todo: $lang
+					$headings[] = "Default Value";                                                                         #todo: $lang
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
@@ -3036,7 +3036,7 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 					echo "<input type='submit' value='".$lang['create']."' class='btn'/> ";
-					echo "<a href='".PAGE."'>Cancel</a>";
+					echo "<a href='".PAGE."'>Cancel</a>";                   #todo: $lang
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -3153,10 +3153,10 @@ else //user is authorized - display the main application
 					echo "<option value='".htmlencode($result[$i][1])."'>".htmlencode($result[$i][1])."</option>";
 				}
 				echo "</select>";
-				echo "<input type='button' value='<<' onclick='moveFields();' class='btn'/>";
+				echo "<input type='button' value='&lt;&lt;' onclick='moveFields();' class='btn'/>";
 				echo "</div>";
 				echo "<div style='clear:both;'></div>";
-				echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
+				echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";     #todo: $lang
 				echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
 				echo "</fieldset>";
@@ -3186,7 +3186,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=view_drop&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='viewname' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to drop the view '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo "Are you sure you want to drop the view '".htmlencode($_GET['table'])."'?<br/><br/>";       #todo: $lang
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -3201,11 +3201,11 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
-				echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";
-				echo "<label><input type='checkbox' checked='checked' name='data'/> ".$lang['export_data']."</label> ".helpLink("Export Data to SQL File")."<br/>";
-				echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
-				echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
-				echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";          #todo: $lang
+				echo "<label><input type='checkbox' checked='checked' name='data'/> ".$lang['export_data']."</label> ".helpLink("Export Data to SQL File")."<br/>";                     #todo: $lang
+				echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";                               #todo: $lang
+				echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";          #todo: $lang
+				echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";                   #todo: $lang
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
@@ -3276,7 +3276,7 @@ else //user is authorized - display the main application
 				echo "<br/><br/>";
 				
 				echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";     #todo: $lang
 				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// rename table
@@ -3409,10 +3409,10 @@ else //user is authorized - display the main application
 					  echo "<option value='='>=</option>";
 					  if($type=="INTEGER" || $type=="REAL")
 					  {
-						  echo "<option value='>'>></option>";
-						  echo "<option value='>='>>=</option>";
-						  echo "<option value='<'><</option>";
-						  echo "<option value='<='><=</option>";
+						  echo "<option value='&gt;'>&gt;</option>";
+						  echo "<option value='&gt;='>&gt;=</option>";
+						  echo "<option value='&lt;'>&lt;</option>";
+						  echo "<option value='&lt;='>&lt;=</option>";
 					  }
 					  else if($type=="TEXT" || $type=="BLOB")
 					  {
@@ -3579,9 +3579,9 @@ else //user is authorized - display the main application
 				if(sizeof($arr)>0)
 				{
 					echo "<br/><div class='confirm'>";
-          echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$total." ";
-          printf($lang['query_time'], $time);
-          echo "</b><br/>";
+					echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$total." ";
+					printf($lang['query_time'], $time);
+					echo "</b><br/>";
 					echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
 					echo "</div><br/>";
 					
@@ -3850,7 +3850,7 @@ else //user is authorized - display the main application
 					echo "<td class='tdheader'>".$lang['fld']."</td>";
 					echo "<td class='tdheader'>".$lang['type']."</td>";
 					echo "<td class='tdheader'>".$lang['func']."</td>";
-					echo "<td class='tdheader'>Null</td>";
+					echo "<td class='tdheader'>Null</td>";                   #todo: $lang?
 					echo "<td class='tdheader'>".$lang['val']."</td>";
 					echo "</tr>";
 
@@ -3922,7 +3922,7 @@ else //user is authorized - display the main application
 				else if(isset($_GET['pk']))
 					$pks = array($_GET['pk']);
 				else $pks[0] = "";
-        $str = $pks[0];
+				$str = $pks[0];
 				$pkVal = $pks[0];
 				for($i=1; $i<sizeof($pks); $i++)
 				{
@@ -3962,7 +3962,7 @@ else //user is authorized - display the main application
 							echo "<td class='tdheader'>".$lang['fld']."</td>";
 							echo "<td class='tdheader'>".$lang['type']."</td>";
 							echo "<td class='tdheader'>".$lang['func']."</td>";
-							echo "<td class='tdheader'>Null</td>";
+							echo "<td class='tdheader'>Null</td>";                  #todo: $lang?
 							echo "<td class='tdheader'>".$lang['val']."</td>";
 							echo "</tr>";
 
@@ -4045,7 +4045,7 @@ else //user is authorized - display the main application
 				echo "<td class='tdheader'>".$lang['col']." #</td>";
 				echo "<td class='tdheader'>".$lang['fld']."</td>";
 				echo "<td class='tdheader'>".$lang['type']."</td>";
-				echo "<td class='tdheader'>Not Null</td>";
+				echo "<td class='tdheader'>Not Null</td>";                   #todo: $lang?
 				echo "<td class='tdheader'>".$lang['def_val']."</td>";
 				echo "<td class='tdheader'>".$lang['prim_key']."</td>";
 				echo "</tr>";
@@ -4109,7 +4109,7 @@ else //user is authorized - display the main application
 				{
 					echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 					echo "<select name='massType'>";
-					//echo "<option value='edit'>Edit</option>";
+					//echo "<option value='edit'>Edit</option>";              #todo: $lang
 					echo "<option value='delete'>".$lang['del']."</option>";
 					echo "</select> ";
 					echo "<input type='hidden' name='structureDel' value='true'/>";
@@ -4263,10 +4263,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key");
-					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
-					$headings[] = "Not NULL";
-					$headings[] = "Default Value";
+					$headings = array("Field", "Type", "Primary Key");    #todo: $lang
+					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";       #todo: $lang
+					$headings[] = "Not NULL";                                     #todo: $lang
+					$headings[] = "Default Value";                              #todo: $lang
 					
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
@@ -4380,7 +4380,7 @@ else //user is authorized - display the main application
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
-					$headings = array("Field", "Type");
+					$headings = array("Field", "Type");                         #todo: $lang
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>".$headings[$k]."</td>";
 					echo "</tr>";
@@ -4468,19 +4468,19 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=trigger_create&amp;confirm=1' method='post'>";
 					echo $lang['trigger_name'].": <input type='text' name='trigger_name'/><br/><br/>";
 					echo "<fieldset><legend>".$lang['db_event']."</legend>";
-					echo $lang['before']."/".$lang['after'].": ";
+					echo $lang['before']."/".$lang['after'].": ";                  #todo: $lang ??? dann unten auch?
 					echo "<select name='beforeafter'>";
 					echo "<option value=''></option>";
-					echo "<option value='BEFORE'>BEFORE</option>";
-					echo "<option value='AFTER'>AFTER</option>";
-					echo "<option value='INSTEAD OF'>INSTEAD OF</option>";
+					echo "<option value='BEFORE'>BEFORE</option>";                #todo: $lang ??
+					echo "<option value='AFTER'>AFTER</option>";                  #todo: $lang ??
+					echo "<option value='INSTEAD OF'>INSTEAD OF</option>";        #todo: $lang ??
 					echo "</select>";
 					echo "<br/><br/>";
 					echo $lang['event'].": ";
 					echo "<select name='event'>";
-					echo "<option value='DELETE'>DELETE</option>";
-					echo "<option value='INSERT'>INSERT</option>";
-					echo "<option value='UPDATE'>UPDATE</option>";
+					echo "<option value='DELETE'>DELETE</option>";               #todo: $lang ??
+					echo "<option value='INSERT'>INSERT</option>";               #todo: $lang ??
+					echo "<option value='UPDATE'>UPDATE</option>";              #todo: $lang ??
 					echo "</select>";
 					echo "</fieldset><br/><br/>";
 					echo "<fieldset><legend>".$lang['trigger_act']."</legend>";
@@ -4528,8 +4528,8 @@ else //user is authorized - display the main application
 						echo "</select> ";
 						echo "<select name='".$i."_order'>";
 						echo "<option value=''></option>";
-						echo "<option value=' ASC'>".$lang['asc']."</option>";
-						echo "<option value=' DESC'>".$lang['desc']."</option>";
+						echo "<option value=' ASC'>".$lang['asc']."</option>";            #todo: check if space ASC is correct
+						echo "<option value=' DESC'>".$lang['desc']."</option>";          #todo: check if space DESC is correct
 						echo "</select><br/>";
 					}
 					echo "</fieldset>";
@@ -4592,7 +4592,7 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">".$lang['db_rename']."</a>";
 			
-			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";
+			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";        #todo: $lang
 			if($view=="delete")
 				echo "class='tab_pressed delete_db'";
 			else
@@ -4621,7 +4621,7 @@ else //user is authorized - display the main application
 			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()."<br/>";
 			echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 			echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
-			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";
+			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";      #todo: $lang
 			echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
 			
 			if(isset($_GET['sort']))
@@ -4661,7 +4661,7 @@ else //user is authorized - display the main application
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
-				echo "'>".$lang['type']."</a> ".helpLink("Tables vs. Views");
+				echo "'>".$lang['type']."</a> ".helpLink("Tables vs. Views");                       #todo: $lang
 				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="type")
 					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
@@ -4696,7 +4696,7 @@ else //user is authorized - display the main application
 						{
 							echo "<tr>";
 							echo $tdWithClassLeft;
-							echo "Table";
+							echo "Table";             #todo: $lang
 							echo "</td>";
 							echo $tdWithClassLeft;
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
@@ -4802,7 +4802,7 @@ else //user is authorized - display the main application
 			echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&amp;confirm=1' method='post'>";
 			echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
-			echo $lang['sel_state']." ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";
+			echo $lang['sel_state']." ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";         #todo: $lang
 			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
@@ -4941,11 +4941,11 @@ else //user is authorized - display the main application
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
-			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";
-			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink("Export Data to SQL File")."<br/>";
-			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";
-			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";
-			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";     #todo: $lang
+			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink("Export Data to SQL File")."<br/>";                         #todo: $lang
+			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";                          #todo: $lang
+			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";       #todo: $lang
+			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";                #todo: $lang
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
@@ -5027,7 +5027,7 @@ else //user is authorized - display the main application
 			echo "<br/><br/>";
 			
 			echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";       #todo: $lang
 			echo "</fieldset>";
 		}
 		else if($view=="rename")
@@ -5036,7 +5036,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				if($oldpath==$newpath)
-					echo $lang['err'].": You didn't change the value dumbass ;-)";
+					echo $lang['err'].": You didn't change the value dumbass ;-)";        #todo: $lang
 				else{
 					echo $lang['err'].": "; 
 					printf($lang['db_exists'], htmlencode($newpath));
