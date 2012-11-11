@@ -39,6 +39,9 @@
 //password to gain access
 $password = "admin";
 
+// Theme! If you want to change theme, save the CSS file in same folder of phpliteadmin or in folder "themes"
+$theme = "phpliteadmin.css";
+
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
 $language = "en";
 
@@ -1694,7 +1697,6 @@ header('Content-Type: text/html; charset=utf-8');
 
 <?php
 if(isset($_GET['theme'])) $theme = basename($_GET['theme']);
-else $theme = "phpliteadmin.css";
 
 // allow themes to be dropped in subfolder "themes"
 if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
