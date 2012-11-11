@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-10
+//  Last updated: 2012-11-11
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -2772,7 +2772,7 @@ else //user is authorized - display the main application
 			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".$databases[$i]['path']."' title='".$lang['backup']."'>&darr;</a>)";
 			else
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>";
+				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".$databases[$i]['path']."' title='".$lang['backup']."'>&darr;</a>)";
 			if($i<sizeof($databases)-1)
 				echo "<br/>";
 		}
