@@ -86,6 +86,7 @@ $lang = array(
 	"edit" => "Edit",
 	"del" => "Delete",
 	"add" => "Add",
+  "backup" => "Backup database file",
 	"before" => "Before",
 	"after" => "After",
 	"passwd" => "Password",
@@ -2769,7 +2770,7 @@ else //user is authorized - display the main application
 			// 22 August 2011: gkf fixed bug #49
 			echo $databases[$i]['perms'];
 			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>";
+				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".$databases[$i]['path']."' title='".$lang['backup']."'>&darr;</a>)";
 			else
 				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>";
 			if($i<sizeof($databases)-1)
