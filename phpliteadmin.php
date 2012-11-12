@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-11
+//  Last updated: 2012-11-12
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -86,7 +86,7 @@ $lang = array(
 	"edit" => "Edit",
 	"del" => "Delete",
 	"add" => "Add",
-  "backup" => "Backup database file",
+	"backup" => "Backup database file",
 	"before" => "Before",
 	"after" => "After",
 	"passwd" => "Password",
@@ -188,13 +188,14 @@ $lang = array(
 	"show" => "Show",
 	"show_rows" => "Showing %s row(s). ",
 	"showing" => "Showing",
-  "showing_rows" => "Showing rows",
+	"showing_rows" => "Showing rows",
 	"query_time" => "(Query took %s sec)",
 	"syntax_err" => "There is a problem with the syntax of your query (Query was not executed)",
 	"run_sql" => "Run SQL query/queries on database",
 	
 	"ques_empty" => "Are you sure you want to empty the table",
 	"ques_drop" => "Are you sure you want to drop the table",
+	"ques_drop_view" => "Are you sure you want to drop the view",
 	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table",
 	"ques_del_db" => "Are you sure you want to delete the database",
 	"ques_del_col" => "Are you sure you want to delete column(s) %s from table",
@@ -267,8 +268,11 @@ $lang = array(
 	"desc" => "Descending",
 	"warn0" => "You have been warned.",
 	"warn_passwd" => "You are using the default password, which can be dangerous. You can change it easily at the top of ",
+	"warn_dumbass" => "You didn't change the value dumbass ;-)",
 	"sel_state" => "Select Statement",
-	"delimit" => "Delimiter"
+	"delimit" => "Delimiter",
+	"back_top" => "Back to Top",
+	"choose_f" => "Choose File"
 );
 
 if($language != 'en' && file_exits($language.'.php')){
@@ -2080,7 +2084,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 		echo "<div class='help_inner'>";
 		echo $val;
 		echo "</div>";
-		echo "<a class='help_top' href='#top'>Back to Top</a>";         #todo: $lang
+		echo "<a class='help_top' href='#top'>".$lang['back_top']."</a>"; 
 		echo "</div>";
 	}
 	?>
@@ -3037,7 +3041,7 @@ else //user is authorized - display the main application
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 					echo "<input type='submit' value='".$lang['create']."' class='btn'/> ";
-					echo "<a href='".PAGE."'>Cancel</a>";                   #todo: $lang
+					echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -3187,7 +3191,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=view_drop&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='viewname' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo "Are you sure you want to drop the view '".htmlencode($_GET['table'])."'?<br/><br/>";       #todo: $lang
+				echo $lang['ques_drop_view']." '".htmlencode($_GET['table'])."'?<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -4110,7 +4114,7 @@ else //user is authorized - display the main application
 				{
 					echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 					echo "<select name='massType'>";
-					//echo "<option value='edit'>Edit</option>";              #todo: $lang
+					//echo "<option value='edit'>".$lang['edit']."</option>";
 					echo "<option value='delete'>".$lang['del']."</option>";
 					echo "</select> ";
 					echo "<input type='hidden' name='structureDel' value='true'/>";
@@ -4593,7 +4597,7 @@ else //user is authorized - display the main application
 				echo "class='tab'";
 			echo ">".$lang['db_rename']."</a>";
 			
-			echo "<a href='".PAGE."?view=delete' title='Delete Database' ";        #todo: $lang
+			echo "<a href='".PAGE."?view=delete' title='".$lang['db_del']."' ";
 			if($view=="delete")
 				echo "class='tab_pressed delete_db'";
 			else
@@ -4697,7 +4701,7 @@ else //user is authorized - display the main application
 						{
 							echo "<tr>";
 							echo $tdWithClassLeft;
-							echo "Table";             #todo: $lang
+							echo $lang['tbl'];
 							echo "</td>";
 							echo $tdWithClassLeft;
 							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
@@ -5028,7 +5032,7 @@ else //user is authorized - display the main application
 			echo "<br/><br/>";
 			
 			echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-			echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";       #todo: $lang
+			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 			echo "</fieldset>";
 		}
 		else if($view=="rename")
@@ -5037,7 +5041,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				if($oldpath==$newpath)
-					echo $lang['err'].": You didn't change the value dumbass ;-)";        #todo: $lang
+					echo $lang['err'].": ".$lang['warn_dumbass'];
 				else{
 					echo $lang['err'].": "; 
 					printf($lang['db_exists'], htmlencode($newpath));
