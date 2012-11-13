@@ -125,6 +125,8 @@ $lang = array(
 	"struct_for" => "structure for",
 	"on_tbl" => "on table",
 	"data_dump" => "Data dump for",
+	"backup_hint" => "Hint: To backup your database, the easiest way is to %s.",
+	"backup_hint_linktext" => "download the database-file",
 	"total_rows" => "a total of %s rows",
 	"total" => "Total",
 	"not_dir" => "The directory you specified to scan for databases does not exist or is not a directory.",
@@ -2725,9 +2727,9 @@ else //user is authorized - display the main application
 
 	echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
 	echo "<div id='leftNav'>";
-	echo "<a href='".PAGE."'><h1>";
+	echo "<h1><a href='".PAGE."'>";
 	echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
-	echo "</h1></a>";
+	echo "</a></h1>";
 	echo "<div id='headerlinks'>";
 	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</a> | ";
 	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
@@ -2741,9 +2743,9 @@ else //user is authorized - display the main application
 			// 22 August 2011: gkf fixed bug #49
 			echo $databases[$i]['perms'];
 			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".$databases[$i]['path']."' title='".$lang['backup']."'>&darr;</a>)";
+				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".htmlencode($databases[$i]['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 			else
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".$databases[$i]['path']."' title='".$lang['backup']."'>&darr;</a>)";
+				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".htmlencode($databases[$i]['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 			if($i<sizeof($databases)-1)
 				echo "<br/>";
 		}
@@ -2769,7 +2771,7 @@ else //user is authorized - display the main application
 	echo "<a href='".PAGE."'";
 	if(!isset($_GET['table']))
 		echo " class='active_table'";
-	echo ">".$currentDB['name']."</a>";
+	echo ">".htmlencode($currentDB['name'])."</a>";
 	echo "</legend>";
 	//Display list of tables
 	$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
@@ -2807,10 +2809,11 @@ else //user is authorized - display the main application
 	echo "<input type='submit' value='".$lang['logout']."' name='logout' class='btn'/>";
 	echo "</form>";
 	echo "</div>";
+	echo "</div>";
 	echo '</td><td valign="top" class="right_td" style="padding:9px 2px 9px 9px;">';
 
 	//breadcrumb navigation
-	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
+	echo "<a href='".PAGE."'>".htmlencode($currentDB['name'])."</a>";
 	if(isset($_GET['table']))
 		echo " &rarr; <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".htmlencode($_GET['table'])."</a>";
 	echo "<br/><br/>";
@@ -3182,16 +3185,16 @@ else //user is authorized - display the main application
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
 				echo "<div style='float:left;'>".$lang['fld_terminated']."</div>";
 				echo "<input type='text' value=';' name='export_csv_fieldsterminated' style='float:right;'/>";
-				echo "<div style='clear:both;'>";
+				echo "<div style='clear:both;'></div>";
 				echo "<div style='float:left;'>".$lang['fld_enclosed']."</div>";
 				echo "<input type='text' value='\"' name='export_csv_fieldsenclosed' style='float:right;'/>";
-				echo "<div style='clear:both;'>";
+				echo "<div style='clear:both;'></div>";
 				echo "<div style='float:left;'>".$lang['fld_escaped']."</div>";
 				echo "<input type='text' value='\' name='export_csv_fieldsescaped' style='float:right;'/>";
-				echo "<div style='clear:both;'>";
+				echo "<div style='clear:both;'></div>";
 				echo "<div style='float:left;'>".$lang['rep_null']."</div>";
 				echo "<input type='text' value='NULL' name='export_csv_replacenull' style='float:right;'/>";
-				echo "<div style='clear:both;'>";
+				echo "<div style='clear:both;'></div>";
 				echo "<label><input type='checkbox' name='export_csv_crlf'/> ".$lang['rem_crlf']."</label><br/>";
 				echo "<label><input type='checkbox' checked='checked' name='export_csv_fieldnames'/> ".$lang['put_fld']."</label>";
 				echo "</fieldset>";
@@ -3204,6 +3207,7 @@ else //user is authorized - display the main application
 				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
+				echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode($currentDB['path'])."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
 				break;
 			/////////////////////////////////////////////// import table
 			case "table_import":
@@ -5047,7 +5051,7 @@ else //user is authorized - display the main application
 	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
 	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
 	printf($lang['page_gen'], $timeTot);
-	echo "</span></div>";
+	echo "</span>";
 	echo "</td></tr></table>";
 	$db->close(); //close the database
 }
