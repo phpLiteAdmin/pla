@@ -4040,7 +4040,8 @@ else //user is authorized - display the main application
 					echo htmlencode($notnullVal);
 					echo "</td>";
 					echo $tdWithClassLeft;
-					echo htmlencode($defaultVal);
+					if($defaultVal===NULL) echo "<i class='null'>NULL</i>";
+					else echo htmlencode($defaultVal);
 					echo "</td>";
 					echo $tdWithClassLeft;
 					echo htmlencode($primarykeyVal);
