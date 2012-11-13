@@ -3100,7 +3100,7 @@ else //user is authorized - display the main application
 				echo "<input type='button' value='&lt;&lt;' onclick='moveFields();' class='btn'/>";
 				echo "</div>";
 				echo "<div style='clear:both;'></div>";
-				echo $lang['delimiter']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
+				echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 				echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
 				echo "</fieldset>";
