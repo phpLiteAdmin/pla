@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-12
+//  Last updated: 2012-11-13
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -272,7 +272,30 @@ $lang = array(
 	"sel_state" => "Select Statement",
 	"delimit" => "Delimiter",
 	"back_top" => "Back to Top",
-	"choose_f" => "Choose File"
+	"choose_f" => "Choose File",
+	"instead" => "Instead of",
+	
+	/* Help documentation */
+	"help1" => "SQLite Library Extensions",
+	"help1_x" => "phpLiteAdmin uses PHP library extensions that allow interaction with SQLite databases. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
+	"help2" => "Creating a New Database",
+	"help2_x" => "When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the \$directory variable.",
+	"help3" => "Tables vs. Views",
+	"help3_x" => "On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
+	"help4" => "Writing a Select Statement for a New View",
+	"help4_x" => "When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.",
+	"help5" => "Export Structure to SQL File",
+	"help5_x" => "During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.",
+	"help6" => "Export Data to SQL File",
+	"help6_x" => "During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).",
+	"help7" => "Add Drop Table to Exported SQL File",
+	"help7_x" => "During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.",
+	"help8" => "Add Transaction to Exported SQL File",
+	"help8_x" => "During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.",
+	"help9" => "Add Comments to Exported SQL File",
+	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening.",
+	
+	"next_line" => "2774"
 );
 
 if($language != 'en' && file_exits($language.'.php')){
@@ -475,7 +498,7 @@ function dir_tree($dir)
 function helpLink($name)
 {
 	global $lang;
-	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='".$lang['help'].": ".$name."'>[?]</a>";	
+	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='".$lang['help'].": ".$name."'><span>[?]</span></a>";	
 }
 
 // function to encode value into HTML just like htmlentities, but with adjusted default settings
@@ -1714,28 +1737,22 @@ if(!file_exists($theme)) //only use the inline stylesheet if an external one doe
 <!-- begin the customizable stylesheet/theme -->
 <style type="text/css">
 /* overall styles for entire page */
-body
-{
+body {
 	margin: 0px;
 	padding: 0px;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 14px;
 	color: #000000;
 	background-color: #e0ebf6;
+	overflow:auto;
 }
+.body_tbl td{ padding:9px 2px 9px 9px; }
+.left_td{ width:100px; }
+
 /* general styles for hyperlink */
-a
-{
-	color: #03F;
-	text-decoration: none;
-	cursor :pointer;
-}
-a:hover
-{
-	color: #06F;
-}
-hr
-{
+a { color: #03F; text-decoration: none; cursor :pointer; }
+a:hover { color: #06F; }
+hr {
 	height: 1px;
 	border: 0;
 	color: #bbb;
@@ -1743,8 +1760,7 @@ hr
 	width: 100%;	
 }
 /* logo text containing name of project */
-h1
-{
+h1 {
 	margin: 0px;
 	padding: 5px;
 	font-size: 24px;
@@ -1757,8 +1773,7 @@ h1
 	-moz-border-radius-topright:5px;
 }
 /* the div container for the links */
-#headerlinks
-{
+#headerlinks {
 	text-align:center;
 	margin-bottom:10px;
 	padding:5px;
@@ -1772,27 +1787,18 @@ h1
 	font-weight:bold;
 }
 /* version text within the logo */
-h1 #version
-{
-	color: #000000;
-	font-size: 16px;
-}
+h1 #version { color: #000000; font-size: 16px; }
 /* logo text within logo */
-h1 #logo
-{
-	color:#000;
-}
+h1 #logo { color:#000; }
 /* general header for various views */
-h2
-{
+h2 {
 	margin:0px;
 	padding:0px;
 	font-size:14px;
 	margin-bottom:20px;
 }
 /* input buttons and areas for entering text */
-input, select, textarea
-{
+input, select, textarea {
 	font-family:Arial, Helvetica, sans-serif;
 	background-color:#eaeaea;
 	color:#03F;
@@ -1805,17 +1811,10 @@ input, select, textarea
 	padding:3px;
 }
 /* just input buttons */
-input.btn
-{
-	cursor:pointer;	
-}
-input.btn:hover
-{
-	background-color:#ccc;
-}
+input.btn { cursor:pointer; }
+input.btn:hover { background-color:#ccc; }
 /* general styles for hyperlink */
-fieldset
-{
+fieldset {
 	padding:15px;
 	border-color:#03F;
 	border-width:1px;
@@ -1825,14 +1824,9 @@ fieldset
 	background-color:#f9f9f9;
 }
 /* outer div that holds everything */
-#container
-{
-	padding:10px;
-}
+#container { padding:10px; }
 /* div of left box with log, list of databases, etc. */
-#leftNav
-{
-	float:left;
+#leftNav {
 	min-width:250px;
 	padding:0px;
 	border-color:#03F;
@@ -1843,15 +1837,10 @@ fieldset
 	border-radius:5px;
 	-moz-border-radius:5px;
 }
-/* div holding the content to the right of the leftNav */
-#content
-{
-	overflow:hidden;
-	padding-left:10px;
-}
+/* The table that hold left */
+.viewTable tr td{ padding:1px; }
 /* div holding the login fields */
-#loginBox
-{
+#loginBox {
 	width:500px;
 	margin-left:auto;
 	margin-right:auto;
@@ -1864,13 +1853,11 @@ fieldset
 	-moz-border-radius:5px;
 }
 /* div under tabs with tab-specific content */
-#main
-{
+#main {
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
 	padding:15px;
-	overflow:auto;
 	background-color:#FFF;
 	border-bottom-left-radius:5px;
 	border-bottom-right-radius:5px;
@@ -1880,8 +1867,7 @@ fieldset
 	-moz-border-radius-topright:5px;
 }
 /* odd-numbered table rows */
-.td1
-{
+.td1 {
 	background-color:#f9e3e3;
 	text-align:right;
 	font-size:12px;
@@ -1889,8 +1875,7 @@ fieldset
 	padding-right:10px;
 }
 /* even-numbered table rows */
-.td2
-{
+.td2 {
 	background-color:#f3cece;
 	text-align:right;
 	font-size:12px;
@@ -1898,8 +1883,7 @@ fieldset
 	padding-right:10px;
 }
 /* table column headers */
-.tdheader
-{
+.tdheader {
 	border-color:#03F;
 	border-width:1px;
 	border-style:solid;
@@ -1912,8 +1896,7 @@ fieldset
 	-moz-border-radius:5px;
 }
 /* div holding the confirmation text of certain actions */
-.confirm
-{
+.confirm {
 	border-color:#03F;
 	border-width:1px;
 	border-style:dashed;
@@ -1921,8 +1904,7 @@ fieldset
 	background-color:#e0ebf6;
 }
 /* tab navigation for each table */
-.tab
-{
+.tab {
 	display:block;
 	padding:5px;
 	padding-right:8px;
@@ -1943,8 +1925,7 @@ fieldset
 	-moz-border-radius-topright:5px;
 }
 /* pressed state of tab */
-.tab_pressed
-{
+.tab_pressed {
 	display:block;
 	padding:5px;
 	padding-right:8px;
@@ -1965,35 +1946,24 @@ fieldset
 	-moz-border-radius-topright:5px;
 }
 /* help section */
-.helpq
-{
-	font-size:11px;
-	font-weight:normal;	
-}
-#help_container
-{
+.helpq { font-size:11px; font-weight:normal; }
+#help_container {
 	padding:0px;
 	font-size:12px;
 	margin-left:auto;
 	margin-right:auto;
 	background-color:#ffffff;
 }
-.help_outer
-{
+.help_outer {
 	background-color:#FFF;
 	padding:0px;
 	height:300px;
-	overflow:hidden;
+	
 	position:relative;
 }
-.help_list
-{
-	padding:10px;
-	height:auto;	
-}
+.help_list { padding:10px; height:auto; }
 
-.headd
-{
+.headd {
 	font-size:14px;
 	font-weight:bold;	
 	display:block;
@@ -2005,33 +1975,18 @@ fieldset
 	border-left-style:none;
 	border-right-style:none;
 }
-.help_inner
-{
-	padding:10px;	
-}
-.help_top
-{
+.help_inner { padding:10px;	}
+.help_top {
 	display:block;
 	position:absolute;
 	right:10px;
 	bottom:10px;	
 }
-.warning, .delete, .empty, .drop, .delete_db
-{
-  color:red;
-}
-.sidebar_table
-{ 
-  font-size:11px;
-}
-.active_table, .active_db
-{
-  text-decoration:underline;
-}
-.null
-{
-  color:#ccc;
-}
+.warning, .delete, .empty, .drop, .delete_db { color:red; }
+.sidebar_table { font-size:11px; }
+.active_table, .active_db { text-decoration:underline; }
+.null { color:#ccc; }
+
 </style>
 <!-- end the customizable stylesheet/theme -->
 <?php
@@ -2042,27 +1997,12 @@ else //an external stylesheet exists - import it
 }
 if(isset($_GET['help'])) //this page is used as the popup help section
 {
-	//help section array                   #TODO: $lang
+	//help section array
 	$help = array
 	(
-		'SQLite Library Extensions' => 
-			'phpLiteAdmin uses PHP library extensions that allow interaction with SQLite databases. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.',
-		'Creating a New Database' => 
-			'When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the $directory variable.',
-		'Tables vs. Views' => 
-			'On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href="http://en.wikipedia.org/wiki/View_(database)" target="_blank">http://en.wikipedia.org/wiki/View_(database)</a>',
-		'Writing a Select Statement for a New View' => 
-			'When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.',
-		'Export Structure to SQL File' => 
-			'During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.',
-		'Export Data to SQL File' => 
-			'During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).',
-		'Add Drop Table to Exported SQL File' => 
-			'During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.',
-		'Add Transaction to Exported SQL File' => 
-			'During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.',
-		'Add Comments to Exported SQL File' => 
-			'During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening.',
+		$lang['help1'] => $lang['help1_x'], $lang['help2'] => $lang['help2_x'], $lang['help3'] => $lang['help3_x'], 
+		$lang['help4'] => $lang['help4_x'], $lang['help5'] => $lang['help5_x'], $lang['help6'] => $lang['help6_x'],
+		$lang['help7'] => $lang['help7_x'], $lang['help8'] => $lang['help8_x'], $lang['help9'] => $lang['help9_x']
 	);
 	?>
 	</head>
@@ -2756,7 +2696,7 @@ else //user is authorized - display the main application
 		}
 	}
 
-	echo "<div id='container'>";
+	echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
 	echo "<div id='leftNav'>";
 	echo "<a href='".PAGE."'><h1>";
 	echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
@@ -2828,7 +2768,7 @@ else //user is authorized - display the main application
 	
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink("Creating a New Database")."</legend>";               #todo: $lang
+		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink($lang['help2'])."</legend>"; 
 		echo "<form name='create_database' method='post' action='".PAGE."'>";
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
 		echo "</form>";
@@ -2840,8 +2780,7 @@ else //user is authorized - display the main application
 	echo "<input type='submit' value='".$lang['logout']."' name='logout' class='btn'/>";
 	echo "</form>";
 	echo "</div>";
-	echo "</div>";
-	echo "<div id='content'>";
+	echo '</td><td valign="top" class="right_td" style="padding:9px 2px 9px 9px;">';
 
 	//breadcrumb navigation
 	echo "<a href='".PAGE."'>".$currentDB['name']."</a>";
@@ -2999,10 +2938,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key");                                                     #todo: $lang
-					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";                                  #todo: $lang
-					$headings[] = "Not NULL";                                                                             #todo: $lang
-					$headings[] = "Default Value";                                                                         #todo: $lang
+					$headings = array("Field", "Type", "Primary Key");
+					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
+					$headings[] = "Not NULL";
+					$headings[] = "Default Value";
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
@@ -3161,7 +3100,7 @@ else //user is authorized - display the main application
 				echo "<input type='button' value='&lt;&lt;' onclick='moveFields();' class='btn'/>";
 				echo "</div>";
 				echo "<div style='clear:both;'></div>";
-				echo "Delimiter <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";     #todo: $lang
+				echo $lang['delimiter']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 				echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 				echo "</form>";
 				echo "</fieldset>";
@@ -3206,11 +3145,11 @@ else //user is authorized - display the main application
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
-				echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";          #todo: $lang
-				echo "<label><input type='checkbox' checked='checked' name='data'/> ".$lang['export_data']."</label> ".helpLink("Export Data to SQL File")."<br/>";                     #todo: $lang
-				echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";                               #todo: $lang
-				echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";          #todo: $lang
-				echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";                   #todo: $lang
+				echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink($lang['help5'])."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='data'/> ".$lang['export_data']."</label> ".helpLink($lang['help6'])."<br/>"; 
+				echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink($lang['help7'])."<br/>"; 
+				echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink($lang['help8'])."<br/>";
+				echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink($lang['help9'])."<br/>"; 
 				echo "</fieldset>";
 				
 				echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
@@ -3232,7 +3171,7 @@ else //user is authorized - display the main application
 				
 				echo "<div style='clear:both;'></div>";
 				echo "<br/><br/>";
-				echo "<fieldset style='float:left;'><legend><b>".$lang['save_as']."</b></legend>";
+				echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
 				$file = pathinfo($db->getPath());
 				$name = $file['filename'];
 				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
@@ -3281,7 +3220,7 @@ else //user is authorized - display the main application
 				echo "<br/><br/>";
 				
 				echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-				echo "<input type='file' value='Choose File' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";     #todo: $lang
+				echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 				echo "</fieldset>";
 				break;
 			/////////////////////////////////////////////// rename table
@@ -3479,11 +3418,11 @@ else //user is authorized - display the main application
 				if($remainder==0)
 					$remainder = $_SESSION[COOKIENAME.'numRows'];
 				
-				echo "<div style='overflow:hidden;'>";
+				echo "<div style=''>";
 				//previous button
 				if($_POST['startRow']>0)
 				{
-					echo "<div style='float:left; overflow:hidden;'>";
+					echo "<div style='float:left;'>";
 					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='0'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
@@ -3500,7 +3439,7 @@ else //user is authorized - display the main application
 				}
 				
 				//show certain number buttons
-				echo "<div style='float:left; overflow:hidden;'>";
+				echo "<div style='float:left;'>";
 				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
 				echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
@@ -3528,14 +3467,14 @@ else //user is authorized - display the main application
 				//next button
 				if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])<$rowCount)
 				{
-					echo "<div style='float:left; overflow:hidden; margin-left:20px; '>";
+					echo "<div style='float:left; margin-left:20px; '>";
 					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;' name='next' class='btn'/> ";
 					echo "</form>";
 					echo "</div>";
-					echo "<div style='float:left; overflow:hidden;'>";
+					echo "<div style='float:left; '>";
 					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
@@ -3855,7 +3794,7 @@ else //user is authorized - display the main application
 					echo "<td class='tdheader'>".$lang['fld']."</td>";
 					echo "<td class='tdheader'>".$lang['type']."</td>";
 					echo "<td class='tdheader'>".$lang['func']."</td>";
-					echo "<td class='tdheader'>Null</td>";                   #todo: $lang?
+					echo "<td class='tdheader'>Null</td>";
 					echo "<td class='tdheader'>".$lang['val']."</td>";
 					echo "</tr>";
 
@@ -3967,7 +3906,7 @@ else //user is authorized - display the main application
 							echo "<td class='tdheader'>".$lang['fld']."</td>";
 							echo "<td class='tdheader'>".$lang['type']."</td>";
 							echo "<td class='tdheader'>".$lang['func']."</td>";
-							echo "<td class='tdheader'>Null</td>";                  #todo: $lang?
+							echo "<td class='tdheader'>Null</td>";
 							echo "<td class='tdheader'>".$lang['val']."</td>";
 							echo "</tr>";
 
@@ -4050,7 +3989,7 @@ else //user is authorized - display the main application
 				echo "<td class='tdheader'>".$lang['col']." #</td>";
 				echo "<td class='tdheader'>".$lang['fld']."</td>";
 				echo "<td class='tdheader'>".$lang['type']."</td>";
-				echo "<td class='tdheader'>Not Null</td>";                   #todo: $lang?
+				echo "<td class='tdheader'>Not Null</td>";
 				echo "<td class='tdheader'>".$lang['def_val']."</td>";
 				echo "<td class='tdheader'>".$lang['prim_key']."</td>";
 				echo "</tr>";
@@ -4473,19 +4412,19 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=trigger_create&amp;confirm=1' method='post'>";
 					echo $lang['trigger_name'].": <input type='text' name='trigger_name'/><br/><br/>";
 					echo "<fieldset><legend>".$lang['db_event']."</legend>";
-					echo $lang['before']."/".$lang['after'].": ";                  #todo: $lang ??? dann unten auch?
+					echo $lang['before']."/".$lang['after'].": ";
 					echo "<select name='beforeafter'>";
 					echo "<option value=''></option>";
-					echo "<option value='BEFORE'>BEFORE</option>";                #todo: $lang ??
-					echo "<option value='AFTER'>AFTER</option>";                  #todo: $lang ??
-					echo "<option value='INSTEAD OF'>INSTEAD OF</option>";        #todo: $lang ??
+					echo "<option value='BEFORE'>".$lang['before']."</option>"; 
+					echo "<option value='AFTER'>".$lang['after']."</option>"; 
+					echo "<option value='INSTEAD OF'>".$lang['instead']."</option>"; 
 					echo "</select>";
 					echo "<br/><br/>";
 					echo $lang['event'].": ";
 					echo "<select name='event'>";
-					echo "<option value='DELETE'>DELETE</option>";               #todo: $lang ??
-					echo "<option value='INSERT'>INSERT</option>";               #todo: $lang ??
-					echo "<option value='UPDATE'>UPDATE</option>";              #todo: $lang ??
+					echo "<option value='DELETE'>".$lang['del']."</option>";
+					echo "<option value='INSERT'>".$lang['insert']."</option>";
+					echo "<option value='UPDATE'>".$lang['update']."</option>";
 					echo "</select>";
 					echo "</fieldset><br/><br/>";
 					echo "<fieldset><legend>".$lang['trigger_act']."</legend>";
@@ -4626,7 +4565,7 @@ else //user is authorized - display the main application
 			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()."<br/>";
 			echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 			echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
-			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink("SQLite Library Extensions").": ".$db->getType()."<br/>";      #todo: $lang
+			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 
 			echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
 			
 			if(isset($_GET['sort']))
@@ -4666,7 +4605,7 @@ else //user is authorized - display the main application
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
-				echo "'>".$lang['type']."</a> ".helpLink("Tables vs. Views");                       #todo: $lang
+				echo "'>".$lang['type']."</a> ".helpLink($lang['help3']); 
 				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="type")
 					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
@@ -4807,7 +4746,7 @@ else //user is authorized - display the main application
 			echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='".PAGE."?action=view_create&amp;confirm=1' method='post'>";
 			echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
-			echo $lang['sel_state']." ".helpLink("Writing a Select Statement for a New View").": <input type='text' name='select' style='width:400px;'/> ";         #todo: $lang
+			echo $lang['sel_state']." ".helpLink($lang['help4']).": <input type='text' name='select' style='width:400px;'/> "; 
 			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
@@ -4946,11 +4885,11 @@ else //user is authorized - display the main application
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px;' id='exportoptions_sql'><legend><b>".$lang['options']."</b></legend>";
-			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink("Export Structure to SQL File")."<br/>";     #todo: $lang
-			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink("Export Data to SQL File")."<br/>";                         #todo: $lang
-			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink("Add Drop Table to Exported SQL File")."<br/>";                          #todo: $lang
-			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink("Add Transaction to Exported SQL File")."<br/>";       #todo: $lang
-			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink("Add Comments to Exported SQL File")."<br/>";                #todo: $lang
+			echo "<label><input type='checkbox' checked='checked' name='structure'/> ".$lang['export_struct']."</label> ".helpLink($lang['help5'])."<br/>"; 
+			echo "<label><input type='checkbox' checked='checked' name='data'/> Export with data</label> ".helpLink($lang['help6'])."<br/>";
+			echo "<label><input type='checkbox' name='drop'/> ".$lang['add_drop']."</label> ".helpLink($lang['help7'])."<br/>"; 
+			echo "<label><input type='checkbox' checked='checked' name='transaction'/> ".$lang['add_transact']."</label> ".helpLink($lang['help8'])."<br/>";
+			echo "<label><input type='checkbox' checked='checked' name='comments'/> ".$lang['comments']."</label> ".helpLink($lang['help9'])."<br/>"; 
 			echo "</fieldset>";
 			
 			echo "<fieldset style='float:left; max-width:350px; display:none;' id='exportoptions_csv'><legend><b>".$lang['options']."</b></legend>";
@@ -5081,7 +5020,7 @@ else //user is authorized - display the main application
 	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
 	printf($lang['page_gen'], $timeTot);
 	echo "</span></div>";
-	echo "</div>";
+	echo "</td></tr></table>";
 	$db->close(); //close the database
 }
 echo "</body>";
