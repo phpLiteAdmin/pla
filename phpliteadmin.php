@@ -575,6 +575,7 @@ class Database
 	protected $data;
 	protected $lastResult;
 	protected $fns;
+	protected $alterError;
 
 	public function __construct($data)
 	{
@@ -661,7 +662,13 @@ class Database
 	
 	public function getError()
 	{
-		if($this->type=="PDO")
+		if($this->alterError!='')
+		{
+			$error = $this->alterError;
+			$this->alterError = ""; 
+			return $error;
+		}
+		else if($this->type=="PDO")
 		{
 			$e = $this->db->errorInfo();
 			return $e[2];	
@@ -967,6 +974,7 @@ class Database
 	public function alterTable($table, $alterdefs)
 	{
 		global $debug;
+		$this->alterError="";
 		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
@@ -977,7 +985,11 @@ class Database
 			if($this->type=="PDO")
 				$result->closeCursor();
 			if(sizeof($resultArr)<1)
+			{
+				$this->alterError="Error: Altering of Table ".htmlencode($table)." not possible as table does not exist!?";
+				if($debug) echo "ERROR: unknown table<hr>";
 				return false;
+			}
 			for($i=0; $i<sizeof($resultArr); $i++)
 			{
 				$row = $resultArr[$i];
@@ -1021,6 +1033,7 @@ class Database
 					$createtesttableSQL = $createtemptableSQL;
 					if(count($defs)<1)
 					{
+						$this->alterError="Error: Altering of Table failed - no alter definition!?";
 						if($debug) echo "ERROR: defs&lt;1<hr />";
 						return false;
 					}
@@ -1030,11 +1043,13 @@ class Database
 						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
+							$this->alterError="Error: Altering of Table failed - failed to parse ALTER definition";
 							if($debug) echo "ERROR: !parse_def<hr />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
+							$this->alterError="Error: Altering of Table failed - ALTER action could not be recognized";
 							if($debug) echo "ERROR: !isset(matches[1])<hr />";
 							return false;
 						}
@@ -1056,7 +1071,7 @@ class Database
 						  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[) ").")+";		// catches a complete column definition, even if it is
+						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")+";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
@@ -1070,7 +1085,7 @@ class Database
 								",\s*"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
 						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<hr />";
-						$preg_columns_after = "(,\s*([^)]+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
+						$preg_columns_after = "(,\s*(.+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
 												// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
 												// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
 						$table_new = $table;
@@ -1080,6 +1095,7 @@ class Database
 							case 'add':
 								if(!isset($matches[4]))
 								{
+									$this->alterError="Error: Altering of Table failed (add) - no column to add detected in ALTER statement";
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
@@ -1092,19 +1108,23 @@ class Database
 									echo $newSQL."<hr>";
 									echo $preg_pattern_add."<hr>";
 								}
-								if($newSQL==$createtesttableSQL) // pattern did not match, so column removal did not succed
+								if($newSQL==$createtesttableSQL) // pattern did not match, so column adding did not succed
+									{
+									$this->alterError="Error: Altering of Table failed (add) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
 									return false;
+									}
 								$createtesttableSQL = $newSQL;
 								break;
 							case 'change':
 								if(!isset($matches[5]) || !isset($matches[6]))
 								{
+									$this->alterError="Error: Altering of Table failed (change) - could not recognize new column name or name";
 									return false;
 								}
 								$new_col_name = $matches[5];
 								$new_col_type = $matches[6];
 								$new_col_definition = "'$new_col_name' $new_col_type";
-								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\")`\[").")+)?";
+								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")+)?";
 												// replace this part (we want to change this column)
 												// group $3 contains the column constraints (keep!). the name & data type is replaced.
 								$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
@@ -1123,12 +1143,15 @@ class Database
 									
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
+								{
+									$this->alterError="Error: Altering of Table failed (change) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
 									return false;
+								}
 								$createtesttableSQL = $newSQL;
 								$newcols[$column] = str_replace("''","'",$new_col_name);
 								break;
 							case 'drop':
-								$preg_column_to_drop = "\s*".$this->sqlite_surroundings_preg($column)."\s+(?:".$this->sqlite_surroundings_preg("*",false,",')\"\[`").")+";      // delete this part (we want to drop this column)
+								$preg_column_to_drop = "\s*".$this->sqlite_surroundings_preg($column)."\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"\[`").")+";      // delete this part (we want to drop this column)
 								$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/";
 
 								// remove the column out of the CREATE TABLE statement
@@ -1143,7 +1166,10 @@ class Database
 									echo $preg_pattern_drop."<hr>";
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
+								{
+									$this->alterError="Error: Altering of Table failed (drop) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
 									return false;
+								}
 								$createtesttableSQL = $newSQL;
 								unset($newcols[$column]);
 								break;
@@ -1154,7 +1180,8 @@ class Database
 								$table_new = $column;
 								break;
 							default:
-								if($default) echo 'ERROR: unknown alter operation!<hr />';
+								if($debug) echo 'ERROR: unknown alter operation!<hr />';
+								$this->alterError="Error: Altering of Table failed - Unknown ALTER operation!";
 								return false;
 						}
 					}
@@ -1268,7 +1295,7 @@ class Database
 		}
 	}
 
- 	//correctly escape an identifier (column / table / trigger / index name) to be injected into an SQL query
+	//correctly escape an identifier (column / table / trigger / index name) to be injected into an SQL query
 	public function quote_id($value)
 	{
 		// double-quotes need to be escaped by doubling them
@@ -3035,7 +3062,7 @@ else //user is authorized - display the main application
 							}
 							else
 							{
-								echo $lang['syntax_err']."</b><br/>";
+								echo $lang['err'].": ".$db->getError().".</b><br/>";
 							}
 							echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 							echo "</div><br/>";
@@ -3279,7 +3306,7 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						echo $lang['syntax_err']."</b><br/>";
+						echo $lang['err'].": ".$db->getError().".</b><br/>".$lang['bug_report']." <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a><br/>";
 					}
 					echo "<span style='font-size:11px;'>".htmlencode($query)."</span>";
 					echo "</div><br/>";
@@ -4799,7 +4826,7 @@ else //user is authorized - display the main application
 						}
 						else
 						{
-							echo $lang['syntax_err']."</b><br/>";
+							echo $lang['err'].": ".$db->getError()."</b><br/>";
 						}
 						echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 						echo "</div><br/>";
