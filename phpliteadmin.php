@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-13
+//  Last updated: 2012-11-15
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -44,6 +44,12 @@ $theme = "phpliteadmin.css";
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
 $language = "en";
+
+// set default number of rows. You need to relog after changing the number
+$rowsNum = 30;
+
+// reduce string characters by a number bigger than 10
+$charsNum = 300;
 
 $lang = array(
 	"direction" => "LTR",
@@ -516,6 +522,15 @@ function deQuoteSQL($s)
 	return trim(trim($s), "'");
 }
 
+// reduce string chars
+function subString($str)
+{
+	global $charsNum;
+	if($charsNum > 10){
+		if(strlen($str)>$charsNum) $str = substr($str, 0, $charsNum).'...';
+	}
+	return $str;
+}
 
 //
 // Authorization class
@@ -3429,7 +3444,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'numRows'] = $_POST['numRows'];
 
 				if(!isset($_SESSION[COOKIENAME.'numRows']))
-					$_SESSION[COOKIENAME.'numRows'] = 30;
+					$_SESSION[COOKIENAME.'numRows'] = $rowsNum;
 				
 				if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$_GET['table'])
 				{
@@ -3628,7 +3643,7 @@ else //user is authorized - display the main application
 								if($arr[$i][$j]===NULL)
 									echo "<i class='null'>NULL</i>";
 								else
-									echo htmlencode($arr[$i][$j]);
+									echo subString(htmlencode($arr[$i][$j]));
 								echo "</td>";
 							}
 							echo "</tr>";
