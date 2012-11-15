@@ -532,6 +532,13 @@ function subString($str)
 	return $str;
 }
 
+function getRowId($table, $where=''){
+	global $db;
+	$query = "SELECT ROWID FROM ".$db->quote_id($table).$where;
+	$result = $db->selectArray($query);
+	return $result;
+}
+
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
@@ -3309,17 +3316,19 @@ else //user is authorized - display the main application
 							$j++;
 						}
 					}
-					$query = "SELECT *, ROWID FROM ".$db->quote_id($table);
+					$query = "SELECT * FROM ".$db->quote_id($table);
+					$whereTo = '';
 					if(sizeof($arr)>0)
 					{
-						$query .= " WHERE ".$arr[0];
+						$whereTo .= " WHERE ".$arr[0];
 						for($i=1; $i<sizeof($arr); $i++)
 						{
-							$query .= " AND ".$arr[$i];
+							$whereTo .= " AND ".$arr[$i];
 						}
 					}
+					$query .= $whereTo;
 					$startTime = microtime(true);
-					$result = $db->selectArray($query, "assoc");
+					$result = $db->selectArray($query, "both");
 					$endTime = microtime(true);
 					$time = round(($endTime - $startTime), 4);
 
@@ -3346,7 +3355,7 @@ else //user is authorized - display the main application
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						echo "<td>&nbsp;</td><td>&nbsp;</td>"; 
-						for($j=0; $j<sizeof($headers)-1; $j++)
+						for($j=0; $j<sizeof($headers); $j++)
 						{
 							echo "<td class='tdheader'>";
 							echo htmlencode($headers[$j]);
@@ -3354,14 +3363,16 @@ else //user is authorized - display the main application
 						}
 						echo "</tr>";
 
+						$pkid = getRowId($table, $whereTo);
+
 						for($j=0; $j<sizeof($result); $j++)
 						{
-							$pk = $result[$j][$headers[sizeof($result[$j])-1]];
+							$pk = $pkid[$j][0];
 							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
-							for($z=0; $z<sizeof($headers)-1; $z++)
+							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
 								echo htmlencode($result[$j][$headers[$z]]);
