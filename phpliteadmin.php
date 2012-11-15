@@ -37,10 +37,10 @@
 //////////////////////////////
 
 //password to gain access
-$password = "admin";
+$password = "";
 
 // Theme! If you want to change theme, save the CSS file in same folder of phpliteadmin or in folder "themes"
-$theme = "phpliteadmin.css";
+$theme = "dynamic_myAdmin.php";
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
 $language = "en";
@@ -530,6 +530,13 @@ function subString($str)
 		if(strlen($str)>$charsNum) $str = substr($str, 0, $charsNum).'...';
 	}
 	return $str;
+}
+
+function getRowId($table, $where=''){
+	global $db;
+	$query = "SELECT ROWID FROM ".$db->quote_id($table).$where;
+	$result = $db->selectArray($query);
+	return $result;
 }
 
 //
@@ -3281,7 +3288,8 @@ else //user is authorized - display the main application
 			case "table_search":
 				if(isset($_GET['done']))
 				{
-					$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
+					$table = $_GET['table'];
+					$query = "PRAGMA table_info(".$db->quote_id($table).")";
 					$result = $db->selectArray($query);
 					$j = 0;
 					$arr = array();
@@ -3300,15 +3308,17 @@ else //user is authorized - display the main application
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM ".$db->quote_id($_GET['table']);
+					$query = "SELECT * FROM ".$db->quote_id($table);
+					$whereTo = '';
 					if(sizeof($arr)>0)
 					{
-						$query .= " WHERE ".$arr[0];
+						$whereTo .= " WHERE ".$arr[0];
 						for($i=1; $i<sizeof($arr); $i++)
 						{
-							$query .= " AND ".$arr[$i];
+							$whereTo .= " AND ".$arr[$i];
 						}
 					}
+					$query .= $whereTo;
 					$startTime = microtime(true);
 					$result = $db->selectArray($query, "assoc");
 					$endTime = microtime(true);
@@ -3336,6 +3346,7 @@ else //user is authorized - display the main application
 
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
+						echo "<td></td><td></td>"; 
 						for($j=0; $j<sizeof($headers); $j++)
 						{
 							echo "<td class='tdheader'>";
@@ -3343,10 +3354,16 @@ else //user is authorized - display the main application
 							echo "</td>";
 						}
 						echo "</tr>";
+
+						$pkid = getRowId($table, $whereTo);
+
 						for($j=0; $j<sizeof($result); $j++)
 						{
+							$pk = $pkid[$j][0];
 							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 							echo "<tr>";
+							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
+							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
@@ -4958,7 +4975,7 @@ else //user is authorized - display the main application
 			
 			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
-			echo "<fieldset style='float:left;'><legend><b>".$lang['save_as']."</b></legend>";
+			echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
 			$file = pathinfo($db->getPath());
 			$name = $file['filename'];
 			echo "<input type='text' name='filename' value='".htmlencode($name).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
