@@ -37,10 +37,10 @@
 //////////////////////////////
 
 //password to gain access
-$password = "";
+$password = "admin";
 
 // Theme! If you want to change theme, save the CSS file in same folder of phpliteadmin or in folder "themes"
-$theme = "dynamic_myAdmin.php";
+$theme = "phpliteadmin.css";
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
 $language = "en";
