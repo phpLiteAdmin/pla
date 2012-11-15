@@ -532,13 +532,6 @@ function subString($str)
 	return $str;
 }
 
-function getRowId($table, $where=''){
-	global $db;
-	$query = "SELECT ROWID FROM ".$db->quote_id($table).$where;
-	$result = $db->selectArray($query);
-	return $result;
-}
-
 //
 // Authorization class
 // Maintains user's logged-in state and security of application
@@ -1028,8 +1021,16 @@ class Database
 					// ALTER the table
 					$tmpname = 't'.time();
 					$origsql = $row['sql'];
-					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".
-						preg_replace("/^\s*CREATE\s+TABLE\s+".$this->sqlite_surroundings_preg($table)."\s*(\(.*)$/i", '$1', $origsql, 1);
+					$preg_remove_create_table = "/^\s*CREATE\s+TABLE\s+".$this->sqlite_surroundings_preg($table)."\s*(\(.*)$/i";
+					$origsql_no_create = preg_replace($preg_remove_create_table, '$1', $origsql, 1);
+					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<hr>";
+					if($origsql_no_create == $origsql)
+					{
+						$this->alterError="Error: Altering of Table failed - could not replace the tablename with the temporary one!?";
+						if($debug) echo "ERROR: could not get rid of CREATE TABLE<hr />";
+						return false;
+					}
+					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
 					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
@@ -3308,17 +3309,15 @@ else //user is authorized - display the main application
 							$j++;
 						}
 					}
-					$query = "SELECT * FROM ".$db->quote_id($table);
-					$whereTo = '';
+					$query = "SELECT *, ROWID FROM ".$db->quote_id($table);
 					if(sizeof($arr)>0)
 					{
-						$whereTo .= " WHERE ".$arr[0];
+						$query .= " WHERE ".$arr[0];
 						for($i=1; $i<sizeof($arr); $i++)
 						{
-							$whereTo .= " AND ".$arr[$i];
+							$query .= " AND ".$arr[$i];
 						}
 					}
-					$query .= $whereTo;
 					$startTime = microtime(true);
 					$result = $db->selectArray($query, "assoc");
 					$endTime = microtime(true);
@@ -3346,8 +3345,8 @@ else //user is authorized - display the main application
 
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
-						echo "<td></td><td></td>"; 
-						for($j=0; $j<sizeof($headers); $j++)
+						echo "<td>&nbsp;</td><td>&nbsp;</td>"; 
+						for($j=0; $j<sizeof($headers)-1; $j++)
 						{
 							echo "<td class='tdheader'>";
 							echo htmlencode($headers[$j]);
@@ -3355,16 +3354,14 @@ else //user is authorized - display the main application
 						}
 						echo "</tr>";
 
-						$pkid = getRowId($table, $whereTo);
-
 						for($j=0; $j<sizeof($result); $j++)
 						{
-							$pk = $pkid[$j][0];
+							$pk = $result[$j][$headers[sizeof($result[$j])-1]];
 							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
-							for($z=0; $z<sizeof($headers); $z++)
+							for($z=0; $z<sizeof($headers)-1; $z++)
 							{
 								echo $tdWithClass;
 								echo htmlencode($result[$j][$headers[$z]]);
