@@ -969,11 +969,12 @@ class Database
 	{
 		if($name=="*" || $name=="+")
 		{
-			$nameSingle   = "(?:[^']|'')".$name;
-			$nameDouble   = "(?:[^\"]|\"\")".$name;
-			$nameBacktick = "(?:[^`]|``)".$name;
-			$nameSquare   = "(?:[^\]]|\]\])".$name;
-			$nameNo = "[^".$notAllowedIfNone."]".$name;
+			// use possesive quantifiers to save memory
+			$nameSingle   = "(?:[^']$name+|'')$name+";
+			$nameDouble   = "(?:[^\"]$name+|\"\")$name+";
+			$nameBacktick = "(?:[^`]$name+|``)$name+";
+			$nameSquare   = "(?:[^\]]$name+|\]\])$name+";
+			$nameNo = "[^".$notAllowedIfNone."]$name+";
 		}
 		else
 		{
@@ -1104,19 +1105,19 @@ class Database
 						  3. 'colX' ...,							-		(with colX being the column to change/drop)
 						  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
 						*/
-						$preg_create_table = "\s*(CREATE\s+TEMPORARY\s+TABLE\s+'?".preg_quote($tmpname,"/")."'?\s*\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*".$this->sqlite_surroundings_preg("+",false," '\"\[`")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")+";		// catches a complete column definition, even if it is
+						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
+						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
 								"(".			// group $2. Keep this one unchanged!
 									"(?:".
-										"$preg_column_definiton,\s*".		// column definition + comma
+										"$preg_column_definiton,\s*+".		// column definition + comma
 									")*".								// there might be any number of such columns here
 									$preg_column_definiton.				// last column definition 
 								")".			// end of group $2
-								",\s*"			// the last comma of the last column before the column to change. Do not keep it!
+								",\s*+"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
 						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<hr />";
 						$preg_columns_after = "(,\s*(.+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
@@ -1167,7 +1168,7 @@ class Database
 								$newSQL = preg_replace($preg_pattern_change, '$1$2,'.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).'$3$4)', $createtesttableSQL);
 								// remove comma at the beginning if the first column is changed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
-								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
+								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
 									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
@@ -1192,7 +1193,7 @@ class Database
 								$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
 								// remove comma at the beginning if the first column is removed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
-								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+'".preg_quote($tmpname,"/")."'\s+\(),\s*/",'$1',$newSQL);
+								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
 									echo $createtesttableSQL."<hr>";
