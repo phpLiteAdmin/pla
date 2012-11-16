@@ -379,30 +379,32 @@ if($debug==true)
 
 $startTimeTot = microtime(true); //start the timer to record page load time
 
-//the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
-//create a random salt for this session if a cookie doesn't already exist for it
-if(!isset($_SESSION[$cookie_name.'_salt']) && !isset($_COOKIE[$cookie_name.'_salt']))
-{
-	$n = rand(10e16, 10e20);
-	$_SESSION[$cookie_name.'_salt'] = base_convert($n, 10, 36);
-}
-else if(!isset($_SESSION[$cookie_name.'_salt']) && isset($_COOKIE[$cookie_name.'_salt'])) //session doesn't exist, but cookie does so grab it
-{
-	$_SESSION[$cookie_name.'_salt'] = $_COOKIE[$cookie_name.'_salt'];
-}
-
 //build the basename of this file for later reference
 $info = pathinfo($_SERVER['PHP_SELF']);
 $thisName = $info['basename'];
 
-//constants
+//constants 1
 define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.4");
 define("PAGE", $thisName);
-define("COOKIENAME", $cookie_name);
-define("SYSTEMPASSWORD", $password); // Makes things easier.
-define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[$cookie_name.'_salt'])); //extra security - salted and encrypted password used for checking
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
+define("COOKIENAME", $cookie_name.VERSION);   // version-number added so after updating, old session-data is not used anylonger
+define("SYSTEMPASSWORD", $password); // Makes things easier.
+
+//the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
+//create a random salt for this session if a cookie doesn't already exist for it
+if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
+{
+	$n = rand(10e16, 10e20);
+	$_SESSION[COOKIENAME.'_salt'] = base_convert($n, 10, 36);
+}
+else if(!isset($_SESSION[COOKIENAME.'_salt']) && isset($_COOKIE[COOKIENAME.'_salt'])) //session doesn't exist, but cookie does so grab it
+{
+	$_SESSION[COOKIENAME.'_salt'] = $_COOKIE[COOKIENAME.'_salt'];
+}
+
+//constants 2
+define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[COOKIENAME.'_salt'])); //extra security - salted and encrypted password used for checking
 
 
 //data types array
@@ -2348,7 +2350,7 @@ else //user is authorized - display the main application
 		}
 		$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 	}
-	if(isset($_SESSION[COOKIENAME.'currentDB']))
+	if(isset($_SESSION[COOKIENAME.'currentDB']) && in_array($_SESSION[COOKIENAME.'currentDB'], $databases))
 		$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 
 	//create the objects
