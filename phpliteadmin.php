@@ -3328,7 +3328,7 @@ else //user is authorized - display the main application
 					}
 					$query .= $whereTo;
 					$startTime = microtime(true);
-					$result = $db->selectArray($query, "both");
+					$result = $db->selectArray($query,"assoc");
 					$endTime = microtime(true);
 					$time = round(($endTime - $startTime), 4);
 
