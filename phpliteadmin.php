@@ -1031,7 +1031,7 @@ class Database
 					// ALTER the table
 					$tmpname = 't'.time();
 					$origsql = $row['sql'];
-					$preg_remove_create_table = "/^\s*CREATE\s+TABLE\s+".$this->sqlite_surroundings_preg($table)."\s*(\(.*)$/i";
+					$preg_remove_create_table = "/^\s*+CREATE\s++TABLE\s++".$this->sqlite_surroundings_preg($table)."\s*+(\(.*+)$/i";
 					$origsql_no_create = preg_replace($preg_remove_create_table, '$1', $origsql, 1);
 					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<hr>";
 					if($origsql_no_create == $origsql)
