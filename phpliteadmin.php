@@ -2049,6 +2049,7 @@ fieldset {
 .sidebar_table { font-size:11px; }
 .active_table, .active_db { text-decoration:underline; }
 .null { color:#ccc; }
+.found { background:#FFFF00; text-decoration:none; }
 
 </style>
 <!-- end the customizable stylesheet/theme -->
@@ -3304,6 +3305,8 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// search table
 			case "table_search":
+				$foundVal = array();
+				$fieldArr = array();
 				if(isset($_GET['done']))
 				{
 					$table = $_GET['table'];
@@ -3327,6 +3330,8 @@ else //user is authorized - display the main application
 									$operator = "LIKE";
 									if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
 								}
+								$fieldArr[] = $field;
+								$foundVal[] = $value;
 								$arr[$j] = $db->quote_id($field)." ".$operator." ".$db->quote($value);
 							}
 							$j++;
@@ -3385,13 +3390,20 @@ else //user is authorized - display the main application
 						{
 							$pk = $pkid[$j][0];
 							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+							$cVal = 0;
 							echo "<tr>";
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
 							echo $tdWithClass."<a href='".PAGE."?table=".urlencode($table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								echo htmlencode($result[$j][$headers[$z]]);
+								$fldResult = htmlencode($result[$j][$headers[$z]]);
+								if(!empty($foundVal) and in_array($headers[$z], $fieldArr)){
+									$foundVal = str_replace('%', '', $foundVal);
+									$fldResult = str_ireplace($foundVal[$cVal], '<u class="found">'.$foundVal[$cVal].'</u>', $fldResult);
+									$cVal++;
+								}
+								echo $fldResult;
 								echo "</td>";
 							}
 							echo "</tr>";
@@ -3532,6 +3544,7 @@ else //user is authorized - display the main application
 				echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 				echo $lang['rows_records'];
+
 				if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows']) < $rowCount)
 					echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 				else
@@ -4541,6 +4554,7 @@ else //user is authorized - display the main application
 					echo "<form action='".PAGE."?table=".urlencode($_POST['tablename'])."&amp;action=index_create&amp;confirm=1' method='post'>";
 					$num = intval($_POST['numcolumns']);
 					$query = "PRAGMA table_info(".$db->quote_id($_POST['tablename']).")";
+
 					$result = $db->selectArray($query);
 					echo "<fieldset><legend>".$lang['define_index']."</legend>";
 					echo $lang['index_name'].": <input type='text' name='name'/><br/>";
