@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-15
+//  Last updated: 2012-11-19
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1174,6 +1174,7 @@ class Database
 									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
 									echo $createtesttableSQL."<hr />";
 									echo $newSQL."<hr />";
+
 									echo $preg_pattern_change."<hr />";
 									
 								}
@@ -2263,6 +2264,12 @@ function PopupCenter(pageURL, title)
 {
 	helpsec = window.open(pageURL, title, "toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=0,width=400,height=300");
 } 
+function checkLike(srchField, selOpt){
+	if(selOpt=="LIKE%"){
+		var textArea = document.getElementById(srchField).value;
+		document.getElementById(srchField).value = "%" + textArea + "%";
+	}
+}
 /* ]]> */ 
 </script>
 </head>
@@ -3309,18 +3316,24 @@ else //user is authorized - display the main application
 						$field = $result[$i][1];
 						$field_index = str_replace(" ","_",$field);
 						$operator = $_POST[$field_index.":operator"];
-						$value = $_POST[$field_index];
+						$value = $_POST[$field_index];  // XXX
 						if($value!="" || $operator=="!= ''" || $operator=="= ''")
 						{
 							if($operator=="= ''" || $operator=="!= ''")
 								$arr[$j] = $db->quote_id($field)." ".$operator;
-							else
+							
+							else{
+								if($operator == "LIKE%"){ 
+									$operator = "LIKE";
+									if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value;
+								}
 								$arr[$j] = $db->quote_id($field)." ".$operator." ".$db->quote($value);
+							}
 							$j++;
 						}
 					}
 					$query = "SELECT * FROM ".$db->quote_id($table);
-					$whereTo = '';
+					$whereTo = ''; 
 					if(sizeof($arr)>0)
 					{
 						$whereTo .= " WHERE ".$arr[0];
@@ -3423,7 +3436,7 @@ else //user is authorized - display the main application
 					  echo $type;
 					  echo "</td>";
 					  echo $tdWithClassLeft;
-					  echo "<select name='".htmlencode($field).":operator'>";
+					  echo "<select name='".htmlencode($field).":operator' onchange='checkLike(\"".$field."_search\", this.options[this.selectedIndex].value); '>";
 					  echo "<option value='='>=</option>";
 					  if($type=="INTEGER" || $type=="REAL")
 					  {
@@ -3442,14 +3455,15 @@ else //user is authorized - display the main application
 						  echo "<option value='LIKE' selected='selected'>LIKE</option>";
 					  else
 						  echo "<option value='LIKE'>LIKE</option>";
+					  echo "<option value='LIKE%'>LIKE %...%</option>";
 					  echo "<option value='NOT LIKE'>NOT LIKE</option>";
 					  echo "</select>";
 					  echo "</td>";
 					  echo $tdWithClassLeft;
 					  if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
-						  echo "<input type='text' name='".htmlencode($field)."'/>";
+						  echo "<input type='text' id='".$field."_search' name='".htmlencode($field)."'/>";
 					  else
-						  echo "<textarea name='".htmlencode($field)."' wrap='hard' rows='1' cols='60'></textarea>";
+						  echo "<textarea id='".$field."_search' name='".htmlencode($field)."' wrap='hard' rows='1' cols='60'></textarea>";
 					  echo "</td>";
 					  echo "</tr>";
 					}
@@ -4173,6 +4187,7 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo "<td class='tdheader'>".$lang['name']."</td>";
 						echo "<td class='tdheader'>".$lang['unique']."</td>";
+
 						echo "<td class='tdheader'>".$lang['seq_no']."</td>";
 						echo "<td class='tdheader'>".$lang['col']." #</td>";
 						echo "<td class='tdheader'>".$lang['fld']."</td>";
