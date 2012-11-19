@@ -3397,13 +3397,13 @@ else //user is authorized - display the main application
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								$fldResult = htmlencode($result[$j][$headers[$z]]);
+								$fldResult = $result[$j][$headers[$z]];
 								if(!empty($foundVal) and in_array($headers[$z], $fieldArr)){
 									$foundVal = str_replace('%', '', $foundVal);
-									$fldResult = str_ireplace($foundVal[$cVal], '<u class="found">'.$foundVal[$cVal].'</u>', $fldResult);
+                          $fldResult = str_ireplace($foundVal[$cVal], '[fnd]'.$foundVal[$cVal].'[/fnd]', $fldResult);
 									$cVal++;
 								}
-								echo $fldResult;
+								echo str_replace(array('[fnd]', '[/fnd]'), array('<u class="found">', '</u>'), htmlencode($fldResult));
 								echo "</td>";
 							}
 							echo "</tr>";
