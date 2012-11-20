@@ -377,7 +377,8 @@ if($debug==true)
 	error_reporting(E_STRICT | E_ALL);
 }
 
-$startTimeTot = microtime(true); //start the timer to record page load time
+// start the timer to record page load time
+$pageTimer = new MicroTimer();
 
 //build the basename of this file for later reference
 $info = pathinfo($_SERVER['PHP_SELF']);
@@ -2300,10 +2301,8 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "</div>";
 	echo "<br/>";
 	echo "<div style='text-align:center;'>";
-	$endTimeTot = microtime(true);
-	$timeTot = round(($endTimeTot - $startTimeTot), 4);
 	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://phpliteadmin.googlecode.com' target='_blank' style='font-size:11px;'>".PROJECT."</a> | "; 
-	printf($lang['page_gen'], $timeTot);
+	printf($lang['page_gen'], $pageTimer);
 	echo "</span></div>";
 }
 else //user is authorized - display the main application
@@ -3072,7 +3071,7 @@ else //user is authorized - display the main application
 					{
 						if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 						{
-							$startTime = microtime(true);
+							$queryTimer = new MicroTimer();
 							if(strpos(strtolower($query[$i]), "select ")!==false
 								|| strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
 							{
@@ -3084,8 +3083,7 @@ else //user is authorized - display the main application
 								$isSelect = false;
 								$result = $db->query($query[$i]);
 							}
-							$endTime = microtime(true);
-							$time = round(($endTime - $startTime), 4);
+							$queryTimer->stop();
 
 							echo "<div class='confirm'>";
 							echo "<b>";
@@ -3101,7 +3099,7 @@ else //user is authorized - display the main application
 									$affected = $db->getAffectedRows();
 									echo $affected." ".$lang['rows']." ".$lang['affected'].". ";
 								}
-								printf($lang['query_time'], $time);
+								printf($lang['query_time'], $queryTimer);
 								echo "</b><br/>";
 							}
 							else
@@ -3348,10 +3346,9 @@ else //user is authorized - display the main application
 						}
 					}
 					$query .= $whereTo;
-					$startTime = microtime(true);
+					$queryTimer = new MicroTimer();
 					$result = $db->selectArray($query,"assoc");
-					$endTime = microtime(true);
-					$time = round(($endTime - $startTime), 4);
+					$queryTimer->stop();
 
 					echo "<div class='confirm'>";
 					echo "<b>";
@@ -3359,7 +3356,7 @@ else //user is authorized - display the main application
 					{
 						$affected = sizeof($result);
 						echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
-						printf($lang['query_time'], $time);
+						printf($lang['query_time'], $queryTimer);
 						echo "</b><br/>";
 					}
 					else
@@ -3615,17 +3612,16 @@ else //user is authorized - display the main application
 				$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
 				$query .= $queryAdd;
 				$queryDisp .= $queryAdd;
-				$startTime = microtime(true);
+                $queryTimer = new MicroTimer();
 				$arr = $db->selectArray($query);
-				$endTime = microtime(true);
-				$time = round(($endTime - $startTime), 4);
+                $queryTimer->stop();
 				$total = $db->numRows($table);
 
 				if(sizeof($arr)>0)
 				{
 					echo "<br/><div class='confirm'>";
 					echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$total." ";
-					printf($lang['query_time'], $time);
+					printf($lang['query_time'], $queryTimer);
 					echo "</b><br/>";
 					echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
 					echo "</div><br/>";
@@ -4867,7 +4863,7 @@ else //user is authorized - display the main application
 				{
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
-						$startTime = microtime(true);
+						$queryTimer = new MicroTimer();
 						if(strpos(strtolower($query[$i]), "select ")!==false || strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
 						{
 							$isSelect = true;
@@ -4878,8 +4874,7 @@ else //user is authorized - display the main application
 							$isSelect = false;
 							$result = $db->query($query[$i]);
 						}
-						$endTime = microtime(true);
-						$time = round(($endTime - $startTime), 4);
+                        $queryTimer->stop();
 
 						echo "<div class='confirm'>";
 						echo "<b>";
@@ -4896,7 +4891,7 @@ else //user is authorized - display the main application
 								$affected = $db->getAffectedRows();
 								echo $affected." ".$lang['rows_aff']." ";
 							}
-							printf($lang['query_time'], $time);
+							printf($lang['query_time'], $queryTimer);
 							echo "</b><br/>";
 						}
 						else
@@ -5118,10 +5113,8 @@ else //user is authorized - display the main application
 	}
 
 	echo "<br/>";
-	$endTimeTot = microtime(true); //get the current time at this point in the execution
-	$timeTot = round(($endTimeTot - $startTimeTot), 4); //calculate the total time for page load
 	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
-	printf($lang['page_gen'], $timeTot);
+	printf($lang['page_gen'], $pageTimer);
 	echo "</span>";
 	echo "</td></tr></table>";
 	$db->close(); //close the database
@@ -5129,4 +5122,43 @@ else //user is authorized - display the main application
 echo "</body>";
 echo "</html>";
 
-?>
+
+/*	class MicroTimer (issue #146)
+	wraps calls to microtime(), calculating the elapsed time and rounding output
+*/
+
+class MicroTimer {
+
+	private $startTime, $stopTime;
+
+	// creates and starts a timer
+	function __construct()
+	{
+		$this->startTime = microtime(true);
+	}
+
+	// stops a timer
+	public function stop()
+	{
+		$this->stopTime = microtime(true);
+	}
+
+	// returns the number of seconds from the timer's creation, or elapsed
+	// between creation and call to ->stop()
+	public function elapsed()
+	{
+		if ($this->stopTime)
+			return round($this->stopTime - $this->startTime, 4);
+
+		return round(microtime(true) - $this->startTime, 4);
+	}
+
+	// called when using a MicroTimer object as a string
+	public function __toString()
+	{
+		return (string) $this->elapsed();
+	}
+
+}
+
+# - eof -
