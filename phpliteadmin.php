@@ -3397,7 +3397,7 @@ else //user is authorized - display the main application
 								$fldResult = $result[$j][$headers[$z]];
 								if(!empty($foundVal) and in_array($headers[$z], $fieldArr)){
 									$foundVal = str_replace('%', '', $foundVal);
-                          $fldResult = str_ireplace($foundVal[$cVal], '[fnd]'.$foundVal[$cVal].'[/fnd]', $fldResult);
+									$fldResult = str_ireplace($foundVal[$cVal], '[fnd]'.$foundVal[$cVal].'[/fnd]', $fldResult);
 									$cVal++;
 								}
 								echo str_replace(array('[fnd]', '[/fnd]'), array('<u class="found">', '</u>'), htmlencode($fldResult));
@@ -3612,9 +3612,9 @@ else //user is authorized - display the main application
 				$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
 				$query .= $queryAdd;
 				$queryDisp .= $queryAdd;
-                $queryTimer = new MicroTimer();
+				$queryTimer = new MicroTimer();
 				$arr = $db->selectArray($query);
-                $queryTimer->stop();
+				$queryTimer->stop();
 				$total = $db->numRows($table);
 
 				if(sizeof($arr)>0)
@@ -4874,7 +4874,7 @@ else //user is authorized - display the main application
 							$isSelect = false;
 							$result = $db->query($query[$i]);
 						}
-                        $queryTimer->stop();
+						$queryTimer->stop();
 
 						echo "<div class='confirm'>";
 						echo "<b>";
