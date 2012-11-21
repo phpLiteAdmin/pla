@@ -1032,7 +1032,7 @@ class Database
 					// ALTER the table
 					$tmpname = 't'.time();
 					$origsql = $row['sql'];
-					$preg_remove_create_table = "/^\s*+CREATE\s++TABLE\s++".$this->sqlite_surroundings_preg($table)."\s*+(\(.*+)$/i";
+					$preg_remove_create_table = "/^\s*+CREATE\s++TABLE\s++".$this->sqlite_surroundings_preg($table)."\s*+(\(.*+)$/is";
 					$origsql_no_create = preg_replace($preg_remove_create_table, '$1', $origsql, 1);
 					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<hr>";
 					if($origsql_no_create == $origsql)
@@ -1135,7 +1135,7 @@ class Database
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
-								$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/";
+								$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/s";
 								// append the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_add, '$1$2, ', $createtesttableSQL).$new_col_definition.')';
 								if($debug)
@@ -1163,7 +1163,7 @@ class Database
 								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")+)?";
 												// replace this part (we want to change this column)
 												// group $3 contains the column constraints (keep!). the name & data type is replaced.
-								$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/";
+								$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/s";
 
 								// replace the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_change, '$1$2,'.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).'$3$4)', $createtesttableSQL);
@@ -1189,7 +1189,7 @@ class Database
 								break;
 							case 'drop':
 								$preg_column_to_drop = "\s*".$this->sqlite_surroundings_preg($column)."\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"\[`").")+";      // delete this part (we want to drop this column)
-								$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/";
+								$preg_pattern_drop = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_drop.$preg_columns_after."\s*\\)\s*$/s";
 
 								// remove the column out of the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
@@ -1224,7 +1224,7 @@ class Database
 					}
 					$droptempsql = 'DROP TABLE '.$this->quote_id($tmpname);
 
-					$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/i", '$1', $createtesttableSQL, 1);
+					$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/is", '$1', $createtesttableSQL, 1);
 
 					$newcolumns = '';
 					$oldcolumns = '';
