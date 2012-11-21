@@ -1007,7 +1007,7 @@ class Database
 		if($alterdefs != '')
 		{
 			$recreateQueries = array();
-			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = ".$this->quote($table)." ORDER BY type DESC";
+			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = ".$this->quote($table);
 			$result = $this->query($tempQuery);
 			$resultArr = $this->selectArray($tempQuery);
 			if($this->type=="PDO")
@@ -1787,8 +1787,8 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
 <!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-<link rel="shortcut icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon">
-<link rel="icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon" />
+<link rel="icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon" />
 <title><?php echo PROJECT ?></title>
 
 <?php
@@ -3608,7 +3608,7 @@ else //user is authorized - display the main application
 				$queryDisp = "SELECT * FROM ".$db->quote_id($table);
 				$queryAdd = "";
 				if(isset($_SESSION[COOKIENAME.'sort']))
-					$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
+					$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sort']);
 				if(isset($_SESSION[COOKIENAME.'order']))
 					$queryAdd .= " ".$_SESSION[COOKIENAME.'order'];
 				$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
@@ -4681,7 +4681,9 @@ else //user is authorized - display the main application
 			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view'";
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sort']))
-				$queryAdd .= " ORDER BY ".$_SESSION[COOKIENAME.'sort'];
+				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sort']);
+			else
+				$queryAdd .= " ORDER BY \"name\"";
 			if(isset($_SESSION[COOKIENAME.'order']))
 				$queryAdd .= " ".$_SESSION[COOKIENAME.'order'];
 			$query .= $queryAdd;
