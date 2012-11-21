@@ -1601,17 +1601,24 @@ if($auth->isAuthorized())
 	}
 	
 	//user is creating a new Database
-	if(isset($_POST['new_dbname']) && $auth->isAuthorized())
+	if(isset($_POST['new_dbname']))
 	{
-		$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
-		$dbname = $str;
-		$dbpath = $str;
-		$info = pathinfo($dbpath);
-		$tdata = array();	
-		$tdata['name'] = $dbname;
-		$tdata['path'] = $directory."/".$dbpath;
-		$td = new Database($tdata);
-		$td->query("VACUUM");
+		if($_POST['new_dbname']=='')
+		{
+			// TODO: Display an error message (do NOT echo here. echo below in the html-body!)
+		}
+		else
+		{
+			$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
+			$dbname = $str;
+			$dbpath = $str;
+			$info = pathinfo($dbpath);
+			$tdata = array();	
+			$tdata['name'] = $dbname;
+			$tdata['path'] = $directory."/".$dbpath;
+			$td = new Database($tdata);
+			$td->query("VACUUM");
+		}
 	}
 	
 	//if the user wants to scan a directory for databases, do so
