@@ -1787,6 +1787,8 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
 <!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+<link rel="shortcut icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon">
+<link rel="icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon">
 <title><?php echo PROJECT ?></title>
 
 <?php
