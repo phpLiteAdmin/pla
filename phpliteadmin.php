@@ -975,7 +975,7 @@ class Database
 			$nameDouble   = "(?:[^\"]$name+|\"\")$name+";
 			$nameBacktick = "(?:[^`]$name+|``)$name+";
 			$nameSquare   = "(?:[^\]]$name+|\]\])$name+";
-			$nameNo = "[^".$notAllowedIfNone."]$name+";
+			$nameNo = "[^".$notAllowedIfNone."]$name";
 		}
 		else
 		{
