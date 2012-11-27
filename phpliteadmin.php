@@ -2058,7 +2058,7 @@ fieldset {
 .warning, .delete, .empty, .drop, .delete_db { color:red; }
 .sidebar_table { font-size:11px; }
 .active_table, .active_db { text-decoration:underline; }
-.null { color:#ccc; }
+.null { color:#888; }
 .found { background:#FFFF00; text-decoration:none; }
 
 </style>
