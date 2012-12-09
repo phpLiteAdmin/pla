@@ -548,25 +548,45 @@ function getRowId($table, $where=''){
 //
 class Authorization
 {
-	public function grant($remember)
+	private $authorized;
+	private $login_failed;
+
+	public function __construct()
 	{
-		if($remember) //user wants to be remembered, so set a cookie
-		{
-			$expire = time()+60*60*24*30; //set expiration to 1 month from now
-			setcookie(COOKIENAME, SYSTEMPASSWORD, $expire);
-			setcookie(COOKIENAME."_salt", $_SESSION[COOKIENAME.'_salt'], $expire);
-		}
-		else
-		{
-			//user does not want to be remembered, so destroy any potential cookies
-			setcookie(COOKIENAME, "", time()-86400);
-			setcookie(COOKIENAME."_salt", "", time()-86400);
-			unset($_COOKIE[COOKIENAME]);
-			unset($_COOKIE[COOKIENAME.'_salt']);
+		$this->authorized =
+			// no password
+			SYSTEMPASSWORD == ''
+			// correct password stored in session
+			|| isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == SYSTEMPASSWORDENCRYPTED
+			// correct password stored in cookie
+			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5($_COOKIE[COOKIENAME]."_".$_COOKIE[COOKIENAME.'_salt']) == SYSTEMPASSWORDENCRYPTED;
+	}
+
+	public function attemptGrant($password, $remember)
+	{
+		if ($password == SYSTEMPASSWORD) {
+			if ($remember) {
+				// user wants to be remembered, so set a cookie
+				$expire = time()+60*60*24*30; //set expiration to 1 month from now
+				setcookie(COOKIENAME, SYSTEMPASSWORD, $expire);
+				setcookie(COOKIENAME."_salt", $_SESSION[COOKIENAME.'_salt'], $expire);
+			} else {
+				// user does not want to be remembered, so destroy any potential cookies
+				setcookie(COOKIENAME, "", time()-86400);
+				setcookie(COOKIENAME."_salt", "", time()-86400);
+				unset($_COOKIE[COOKIENAME]);
+				unset($_COOKIE[COOKIENAME.'_salt']);
+			}
+
+			$_SESSION[COOKIENAME.'password'] = SYSTEMPASSWORDENCRYPTED;
+			$this->authorized = true;
+			return true;
 		}
 
-		$_SESSION[COOKIENAME.'password'] = SYSTEMPASSWORDENCRYPTED;
+		$this->login_failed = true;
+		return false;
 	}
+
 	public function revoke()
 	{
 		//destroy everything - cookies and session vars
@@ -576,19 +596,24 @@ class Authorization
 		unset($_COOKIE[COOKIENAME.'_salt']);
 		session_unset();
 		session_destroy();
+		$this->authorized = false;
 	}
+
 	public function isAuthorized()
 	{
-		global $password;
-		if ($password == '') { return true; }  // no validation check if password is turned off
-		// Is this just session long? (What!?? -DI)
-		if((isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == SYSTEMPASSWORDENCRYPTED) || (isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5($_COOKIE[COOKIENAME]."_".$_COOKIE[COOKIENAME.'_salt']) == SYSTEMPASSWORDENCRYPTED))
-			return true;
-		else
-		{
-			return false;
-		}
+		return $this->authorized;      
 	}
+
+	public function isFailedLogin()
+	{
+		return $this->login_failed;
+	}
+
+	public function isPasswordDefault()
+	{
+		return SYSTEMPASSWORD == 'admin';
+	}
+
 }
 
 //
@@ -1557,22 +1582,15 @@ class Database
 }
 
 $auth = new Authorization(); //create authorization object
-if(isset($_POST['logout'])) //user has attempted to log out
+
+// check if user has attempted to log out
+if (isset($_POST['logout']))
 	$auth->revoke();
-else if(isset($_POST['login']) || isset($_POST['proc_login'])) //user has attempted to log in
-{
-	$_POST['login'] = true;
+// check if user has attempted to log in
+else if (isset($_POST['login']) && isset($_POST['password']))
+	$auth->attemptGrant($_POST['password'], isset($_POST['remember']));
 
-	if($_POST['password']==SYSTEMPASSWORD) //make sure passwords match before granting authorization
-	{
-		if(isset($_POST['remember']))
-			$auth->grant(true);
-		else
-			$auth->grant(false);
-	}
-}
-
-if($auth->isAuthorized())
+if ($auth->isAuthorized())
 {
 
 	//user is deleting a database
@@ -2298,13 +2316,13 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "<div id='loginBox'>";
 	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px; text-align:center;'>";
-	if(isset($_POST['login']))
+	if ($auth->isFailedLogin())
 		echo "<span class='warning'>".$lang['passwd_incorrect']."</span><br/><br/>";
 	echo "<form action='".PAGE."' method='post'>";
 	echo $lang['passwd'].": <input type='password' name='password'/><br/>";
 	echo "<label><input type='checkbox' name='remember' value='yes' checked='checked'/> ".$lang['remember']."</label><br/><br/>";
-	echo "<input type='submit' value='".$lang['login']."' name='login' class='btn'/>";
-	echo "<input type='hidden' name='proc_login' value='true' />";
+	echo "<input type='submit' value='".$lang['login']."' class='btn'/>";
+	echo "<input type='hidden' name='login' value='true' />";
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
@@ -4660,8 +4678,7 @@ else //user is authorized - display the main application
 			$queryVersion = $db->select($query);
 			$realVersion = $queryVersion['sqlite_version'];
 			
-			
-			if(SYSTEMPASSWORD=="admin")
+			if ($auth->isPasswordDefault())
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				echo $lang['warn_passwd']." phpliteadmin.php<br />".$lang['warn0'];
