@@ -3099,8 +3099,7 @@ else //user is authorized - display the main application
 						if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 						{
 							$queryTimer = new MicroTimer();
-							if(strpos(strtolower($query[$i]), "select ")!==false
-								|| strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
+							if(preg_match('/^\s*(?:select|pragma)\s/i', $query[$i])===1)   // pragma often returns rows just like select
 							{
 								$isSelect = true;
 								$result = $db->selectArray($query[$i], "assoc");
@@ -4892,7 +4891,7 @@ else //user is authorized - display the main application
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$queryTimer = new MicroTimer();
-						if(strpos(strtolower($query[$i]), "select ")!==false || strpos(strtolower($query[$i]), "pragma ")!==false)   // pragma often returns rows just like select
+						if(preg_match('/^\s*(?:select|pragma)\s/i', $query[$i])===1)   // pragma often returns rows just like select
 						{
 							$isSelect = true;
 							$result = $db->selectArray($query[$i], "assoc");
