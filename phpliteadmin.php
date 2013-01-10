@@ -1280,7 +1280,9 @@ if($auth->isAuthorized())
 		{
 			echo "<div class='confirm' style='margin:20px;'>";
 			echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";
-			foreach($allowed_extensions as $ext_i => $extension) echo $extension. ($ext_i==count($allowed_extensions)-1?'':', ');
+			foreach($allowed_extensions as $ext_i => $extension)
+				echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+			echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';
 			echo "</div>";
 		} else
 		{
