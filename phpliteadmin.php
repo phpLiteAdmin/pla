@@ -128,7 +128,7 @@ $thisName = $info['basename'];
 
 //constants
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.3");
+define("VERSION", "1.9.3.1");
 define("PAGE", $thisName);
 define("COOKIENAME", $cookie_name);
 define("SYSTEMPASSWORD", $password); // Makes things easier.
