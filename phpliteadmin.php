@@ -215,14 +215,14 @@ function dir_tree($dir)
 			{
 				if($dircont[$i] !== '.' && $dircont[$i] !== '..')
 				{
-					$current_file = "{$thisdir}/{$dircont[$i]}";
+					$current_file = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 					if(is_file($current_file))
 					{
-						$path[] = "{$thisdir}/{$dircont[$i]}";
+						$path[] = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 					}
 					elseif (is_dir($current_file))
 					{
-						$path[] = "{$thisdir}/{$dircont[$i]}";
+						$path[] = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 						$stack[] = $current_file;
 					}
 				}
@@ -262,7 +262,7 @@ function checkDbName($name)
 		return false;
 	} else
 	{
-		return (!is_file($name));
+		return (!is_file($name) && !is_dir($name));
 	}
 
 }
@@ -1287,17 +1287,21 @@ if($auth->isAuthorized())
 		{
 			$tdata = array();	
 			$tdata['name'] = $dbname;
-			$tdata['path'] = $directory."/".$dbpath;
+			$tdata['path'] = $directory.DIRECTORY_SEPARATOR.$dbpath;
 			$td = new Database($tdata);
 			$td->query("VACUUM");
-		} else $extension_not_allowed=true;
+		} else
+		{
+			if(is_file($dbname) || is_dir($dbname)) $dbexists = true;
+			else $extension_not_allowed=true;
+		}
 	}
 	
 
 	//if the user wants to scan a directory for databases, do so
 	if($directory!==false)
 	{
-		if($directory[strlen($directory)-1]=="/") //if user has a trailing slash in the directory, remove it
+		if($directory[strlen($directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
 			$directory = substr($directory, 0, strlen($directory)-1);
 			
 		if(is_dir($directory)) //make sure the directory is valid
@@ -1311,7 +1315,7 @@ if($auth->isAuthorized())
 			for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 			{
 				if($subdirectories===false)
-					$arr[$i] = $directory."/".$arr[$i];
+					$arr[$i] = $directory.DIRECTORY_SEPARATOR.$arr[$i];
 				
 				if(!is_file($arr[$i])) continue;
 				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
@@ -1399,7 +1403,26 @@ if($auth->isAuthorized())
 	{
 		$oldpath = $_POST['oldname'];
 		$newpath = $_POST['newname'];
-
+		$oldpath_parts = pathinfo($oldpath);
+		$newpath_parts = pathinfo($newpath);
+		// only rename?
+		$newpath = $oldpath_parts['dirname'].DIRECTORY_SEPARATOR.basename($_POST['newname']);
+		if($newpath != $_POST['newname'] && $subdirectories)
+		{
+			// it seems that the file should not only be renamed but additionally moved.
+			// we need to make sure it stays within $directory...
+			$new_realpath = realpath($newpath_parts['dirname']).DIRECTORY_SEPARATOR;
+			$directory_realpath = realpath($directory).DIRECTORY_SEPARATOR;
+			echo $_POST['newname']."=>".$new_realpath."<br>";
+			echo $directory_realpath."<br>";
+			if(strpos($new_realpath, $directory_realpath)===0)
+			{
+				// its okay, the new directory is within $directory
+				$newpath =  $_POST['newname'];
+			}
+			else die('You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.');
+		}
+		
 		if(checkDbName($newpath))
 		{
 			$checkDB = isManagedDB($oldpath);
@@ -1416,7 +1439,7 @@ if($auth->isAuthorized())
 		}
 		else
 		{
-			if(is_file($newpath)) $dbexists = true;
+			if(is_file($newpath) || is_dir($newpath)) $dbexists = true;
 			else $extension_not_allowed = true;	
 		}
 	}
@@ -2093,6 +2116,17 @@ else //user is authorized - display the main application
 			echo "<div class='confirm' style='margin:20px;'>";
 			echo "Welcome to phpLiteAdmin. It appears that you have selected to scan a directory for databases to manage. However, phpLiteAdmin could not find any valid SQLite databases. You may use the form below to create your first database.";
 			echo "</div>";	
+
+			if(isset($extension_not_allowed))
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";
+				foreach($allowed_extensions as $ext_i => $extension)
+					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';
+				echo "</div><br/>";
+			}
+
 			echo "<fieldset style='margin:15px;'><legend><b>Create New Database</b></legend>";
 			echo "<form name='create_database' method='post' action='".PAGE."'>";
 			echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='Create' class='btn'/>";
@@ -4374,6 +4408,13 @@ else //user is authorized - display the main application
 			$queryVersion = $db->select($query);
 			$realVersion = $queryVersion['sqlite_version'];
 			
+			if(isset($dbexists))
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "Error: A database, other file or directory of the name '".htmlencode($dbname)."' already exists.";
+				echo "</div><br/>";
+			}
+			
 			if(isset($extension_not_allowed))
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
@@ -4823,7 +4864,7 @@ else //user is authorized - display the main application
 				if($oldpath==$newpath)
 					echo "Error: You didn't change the value dumbass ;-)";
 				else
-					echo "Error: A database of the name '".htmlencode($newpath)."' already exists.";
+					echo "Error: A database, other file or directory of the name '".htmlencode($newpath)."' already exists.";
 				echo "</div><br/>";
 			}
 			if(isset($justrenamed))
