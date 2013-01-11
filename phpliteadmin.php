@@ -267,6 +267,24 @@ function checkDbName($name)
 
 }
 
+// check whether a path is a db managed by this tool
+// requires that $databases is already filled!
+// returns the key of the db if managed, false otherwise.
+function isManagedDB($path)
+{
+	global $databases;
+	foreach($databases as $db_key => $database)
+	{
+		if($path == $database['path'])
+		{
+			// a db we manage. Thats okay.
+			// return the key.
+			return $db_key;
+		}
+	}
+	// not a db we manage!
+	return false;
+}
 
 //
 // Authorization class
@@ -1325,18 +1343,7 @@ if($auth->isAuthorized())
 			{
 				foreach($databases as $db_id => $database)
 				{
-					if($database['path'] == $tdata)
-					{
-						$_SESSION[COOKIENAME.'currentDB'] = $database;
-						break;
-					}
-				}
-			}
-			if(isset($justrenamed))
-			{
-				foreach($databases as $db_id => $database)
-				{
-					if($database['path'] == $newpath)
+					if($database['path'] == $tdata['path'])
 					{
 						$_SESSION[COOKIENAME.'currentDB'] = $database;
 						break;
@@ -1378,21 +1385,12 @@ if($auth->isAuthorized())
 	{
 		$dbpath = $_POST['database_delete'];
 		// check whether $dbpath really is a db we manage
-		$is_a_db = false;
-		foreach($databases as $db_key => $database)
-		{
-			if($dbpath == $database['path'])
-			{
-				// a db we manage is to be deleted. Thats okay.
-				$is_a_db = true;
-				$db_key_to_delete = $db_key;
-			}
-		}
-		if($is_a_db)
+		$checkDB = isManagedDB($dbpath);
+		if($checkDB !== false)
 		{
 			unlink($dbpath);
 			unset($_SESSION[COOKIENAME.'currentDB']);
-			unset($databases[$db_key_to_delete]);
+			unset($databases[$checkDB]);
 		} else die('You can only delete databases managed by this tool!');
 	}
 	
@@ -1401,13 +1399,20 @@ if($auth->isAuthorized())
 	{
 		$oldpath = $_POST['oldname'];
 		$newpath = $_POST['newname'];
-		$newpath_info = pathinfo($_POST['newname']);
-		
+
 		if(checkDbName($newpath))
 		{
-			copy($oldpath, $newpath);
-			unlink($oldpath);
-			$justrenamed = true;
+			$checkDB = isManagedDB($oldpath);
+			if($checkDB !==false )
+			{
+				copy($oldpath, $newpath);
+				unlink($oldpath);
+				$databases[$checkDB]['path'] = $newpath;
+				$databases[$checkDB]['name'] = basename($newpath);
+				$_SESSION[COOKIENAME.'currentDB'] = $databases[$checkDB]; 
+				$justrenamed = true;
+			}
+			else die('You can only rename databases managed by this tool!');
 		}
 		else
 		{
