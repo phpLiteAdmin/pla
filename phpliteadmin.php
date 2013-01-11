@@ -1259,34 +1259,6 @@ else if(isset($_POST['login']) || isset($_POST['proc_login'])) //user has attemp
 if($auth->isAuthorized())
 {
 
-	//user is deleting a database
-	if(isset($_GET['database_delete']))
-	{
-		$dbpath = $_POST['database_delete'];
-		unlink($dbpath);
-		unset($_SESSION[COOKIENAME.'currentDB']);
-	}
-	
-	//user is renaming a database
-	if(isset($_GET['database_rename']))
-	{
-		$oldpath = $_POST['oldname'];
-		$newpath = $_POST['newname'];
-		$newpath_info = pathinfo($_POST['newname']);
-		
-		if(checkDbName($newpath))
-		{
-			copy($oldpath, $newpath);
-			unlink($oldpath);
-			$justrenamed = true;
-		}
-		else
-		{
-			if(is_file($newpath)) $dbexists = true;
-			else $extension_not_allowed = true;	
-		}
-	}
-	
 	//user is creating a new Database
 	if(isset($_POST['new_dbname']) && $auth->isAuthorized())
 	{
@@ -1303,6 +1275,7 @@ if($auth->isAuthorized())
 		} else $extension_not_allowed=true;
 	}
 	
+
 	//if the user wants to scan a directory for databases, do so
 	if($directory!==false)
 	{
@@ -1400,7 +1373,50 @@ if($auth->isAuthorized())
 		sort($databases);
 	}
 	
+	//user is deleting a database
+	if(isset($_GET['database_delete']))
+	{
+		$dbpath = $_POST['database_delete'];
+		// check whether $dbpath really is a db we manage
+		$is_a_db = false;
+		foreach($databases as $db_key => $database)
+		{
+			if($dbpath == $database['path'])
+			{
+				// a db we manage is to be deleted. Thats okay.
+				$is_a_db = true;
+				$db_key_to_delete = $db_key;
+			}
+		}
+		if($is_a_db)
+		{
+			unlink($dbpath);
+			unset($_SESSION[COOKIENAME.'currentDB']);
+			unset($databases[$db_key_to_delete]);
+		} else die('You can only delete databases managed by this tool!');
+	}
 	
+	//user is renaming a database
+	if(isset($_GET['database_rename']))
+	{
+		$oldpath = $_POST['oldname'];
+		$newpath = $_POST['newname'];
+		$newpath_info = pathinfo($_POST['newname']);
+		
+		if(checkDbName($newpath))
+		{
+			copy($oldpath, $newpath);
+			unlink($oldpath);
+			$justrenamed = true;
+		}
+		else
+		{
+			if(is_file($newpath)) $dbexists = true;
+			else $extension_not_allowed = true;	
+		}
+	}
+	
+
 	//user is downloading the exported database file
 	if(isset($_POST['export']))
 	{
@@ -2055,11 +2071,16 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 }
 else //user is authorized - display the main application
 {
-	if(!isset($_SESSION[COOKIENAME.'currentDB']))
-		$_SESSION[COOKIENAME.'currentDB'] = $databases[0];
-	//set the current database to the first in the array (default)
+	if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
+	{
+		//set the current database to the first existing one in the array (default)
+		$i=0;
+		// this might not be $databases[0], as this might have just been dropped
+		while(!isset($databases[$i]) && $i<(count($databases)+1)) $i++;
+		$_SESSION[COOKIENAME.'currentDB'] = $databases[$i];
+	}
 	if(sizeof($databases)>0)
-		$currentDB = $databases[0];
+		$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 	else //the database array is empty - show error and halt execution
 	{
 		if($directory!==false && is_writable($directory))
@@ -2524,15 +2545,16 @@ else //user is authorized - display the main application
 	echo "<fieldset style='margin:15px;'><legend><b>Change Database</b></legend>";
 	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 	{
-		for($i=0; $i<sizeof($databases); $i++)
+		$i=0;
+		foreach($databases as $database)
 		{
-			// 22 August 2011: gkf fixed bug #49
-			echo $databases[$i]['perms'];
-			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' style='text-decoration:underline;'>".htmlencode($databases[$i]['name'])."</a>";
+			$i++;
+			echo $database['perms'];
+			if($database == $_SESSION[COOKIENAME.'currentDB'])
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' style='text-decoration:underline;'>".htmlencode($database['name'])."</a>";
 			else
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>";
-			if($i<sizeof($databases)-1)
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>";
+			if($i<sizeof($databases))
 				echo "<br/>";
 		}
 	}
@@ -2540,13 +2562,12 @@ else //user is authorized - display the main application
 	{
 		echo "<form action='".PAGE."' method='post'>";
 		echo "<select name='database_switch'>";
-		// 22 August 2011: gkf fixed bug #49
-		for($i=0; $i<sizeof($databases); $i++)
+		foreach($databases as $database)
 		{
-			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<option value='".htmlencode($databases[$i]['path'])."' selected='selected'>".htmlencode($databases[$i]['perms'].$databases[$i]['name'])."</option>";
+			if($database == $_SESSION[COOKIENAME.'currentDB'])
+				echo "<option value='".htmlencode($database['path'])."' selected='selected'>".htmlencode($database['perms'].$database['name'])."</option>";
 			else
-				echo "<option value='".htmlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['perms'].$databases[$i]['name'])."</option>";
+				echo "<option value='".htmlencode($database['path'])."'>".htmlencode($database['perms'].$database['name'])."</option>";
 		}
 		echo "</select> ";
 		echo "<input type='submit' value='Go' class='btn'>";
