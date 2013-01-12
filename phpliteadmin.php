@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2012-11-19
+//  Last updated: 2013-01-12
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -13,7 +13,7 @@
 //     Ayman Teryaki (http://havalite.com)
 //
 //
-//  Copyright (C) 2012  phpLiteAdmin
+//  Copyright (C) 2013  phpLiteAdmin
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -360,6 +360,9 @@ $cookie_name = 'pla3412';
 //whether or not to put the app in debug mode where errors are outputted
 $debug = false;
 
+// the user is allowed to create databases with only these extensions 
+$allowed_extensions = array('db','db3','sqlite','sqlite3');
+
 ////////////////////////////
 //END USER-DEFINED VARIABLES
 
@@ -487,14 +490,14 @@ function dir_tree($dir)
 			{
 				if($dircont[$i] !== '.' && $dircont[$i] !== '..')
 				{
-					$current_file = "{$thisdir}/{$dircont[$i]}";
+					$current_file = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 					if(is_file($current_file))
 					{
-						$path[] = "{$thisdir}/{$dircont[$i]}";
+						$path[] = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 					}
 					elseif (is_dir($current_file))
 					{
-						$path[] = "{$thisdir}/{$dircont[$i]}";
+						$path[] = $thisdir.DIRECTORY_SEPARATOR.$dircont[$i];
 						$stack[] = $current_file;
 					}
 				}
@@ -540,6 +543,40 @@ function getRowId($table, $where=''){
 	$query = "SELECT ROWID FROM ".$db->quote_id($table).$where;
 	$result = $db->selectArray($query);
 	return $result;
+}
+
+// checks the (new) name of a database file  
+function checkDbName($name)
+{
+	global $allowed_extensions;
+	$info = pathinfo($name);
+	if(isset($info['extension']) && !in_array($info['extension'], $allowed_extensions))
+	{
+		return false;
+	} else
+	{
+		return (!is_file($name) && !is_dir($name));
+	}
+
+}
+
+// check whether a path is a db managed by this tool
+// requires that $databases is already filled!
+// returns the key of the db if managed, false otherwise.
+function isManagedDB($path)
+{
+	global $databases;
+	foreach($databases as $db_key => $database)
+	{
+		if($path == $database['path'])
+		{
+			// a db we manage. Thats okay.
+			// return the key.
+			return $db_key;
+		}
+	}
+	// not a db we manage!
+	return false;
 }
 
 //
@@ -1593,31 +1630,6 @@ else if (isset($_POST['login']) && isset($_POST['password']))
 if ($auth->isAuthorized())
 {
 
-	//user is deleting a database
-	if(isset($_GET['database_delete']))
-	{
-		$dbpath = $_POST['database_delete'];
-		unlink($dbpath);
-		unset($_SESSION[COOKIENAME.'currentDB']);
-	}
-	
-	//user is renaming a database
-	if(isset($_GET['database_rename']))
-	{
-		$oldpath = $_POST['oldname'];
-		$newpath = $_POST['newname'];
-		if(!file_exists($newpath))
-		{
-			copy($oldpath, $newpath);
-			unlink($oldpath);
-			$justrenamed = true;
-		}
-		else
-		{
-			$dbexists = true;	
-		}
-	}
-	
 	//user is creating a new Database
 	if(isset($_POST['new_dbname']))
 	{
@@ -1630,19 +1642,25 @@ if ($auth->isAuthorized())
 			$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
 			$dbname = $str;
 			$dbpath = $str;
-			$info = pathinfo($dbpath);
-			$tdata = array();	
-			$tdata['name'] = $dbname;
-			$tdata['path'] = $directory."/".$dbpath;
-			$td = new Database($tdata);
-			$td->query("VACUUM");
+			if(checkDbName($dbname))
+			{
+				$tdata = array();	
+				$tdata['name'] = $dbname;
+				$tdata['path'] = $directory.DIRECTORY_SEPARATOR.$dbpath;
+				$td = new Database($tdata);
+				$td->query("VACUUM");
+			} else
+			{
+				if(is_file($dbname) || is_dir($dbname)) $dbexists = true;
+				else $extension_not_allowed=true;
+			}
 		}
 	}
 	
 	//if the user wants to scan a directory for databases, do so
 	if($directory!==false)
 	{
-		if($directory[strlen($directory)-1]=="/") //if user has a trailing slash in the directory, remove it
+		if($directory[strlen($directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
 			$directory = substr($directory, 0, strlen($directory)-1);
 			
 		if(is_dir($directory)) //make sure the directory is valid
@@ -1656,7 +1674,7 @@ if ($auth->isAuthorized())
 			for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 			{
 				if($subdirectories===false)
-					$arr[$i] = $directory."/".$arr[$i];
+					$arr[$i] = $directory.DIRECTORY_SEPARATOR.$arr[$i];
 				
 				if(@!is_file($arr[$i])) continue;
 				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
@@ -1688,18 +1706,7 @@ if ($auth->isAuthorized())
 			{
 				foreach($databases as $db_id => $database)
 				{
-					if($database['path'] == $tdata)
-					{
-						$_SESSION[COOKIENAME.'currentDB'] = $database;
-						break;
-					}
-				}
-			}
-			if(isset($justrenamed))
-			{
-				foreach($databases as $db_id => $database)
-				{
-					if($database['path'] == $newpath)
+					if($database['path'] == $tdata['path'])
 					{
 						$_SESSION[COOKIENAME.'currentDB'] = $database;
 						break;
@@ -1734,6 +1741,64 @@ if ($auth->isAuthorized())
 		sort($databases);
 	}
 	
+	//user is deleting a database
+	if(isset($_GET['database_delete']))
+	{
+		$dbpath = $_POST['database_delete'];
+		// check whether $dbpath really is a db we manage
+		$checkDB = isManagedDB($dbpath);
+		if($checkDB !== false)
+		{
+			unlink($dbpath);
+			unset($_SESSION[COOKIENAME.'currentDB']);
+			unset($databases[$checkDB]);
+		} else die('You can only delete databases managed by this tool!');      #todo: translate
+	}
+	
+	//user is renaming a database
+	if(isset($_GET['database_rename']))
+	{
+		$oldpath = $_POST['oldname'];
+		$newpath = $_POST['newname'];
+		$oldpath_parts = pathinfo($oldpath);
+		$newpath_parts = pathinfo($newpath);
+		// only rename?
+		$newpath = $oldpath_parts['dirname'].DIRECTORY_SEPARATOR.basename($_POST['newname']);
+		if($newpath != $_POST['newname'] && $subdirectories)
+		{
+			// it seems that the file should not only be renamed but additionally moved.
+			// we need to make sure it stays within $directory...
+			$new_realpath = realpath($newpath_parts['dirname']).DIRECTORY_SEPARATOR;
+			$directory_realpath = realpath($directory).DIRECTORY_SEPARATOR;
+			if(strpos($new_realpath, $directory_realpath)===0)
+			{
+				// its okay, the new directory is within $directory
+				$newpath =  $_POST['newname'];
+			}
+			else die('You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.');   #todo: translate
+		}
+		
+		if(checkDbName($newpath))
+		{
+			$checkDB = isManagedDB($oldpath);
+			if($checkDB !==false )
+			{
+				copy($oldpath, $newpath);
+				unlink($oldpath);                                #todo: move instead copy&unlink - otherwise, if copy fails, unlink will drop the file!
+				$databases[$checkDB]['path'] = $newpath;
+				$databases[$checkDB]['name'] = basename($newpath);
+				$_SESSION[COOKIENAME.'currentDB'] = $databases[$checkDB]; 
+				$justrenamed = true;
+			}
+			else die('You can only rename databases managed by this tool!');    #todo: translate
+		}
+		else
+		{
+			if(is_file($newpath) || is_dir($newpath)) $dbexists = true;
+			else $extension_not_allowed = true;	
+		}
+	}
+
 	
 	//user is downloading the exported database file
 	if(isset($_POST['export']))
@@ -2334,11 +2399,16 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 }
 else //user is authorized - display the main application
 {
-	if(!isset($_SESSION[COOKIENAME.'currentDB']))
-		$_SESSION[COOKIENAME.'currentDB'] = $databases[0];
-	//set the current database to the first in the array (default)
+	if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
+	{
+		//set the current database to the first existing one in the array (default)
+		$i=0;
+		// this might not be $databases[0], as this might have just been dropped
+		while(!isset($databases[$i]) && $i<(count($databases)+1)) $i++;
+		$_SESSION[COOKIENAME.'currentDB'] = $databases[$i];
+	}
 	if(sizeof($databases)>0)
-		$currentDB = $databases[0];
+		$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 	else //the database array is empty - show error and halt execution
 	{
 		if($directory!==false && is_writable($directory))
@@ -2346,6 +2416,15 @@ else //user is authorized - display the main application
 			echo "<div class='confirm' style='margin:20px;'>";
 			echo $lang['no_db'];
 			echo "</div>";	
+			if(isset($extension_not_allowed))
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";      #todo: translate
+				foreach($allowed_extensions as $ext_i => $extension)
+					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';   #todo: translate
+				echo "</div><br/>";
+			}			
 			echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
 			echo "<form name='create_database' method='post' action='".PAGE."'>";
 			echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
@@ -2805,15 +2884,16 @@ else //user is authorized - display the main application
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_ch']."</b></legend>";
 	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 	{
-		for($i=0; $i<sizeof($databases); $i++)
+		$i=0;
+		foreach($databases as $database)
 		{
-			// 22 August 2011: gkf fixed bug #49
-			echo $databases[$i]['perms'];
-			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."' class='active_db'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".htmlencode($databases[$i]['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+			$i++;
+			echo $database['perms'];
+			if($database == $_SESSION[COOKIENAME.'currentDB'])
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 			else
-				echo "<a href='".PAGE."?switchdb=".urlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['name'])."</a>  (<a href='".htmlencode($databases[$i]['path'])."' title='".$lang['backup']."'>&darr;</a>)";
-			if($i<sizeof($databases)-1)
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+			if($i<sizeof($databases))
 				echo "<br/>";
 		}
 	}
@@ -2821,13 +2901,12 @@ else //user is authorized - display the main application
 	{
 		echo "<form action='".PAGE."' method='post'>";
 		echo "<select name='database_switch'>";
-		// 22 August 2011: gkf fixed bug #49
-		for($i=0; $i<sizeof($databases); $i++)
+		foreach($databases as $database)
 		{
-			if($databases[$i] == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<option value='".htmlencode($databases[$i]['path'])."' selected='selected'>".htmlencode($databases[$i]['perms'].$databases[$i]['name'])."</option>";
+			if($database == $_SESSION[COOKIENAME.'currentDB'])
+				echo "<option value='".htmlencode($database['path'])."' selected='selected'>".htmlencode($database['perms'].$database['name'])."</option>";
 			else
-				echo "<option value='".htmlencode($databases[$i]['path'])."'>".htmlencode($databases[$i]['perms'].$databases[$i]['name'])."</option>";
+				echo "<option value='".htmlencode($database['path'])."'>".htmlencode($database['perms'].$database['name'])."</option>";
 		}
 		echo "</select> ";
 		echo "<input type='submit' value='".$lang['go']."' class='btn'>";
@@ -4677,6 +4756,23 @@ else //user is authorized - display the main application
 			$queryVersion = $db->select($query);
 			$realVersion = $queryVersion['sqlite_version'];
 			
+			if(isset($dbexists))
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "Error: A database, other file or directory of the name '".htmlencode($dbname)."' already exists.";    #todo: translate
+				echo "</div><br/>";
+			}
+			
+			if(isset($extension_not_allowed))
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";     #todo: translate
+				foreach($allowed_extensions as $ext_i => $extension)
+					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';      #todo: translate
+				echo "</div><br/>";
+			}
+
 			if ($auth->isPasswordDefault())
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
@@ -5101,6 +5197,15 @@ else //user is authorized - display the main application
 		}
 		else if($view=="rename")
 		{
+			if(isset($extension_not_allowed))
+			{
+				echo "<div class='confirm'>";
+				echo "The new extension you provided for the database is not within the list of allowed extensions. Please use one of the following extensions: "; #todo: translate
+				foreach($allowed_extensions as $ext_i => $extension)
+					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.'; #todo: translate
+				echo "</div><br/>";
+			}
 			if(isset($dbexists))
 			{
 				echo "<div class='confirm'>";
@@ -5108,7 +5213,7 @@ else //user is authorized - display the main application
 					echo $lang['err'].": ".$lang['warn_dumbass'];
 				else{
 					echo $lang['err'].": "; 
-					printf($lang['db_exists'], htmlencode($newpath));
+					printf($lang['db_exists'], htmlencode($newpath));     # todo: adjust lang test ("A database, other file or directory...")
 				}
 				echo "</div><br/>";
 			}
