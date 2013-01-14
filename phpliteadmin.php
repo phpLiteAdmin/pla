@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-01-12
+//  Last updated: 2013-01-14
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -383,14 +383,10 @@ if($debug==true)
 // start the timer to record page load time
 $pageTimer = new MicroTimer();
 
-//build the basename of this file for later reference
-$info = pathinfo($_SERVER['PHP_SELF']);
-$thisName = $info['basename'];
-
 //constants 1
 define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.4");
-define("PAGE", $thisName);
+define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("COOKIENAME", $cookie_name.VERSION);   // version-number added so after updating, old session-data is not used anylonger
 define("SYSTEMPASSWORD", $password); // Makes things easier.
