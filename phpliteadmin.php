@@ -1579,7 +1579,7 @@ class Database
 					if($comments)
 					{
 						echo "\r\n----\r\n";
-						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".printf($lang['total_rows'], sizeof($arr))."\r\n";
+						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], sizeof($arr))."\r\n";
 						echo "----\r\n";
 					}
 					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
