@@ -3592,6 +3592,8 @@ else //user is authorized - display the main application
 			//row actions
 			/////////////////////////////////////////////// view row
 			case "row_view":
+				$table = $_GET['table'];
+
 				if(!isset($_POST['startRow']))
 					$_POST['startRow'] = 0;
 
@@ -3601,7 +3603,7 @@ else //user is authorized - display the main application
 				if(!isset($_SESSION[COOKIENAME.'numRows']))
 					$_SESSION[COOKIENAME.'numRows'] = $rowsNum;
 				
-				if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$_GET['table'])
+				if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$table)
 				{
 					unset($_SESSION[COOKIENAME.'sort']);
 					unset($_SESSION[COOKIENAME.'order']);	
@@ -3611,9 +3613,7 @@ else //user is authorized - display the main application
 					$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
 				}
 				
-				$query = "SELECT Count(*) FROM ".$db->quote_id($_GET['table']);
-				$rowCount = $db->select($query);
-				$rowCount = intval($rowCount[0]);
+				$rowCount = $db->numRows($table);
 				$lastPage = intval($rowCount / $_SESSION[COOKIENAME.'numRows']);
 				$remainder = intval($rowCount % $_SESSION[COOKIENAME.'numRows']);
 				if($remainder==0)
@@ -3624,14 +3624,14 @@ else //user is authorized - display the main application
 				if($_POST['startRow']>0)
 				{
 					echo "<div style='float:left;'>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='0'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&larr;&larr;' name='previous' class='btn'/> ";
 					echo "</form>";
 					echo "</div>";
 					echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']-$_SESSION[COOKIENAME.'numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&larr;' name='previous_full' class='btn'/> ";
@@ -3641,7 +3641,7 @@ else //user is authorized - display the main application
 				
 				//show certain number buttons
 				echo "<div style='float:left;'>";
-				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
 				echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 				echo $lang['rows_records'];
@@ -3670,14 +3670,14 @@ else //user is authorized - display the main application
 				if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])<$rowCount)
 				{
 					echo "<div style='float:left; margin-left:20px; '>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;' name='next' class='btn'/> ";
 					echo "</form>";
 					echo "</div>";
 					echo "<div style='float:left; '>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;&rarr;' name='next_full' class='btn'/> ";
@@ -3692,18 +3692,17 @@ else //user is authorized - display the main application
 				if(!isset($_GET['order']))
 					$_GET['order'] = NULL;
 
-				$table = $_GET['table'];
 				$numRows = $_SESSION[COOKIENAME.'numRows'];
 				$startRow = $_POST['startRow'];
 				if(isset($_GET['sort']))
 				{
 					$_SESSION[COOKIENAME.'sort'] = $_GET['sort'];
-					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
+					$_SESSION[COOKIENAME.'currentTable'] = $table;
 				}
 				if(isset($_GET['order']))
 				{
 					$_SESSION[COOKIENAME.'order'] = $_GET['order'];
-					$_SESSION[COOKIENAME.'currentTable'] = $_GET['table'];
+					$_SESSION[COOKIENAME.'currentTable'] = $table;
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
 				$query = "SELECT *, ROWID FROM ".$db->quote_id($table);
@@ -3719,12 +3718,11 @@ else //user is authorized - display the main application
 				$queryTimer = new MicroTimer();
 				$arr = $db->selectArray($query);
 				$queryTimer->stop();
-				$total = $db->numRows($table);
 
 				if(sizeof($arr)>0)
 				{
 					echo "<br/><div class='confirm'>";
-					echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$total." ";
+					echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$rowCount." ";
 					printf($lang['query_time'], $queryTimer);
 					echo "</b><br/>";
 					echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
