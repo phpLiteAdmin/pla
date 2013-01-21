@@ -4794,7 +4794,7 @@ else //user is authorized - display the main application
 			else
 				unset($_SESSION[COOKIENAME.'order']);
 					
-			$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view'";
+			$query = "SELECT type, name FROM sqlite_master WHERE (type='table' OR type='view') AND name!='' AND name NOT LIKE 'sqlite_%'";
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sort']))
 				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sort']);
@@ -4805,12 +4805,7 @@ else //user is authorized - display the main application
 			$query .= $queryAdd;
 			$result = $db->selectArray($query);
 
-			$j = 0;
-			for($i=0; $i<sizeof($result); $i++)
-				if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
-					$j++;
-
-			if($j==0)
+			if(sizeof($result)==0)
 				echo $lang['no_tbl']."<br/><br/>";
 			else
 			{
@@ -4848,101 +4843,98 @@ else //user is authorized - display the main application
 				$totalRecords = 0;
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
+					$records = $db->numRows($result[$i]['name']);
+					$totalRecords += $records;
+					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
+					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+					
+					if($result[$i]['type']=="table")
 					{
-						$records = $db->numRows($result[$i]['name']);
-						$totalRecords += $records;
-						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
-						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
-						
-						if($result[$i]['type']=="table")
-						{
-							echo "<tr>";
-							echo $tdWithClassLeft;
-							echo $lang['tbl'];
-							echo "</td>";
-							echo $tdWithClassLeft;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".$lang['browse']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>".$lang['struct']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>".$lang['sql']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>".$lang['srch']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_create'>".$lang['insert']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>".$lang['export']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_import'>".$lang['import']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>".$lang['rename']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>".$lang['empty']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>".$lang['drop']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo $records;
-							echo "</td>";
-							echo "</tr>";
-						}
-						else
-						{
-							echo "<tr>";
-							echo $tdWithClassLeft;
-							echo "View";
-							echo "</td>";
-							echo $tdWithClassLeft;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".htmlencode($result[$i]['name'])."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".$lang['browse']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view&amp;view=1'>".$lang['struct']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql&amp;view=1'>".$lang['sql']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search&amp;view=1'>".$lang['srch']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export&amp;view=1'>".$lang['export']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "";
-							echo "</td>";
-							echo $tdWithClass;
-							echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' class='drop'>".$lang['drop']."</a>";
-							echo "</td>";
-							echo $tdWithClass;
-							echo $records;
-							echo "</td>";
-							echo "</tr>";
-						}
+						echo "<tr>";
+						echo $tdWithClassLeft;
+						echo $lang['tbl'];
+						echo "</td>";
+						echo $tdWithClassLeft;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".$lang['browse']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>".$lang['struct']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>".$lang['sql']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>".$lang['srch']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_create'>".$lang['insert']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>".$lang['export']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_import'>".$lang['import']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>".$lang['rename']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>".$lang['empty']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>".$lang['drop']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo $records;
+						echo "</td>";
+						echo "</tr>";
+					}
+					else
+					{
+						echo "<tr>";
+						echo $tdWithClassLeft;
+						echo "View";
+						echo "</td>";
+						echo $tdWithClassLeft;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".htmlencode($result[$i]['name'])."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=row_view&amp;view=1'>".$lang['browse']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=column_view&amp;view=1'>".$lang['struct']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_sql&amp;view=1'>".$lang['sql']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_search&amp;view=1'>".$lang['srch']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=table_export&amp;view=1'>".$lang['export']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "";
+						echo "</td>";
+						echo $tdWithClass;
+						echo "<a href='".PAGE."?table=".urlencode($result[$i]['name'])."&amp;action=view_drop&amp;view=1' class='drop'>".$lang['drop']."</a>";
+						echo "</td>";
+						echo $tdWithClass;
+						echo $records;
+						echo "</td>";
+						echo "</tr>";
 					}
 				}
 				echo "<tr>";
