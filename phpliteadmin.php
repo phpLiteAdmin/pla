@@ -388,8 +388,11 @@ define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.4");
 define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
-define("COOKIENAME", $cookie_name.VERSION);   // version-number added so after updating, old session-data is not used anylonger
 define("SYSTEMPASSWORD", $password); // Makes things easier.
+
+// version-number added so after updating, old session-data is not used anylonger
+// cookies names cannot contain symbols, except underscores
+define("COOKIENAME", $cookie_name . '_' . preg_replace('/[^a-zA-Z0-9_]/', '_', VERSION) );
 
 //the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
 //create a random salt for this session if a cookie doesn't already exist for it
