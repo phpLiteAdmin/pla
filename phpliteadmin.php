@@ -199,9 +199,9 @@ $lang = array(
 	"showing_rows" => "Showing rows",
 	"query_time" => "(Query took %s sec)",
 	"syntax_err" => "There is a problem with the syntax of your query (Query was not executed)",
-	"run_sql" => "Run SQL query/queries on database",
+	"run_sql" => "Run SQL query/queries on database '%s'",
 	
-	"ques_empty" => "Are you sure you want to empty the table",
+	"ques_empty" => "Are you sure you want to empty the table '%s'?",
 	"ques_drop" => "Are you sure you want to drop the table",
 	"ques_drop_view" => "Are you sure you want to drop the view",
 	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table",
@@ -306,8 +306,8 @@ $lang = array(
 	"next_line" => "2774"
 );
 
-if($language != 'en' && file_exits($language.'.php')){
-	include($language.'.php');
+if($language != 'en' && is_file('lang_'.$language.'.php')){
+	include('lang_'.$language.'.php');
 }
 
 //directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
@@ -3252,7 +3252,7 @@ else //user is authorized - display the main application
 				}
 
 				echo "<fieldset>";
-				echo "<legend><b>".$lang['run_sql']." '".htmlencode($db->getName())."'</b></legend>";
+				echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 				if(!isset($_GET['view']))
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_sql' method='post'>";
 				else
@@ -3283,7 +3283,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=table_empty&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo $lang['ques_empty']." '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo sprintf($lang['ques_empty'], htmlencode($_GET['table']))."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -5052,7 +5052,7 @@ else //user is authorized - display the main application
 			}
 
 			echo "<fieldset>";
-			echo "<legend><b>".$lang['run_sql']." '".htmlencode($db->getName())."'</b></legend>";
+			echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 			echo "<form action='".PAGE."?view=sql' method='post'>";
 			echo "<textarea style='width:100%; height:300px;' name='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 			echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
