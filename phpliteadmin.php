@@ -401,6 +401,25 @@ define("SYSTEMPASSWORD", $password); // Makes things easier.
 // cookies names cannot contain symbols, except underscores
 define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . VERSION) );
 
+// stripslashes if MAGIC QUOTES is turned on
+// This is only a workaround. Please better turn off magic quotes!
+// This code is from http://php.net/manual/en/security.magicquotes.disabling.php
+if (get_magic_quotes_gpc()) {
+	$process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
+	while (list($key, $val) = each($process)) {
+		foreach ($val as $k => $v) {
+			unset($process[$key][$k]);
+			if (is_array($v)) {
+				$process[$key][stripslashes($k)] = $v;
+				$process[] = &$process[$key][stripslashes($k)];
+			} else {
+				$process[$key][stripslashes($k)] = stripslashes($v);
+			}
+		}
+	}
+	unset($process);
+}
+
 //the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
 //create a random salt for this session if a cookie doesn't already exist for it
 if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
@@ -1467,7 +1486,7 @@ class Database
 	//export csv
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
-		$field_enclosed = stripslashes($field_enclosed);
+		$field_enclosed = $field_enclosed;
 		$query = "SELECT * FROM sqlite_master WHERE type='table' or type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
@@ -2554,7 +2573,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
-				$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".stripslashes($_POST['select']);
+				$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".$_POST['select'];
 				$result = $db->query($query);
 				if(!$result)
 					$error = true;
@@ -2833,9 +2852,9 @@ else //user is authorized - display the main application
 				if(isset($_POST['foreachrow']))
 					$str .= " FOR EACH ROW";
 				if($_POST['whenexpression']!="")
-					$str .= " WHEN ".stripslashes($_POST['whenexpression']);
+					$str .= " WHEN ".$_POST['whenexpression'];
 				$str .= " BEGIN";
-				$str .= " ".stripslashes($_POST['triggersteps']);
+				$str .= " ".$_POST['triggersteps'];
 				$str .= " END";
 				$query = $str;
 				$result = $db->query($query);
@@ -3176,7 +3195,7 @@ else //user is authorized - display the main application
 				if(isset($_POST['query']) && $_POST['query']!="")
 				{
 					$delimiter = $_POST['delimiter'];
-					$queryStr = stripslashes($_POST['queryval']);
+					$queryStr = $_POST['queryval'];
 					$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
 					for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
@@ -4975,7 +4994,7 @@ else //user is authorized - display the main application
 			if(isset($_POST['query']) && $_POST['query']!="")
 			{
 				$delimiter = $_POST['delimiter'];
-				$queryStr = stripslashes($_POST['queryval']);
+				$queryStr = $_POST['queryval'];
 				$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
 				for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
