@@ -51,6 +51,65 @@ $rowsNum = 30;
 // reduce string characters by a number bigger than 10
 $charsNum = 300;
 
+//directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
+$directory = ".";
+
+//whether or not to scan the subdirectories of the above directory infinitely deep
+$subdirectories = false;
+
+//if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
+//if any of the databases do not exist as they are referenced by their path, they will be created automatically
+$databases = array
+(
+	array
+	(
+		"path"=> "database1.sqlite",
+		"name"=> "Database 1"
+	),
+	array
+	(
+		"path"=> "database2.sqlite",
+		"name"=> "Database 2"
+	)
+);
+
+//a list of custom functions that can be applied to columns in the databases
+//make sure to define every function below if it is not a core PHP function
+$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
+
+//define all the non-core custom functions
+function md5rev($value)
+{
+	return strrev(md5($value));
+}
+function sha1rev($value)
+{
+	return strrev(sha1($value));
+}
+function mydate($value)
+{
+	return date("g:ia n/j/y", intval($value));
+}
+function myreplace($value)
+{
+	return ereg_replace("[^A-Za-z0-9]", "", strval($value));	
+}
+
+//changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
+$cookie_name = 'pla3412';
+
+//whether or not to put the app in debug mode where errors are outputted
+$debug = false;
+
+// the user is allowed to create databases with only these extensions 
+$allowed_extensions = array('db','db3','sqlite','sqlite3');
+
+////////////////////////////
+//END USER-DEFINED VARIABLES
+
+
+// Start English language-texts
+
 $lang = array(
 	"direction" => "LTR",
 	"ver" => "version",
@@ -306,66 +365,6 @@ $lang = array(
 	"next_line" => "2774"
 );
 
-if($language != 'en' && is_file('lang_'.$language.'.php')){
-	include('lang_'.$language.'.php');
-}
-
-//directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
-$directory = ".";
-
-//whether or not to scan the subdirectories of the above directory infinitely deep
-$subdirectories = false;
-
-//if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
-//if any of the databases do not exist as they are referenced by their path, they will be created automatically
-$databases = array
-(
-	array
-	(
-		"path"=> "database1.sqlite",
-		"name"=> "Database 1"
-	),
-	array
-	(
-		"path"=> "database2.sqlite",
-		"name"=> "Database 2"
-	)
-);
-
-//a list of custom functions that can be applied to columns in the databases
-//make sure to define every function below if it is not a core PHP function
-$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
-
-//define all the non-core custom functions
-function md5rev($value)
-{
-	return strrev(md5($value));
-}
-function sha1rev($value)
-{
-	return strrev(sha1($value));
-}
-function mydate($value)
-{
-	return date("g:ia n/j/y", intval($value));
-}
-function myreplace($value)
-{
-	return ereg_replace("[^A-Za-z0-9]", "", strval($value));	
-}
-
-//changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
-$cookie_name = 'pla3412';
-
-//whether or not to put the app in debug mode where errors are outputted
-$debug = false;
-
-// the user is allowed to create databases with only these extensions 
-$allowed_extensions = array('db','db3','sqlite','sqlite3');
-
-////////////////////////////
-//END USER-DEFINED VARIABLES
-
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //there is no reason for the average user to edit anything below this comment
@@ -378,10 +377,18 @@ if($debug==true)
 {
 	ini_set("display_errors", 1);
 	error_reporting(E_STRICT | E_ALL);
+} else
+{
+	@ini_set("display_errors", 0);
 }
 
 // start the timer to record page load time
 $pageTimer = new MicroTimer();
+
+// load language file
+if($language != 'en' && is_file('lang_'.$language.'.php')){
+	include('lang_'.$language.'.php');
+}
 
 //constants 1
 define("PROJECT", "phpLiteAdmin");
