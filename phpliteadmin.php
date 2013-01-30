@@ -261,13 +261,13 @@ $lang = array(
 	"run_sql" => "Run SQL query/queries on database '%s'",
 	
 	"ques_empty" => "Are you sure you want to empty the table '%s'?",
-	"ques_drop" => "Are you sure you want to drop the table",
-	"ques_drop_view" => "Are you sure you want to drop the view",
-	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table",
-	"ques_del_db" => "Are you sure you want to delete the database",
-	"ques_del_col" => "Are you sure you want to delete column(s) %s from table",
-	"ques_del_index" => "Are you sure you want to delete index",
-	"ques_del_trigger" => "Are you sure you want to delete trigger",
+	"ques_drop" => "Are you sure you want to drop the table '%s'?",
+	"ques_drop_view" => "Are you sure you want to drop the view '%s'?",
+	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table '%s'?",
+	"ques_del_db" => "Are you sure you want to delete the database '%s'?",
+	"ques_del_col" => "Are you sure you want to delete column(s) %s from table '%s'?",
+	"ques_del_index" => "Are you sure you want to delete index '%s'?",
+	"ques_del_trigger" => "Are you sure you want to delete trigger '%s'?",
 	
 	"export_struct" => "Export with structure",
 	"export_data" => "Export with data",
@@ -3319,7 +3319,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=table_drop&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='tablename' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo $lang['ques_drop']." '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo sprintf($lang['ques_drop'], htmlencode($_GET['table']))."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -3329,7 +3329,7 @@ else //user is authorized - display the main application
 				echo "<form action='".PAGE."?action=view_drop&amp;confirm=1' method='post'>";
 				echo "<input type='hidden' name='viewname' value='".htmlencode($_GET['table'])."'/>";
 				echo "<div class='confirm'>";
-				echo $lang['ques_drop_view']." '".htmlencode($_GET['table'])."'?<br/><br/>";
+				echo sprintf($lang['ques_drop_view'], htmlencode($_GET['table']))."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -4192,8 +4192,8 @@ else //user is authorized - display the main application
 					{
 						echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 						echo "<div class='confirm'>";
-						printf($lang['ques_del_rows'], htmlencode($str));
-						echo " '".htmlencode($_GET['table'])."'?<br/><br/>";
+						printf($lang['ques_del_rows'], htmlencode($str), htmlencode($_GET['table']));
+						echo "<br/><br/>";
 						echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 						echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['cancel']."</a>";
 						echo "</div>";
@@ -4509,8 +4509,8 @@ else //user is authorized - display the main application
 					}
 					echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 					echo "<div class='confirm'>";
-					printf($lang['ques_del_col'], htmlencode($str));
-					echo " '".htmlencode($_GET['table'])."'?<br/><br/>";
+					printf($lang['ques_del_col'], htmlencode($str), htmlencode($_GET['table']));
+					echo "<br/><br/>";
 					echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 					echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 					echo "</div>";
@@ -4612,7 +4612,7 @@ else //user is authorized - display the main application
 			case "index_delete":
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=index_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 				echo "<div class='confirm'>";
-				echo $lang['ques_del_index']." '".htmlencode($_GET['pk'])."'?<br/><br/>";
+				echo sprintf($lang['ques_del_index'], htmlencode($_GET['pk']))."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -4622,7 +4622,7 @@ else //user is authorized - display the main application
 			case "trigger_delete":
 				echo "<form action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=trigger_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 				echo "<div class='confirm'>";
-				echo $lang['ques_del_trigger']." '".htmlencode($_GET['pk'])."'?<br/><br/>";
+				echo sprintf($lang['ques_del_trigger'], htmlencode($_GET['pk']))."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo "<a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";
 				echo "</div>";
@@ -5248,7 +5248,7 @@ else //user is authorized - display the main application
 		{
 			echo "<form action='".PAGE."?database_delete=1' method='post'>";
 			echo "<div class='confirm'>";
-			echo $lang['ques_del_db']." '".htmlencode($db->getPath())."'?<br/><br/>";
+			echo sprintf($lang['ques_del_db'],htmlencode($db->getPath()))."<br/><br/>";
 			echo "<input name='database_delete' value='".htmlencode($db->getPath())."' type='hidden'/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";

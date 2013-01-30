@@ -149,15 +149,15 @@ $lang = array(
 	"syntax_err" => "Es gibt ein Problem mit dem Syntax Ihrer Abfrage (Abfrage nicht ausgeführt)",
 	"run_sql" => "Führe SQL Abfragen auf der Datenbank '%s' aus",
 	
-	"ques_empty" => "Sind Sie sicher, dass Sie die Tabelle '%s' leeren möchten?",        /* TODO: GO ON HERE*/
-	"ques_drop" => "Are you sure you want to drop the table",
-	"ques_drop_view" => "Are you sure you want to drop the view",
-	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table",
-	"ques_del_db" => "Are you sure you want to delete the database",
-	"ques_del_col" => "Are you sure you want to delete column(s) %s from table",
-	"ques_del_index" => "Are you sure you want to delete index",
-	"ques_del_trigger" => "Are you sure you want to delete trigger",
-	
+	"ques_empty" => "Sind Sie sicher, dass Sie die Tabelle '%s' leeren möchten?",        
+	"ques_drop" => "Sind Sie sicher, dass Sie die Tabelle '%s' löschen möchten?",
+	"ques_drop_view" => "Sind Sie sicher, dass Sie die Sicht '%s' löschen möchten?",
+	"ques_del_rows" => "Sind Sie siche, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
+	"ques_del_db" => "Sind Sie sicher, dass Sie die Datenbank '%s' löschen möchten?",
+	"ques_del_col" => "Sie Sie sicher, dass Sie die Spalten %s aus der Tabelle '%s' löschen möchten?",
+	"ques_del_index" => "Sind Sie sicher, dass Sie den Index '%s' löschen möchten?",
+	"ques_del_trigger" => "Sind Sie sicher, dass Sie den Trigger '%s' löschen möchten?",
+	                                                                                                    # todo: Go on here
 	"export_struct" => "Export with structure",
 	"export_data" => "Export with data",
 	"add_drop" => "Add DROP TABLE",
