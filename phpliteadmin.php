@@ -2915,8 +2915,9 @@ else //user is authorized - display the main application
 		{
 			$i++;
 			echo $database['perms'];
+			$url_path = str_replace(DIRECTORY_SEPARATOR,'/',$database['path']);
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
 			else
 				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 			if($i<sizeof($databases))
@@ -3377,7 +3378,7 @@ else //user is authorized - display the main application
 				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
-				echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode($currentDB['path'])."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
+				echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode(str_replace(DIRECTORY_SEPARATOR,'/',$currentDB['path']))."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
 				break;
 			/////////////////////////////////////////////// import table
 			case "table_import":
