@@ -290,7 +290,7 @@ $lang = array(
 	"rows_aff" => "row(s) affected. ",
 	
 	"as_a" => "as a",
-	"readonly_tbl" => "is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records.",
+	"readonly_tbl" => "'%s' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records.",
 	"chk_all" => "Check All",
 	"unchk_all" => "Uncheck All",
 	"with_sel" => "With Selected",
@@ -316,31 +316,32 @@ $lang = array(
 	"def_val" => "Default Value",
 	"prim_key" => "Primary Key",
 	"tbl_end" => "field(s) at end of table",
-	"query_used" => "Query used to create this",
+	"query_used_table" => "Query used to create this table",
+	"query_used_view" => "Query used to create this view",
 	"create_index2" => "Create an index on",
 	"create_trigger2" => "Create a new trigger",
-	"new_fld" => "Adding new field(s) to table",
+	"new_fld" => "Adding new field(s) to table '%s'",
 	"add_flds" => "Add Fields",
-	"edit_col" => "Editing colum",
+	"edit_col" => "Editing colum '%s'",
 	"vac" => "Vacuum",
-	"vac_desc" => "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database",
+	"vac_desc" => "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database '%s'.",
 	"event" => "Event",
 	"each_row" => "For Each Row",
 	"define_index" => "Define index properties",
-	"define_in_col" => "",
 	"dup_val" => "Duplicate values",
 	"allow" => "Allowed",
 	"not_allow" => "Not Allowed",
 	"asc" => "Ascending",
 	"desc" => "Descending",
 	"warn0" => "You have been warned.",
-	"warn_passwd" => "You are using the default password, which can be dangerous. You can change it easily at the top of ",
+	"warn_passwd" => "You are using the default password, which can be dangerous. You can change it easily at the top of %s.",
 	"warn_dumbass" => "You didn't change the value dumbass ;-)",
 	"sel_state" => "Select Statement",
 	"delimit" => "Delimiter",
 	"back_top" => "Back to Top",
 	"choose_f" => "Choose File",
 	"instead" => "Instead of",
+	"define_in_col" => "Define index column(s)",
 	
 	/* Help documentation */
 	"help1" => "SQLite Library Extensions",
@@ -3413,7 +3414,7 @@ else //user is authorized - display the main application
 				echo "<div style='float:left;'>".$lang['rep_null']."</div>";
 				echo "<input type='text' value='NULL' name='import_csv_replacenull' style='float:right;'/>";
 				echo "<div style='clear:both;'>";
-				echo "<label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['put_fld']."</label>";
+				echo "<label><input type='checkbox' checked='checked' name='import_csv_fieldnames'/> ".$lang['fld_names']."</label>";
 				echo "</fieldset>";
 				
 				echo "<div style='clear:both;'></div>";
@@ -3756,7 +3757,7 @@ else //user is authorized - display the main application
 					
 					if(isset($_GET['view']))
 					{
-						echo "'".htmlencode($_GET['table'])."' ".$lang['readonly_tbl']." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo sprintf($lang['readonly_tbl'], htmlencode($_GET['table']))." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
 						echo "<br/><br/>";	
 					}
 					
@@ -3944,7 +3945,7 @@ else //user is authorized - display the main application
 						echo ">".$lang['chart_line']."</option>";
 						echo "</select>";
 						echo "<br/><br/>";
-						echo $lang['lbl']."Labels: <select name='chartlabels'>";
+						echo $lang['lbl'].": <select name='chartlabels'>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']) && $_SESSION[COOKIENAME.$_GET['table'].'chartlabels']==$i)
@@ -4300,12 +4301,12 @@ else //user is authorized - display the main application
 				
 				echo "<br/>";
 				if(!isset($_GET['view']))
-					$typ = "table";
+					$type = "table";
 				else
-					$typ = "view";
+					$type = "view";
 				echo "<br/>";
 				echo "<div class='confirm'>";
-				echo "<b>".$lang['query_used']." ".$typ."</b><br/>";
+				echo "<b>".$lang['query_used_'.$type]."</b><br/>";
 				echo "<span style='font-size:11px;'>".htmlencode($master[0]['sql'])."</span>";
 				echo "</div>";
 				echo "<br/>";
@@ -4419,7 +4420,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// create column
 			case "column_create":
-				echo "<h2>".$lang['new_fld']." '".htmlencode($_POST['tablename'])."'</h2>";
+				echo "<h2>".sprintf($lang['new_fld'],htmlencode($_POST['tablename']))."</h2>";
 				if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 					echo $lang['specify_fields'];
 				else if($_POST['tablename']=="")
@@ -4518,7 +4519,7 @@ else //user is authorized - display the main application
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
-				echo "<h2>".$lang['edit_col']." '".htmlencode($_GET['pk'])."' ".$lang['on_tbl']." '".htmlencode($_GET['table'])."'</h2>";
+				echo "<h2>".sprintf($lang['edit_col'], htmlencode($_GET['pk']))." ".$lang['on_tbl']." '".htmlencode($_GET['table'])."'</h2>";
 				echo $lang['sqlite_limit']."<br/><br/>";
 				if(!isset($_GET['pk']))
 					echo $lang['specify_col'];
@@ -4799,7 +4800,7 @@ else //user is authorized - display the main application
 			if ($auth->isPasswordDefault())
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
-				echo $lang['warn_passwd']." phpliteadmin.php<br />".$lang['warn0'];
+				echo sprintf($lang['warn_passwd'],'phpliteadmin.php')."<br />".$lang['warn0'];
 				echo "</div>";
 			}
 			
@@ -5097,7 +5098,7 @@ else //user is authorized - display the main application
 				echo "</div><br/>";
 			}
 			echo "<form method='post' action='".PAGE."?view=vacuum'>";
-			echo $lang['vac_desc'].", '".htmlencode($db->getName())."'.";
+			printf($lang['vac_desc'],htmlencode($db->getName()));
 			echo "<br/><br/>";
 			echo "<input type='submit' value='".$lang['vac']."' name='vacuum' class='btn'/>";
 			echo "</form>";
