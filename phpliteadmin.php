@@ -123,7 +123,7 @@ $lang = array(
 	"srch" => "Search",
 	"srch_again" => "Do Another Search",
 	"login" => "Log In",
-	"logout" => "logout",
+	"logout" => "Logout",
 	"view" => "View",
 	"confirm" => "Confirm",
 	"cancel" => "Cancel",
@@ -2919,7 +2919,7 @@ else //user is authorized - display the main application
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
 			else
-				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
 			if($i<sizeof($databases))
 				echo "<br/>";
 		}
