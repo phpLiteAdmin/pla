@@ -26,7 +26,7 @@ $lang = array(
 	"insert" => "Einfügen",
 	"export" => "Exportieren",
 	"import" => "Importieren",
-	"rename" => "Umbnenennen",
+	"rename" => "Umbenennen",
 	"empty" => "Leeren",
 	"drop" => "Löschen",
 	"tbl" => "Tabelle",
@@ -44,7 +44,7 @@ $lang = array(
 	"before" => "Davor",
 	"after" => "Danach",
 	"passwd" => "Passwort",
-	"passwd_incorrect" => "Falsches Passowrt.",
+	"passwd_incorrect" => "Falsches Passwort.",
 	"chk_ext" => "Prüfe unterstützte SQLite PHP Erweiterungen",
 	
 	"sqlite_ext" => "SQLite Erweiterung",
@@ -57,7 +57,7 @@ $lang = array(
 	
 	"php_v" => "PHP Version",
 	
-	"db_dump" => "Datembump Dump",
+	"db_dump" => "Datenbank Dump",
 	"db_f" => "Datenbank Datei",
 	"db_ch" => "Datenbank wechseln",
 	"db_event" => "Datenbank Ereignis",
@@ -69,7 +69,7 @@ $lang = array(
 	"db_size" => "Größe der Datenbank",
 	"db_mod" => "Datenbank zuletzt geändert",
 	"db_create" => "Erzeuge neue Datenbank",
-	"db_vac" => "Die Datenbank '%s' wurde VACUUMed.",
+	"db_vac" => "Die Datenbank '%s' wurde geVACUUMt.",
 	"db_not_writeable" => "Die Datenbank '%s' existiert nicht und kann nicht erzeugt werden, da der Ordner '%s' nicht beschreibbar ist. Die Anwendung kann nicht benutzt werden bevor Sie den Ordner beschreibbar machen.",
 	"db_setup" => "Es gab ein Problem Ihre Datenbank %s anzulegen. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
 	"db_exists" => "Eine Datenbank mit Namen '%s' existiert bereits.",
@@ -88,7 +88,7 @@ $lang = array(
 	"page_gen" => "Seite erzeugt in %s Sekunden.",
 	"powered" => "Powered by",
 	"remember" => "Eingeloggt bleiben",
-	"no_db" => "Willkommen zu phpLiteAdmin. Es erscheint so, als ob Sie konfiguriert haben, dass in einem Verzeichnis nach zu verwaltenden Datenbanken gesucht wird. Allerdinngs konnte in dem angegebenen Verzeichnis keine SQLite Datenbank gefunden werden. Sie können das folgende Forumlar nutzen um Ihre erste Datenbank anzulegen.",
+	"no_db" => "Willkommen zu phpLiteAdmin. Es erscheint so, als ob Sie konfiguriert haben, dass in einem Verzeichnis nach zu verwaltenden Datenbanken gesucht wird. Allerdings konnte in dem angegebenen Verzeichnis keine SQLite Datenbank gefunden werden. Sie können das folgende Formular nutzen um Ihre erste Datenbank anzulegen.",
 	"no_db2" => "Das von Ihnen angegebene Verzeichnis enthält keine SQLite Datenbanken und ist darüber hinaus nicht schreibbar. Aus diesem Grund können Sie mit phpLiteAdmin keine neuen Datenbanken in diesem Verzeichnis anlegen. Machen Sie entweder das Verzeichnis beschreibbar oder laden Sie manuell Datenbanken in das angegebene Verzeichnis.",
 	
 	"create" => "Erzeugen",
@@ -140,7 +140,7 @@ $lang = array(
 	"specify_tbl" => "Sie müssen einen Tabellen-Namen angeben.",
 	"specify_col" => "Sie müssen eine Spalte angeben.",
 	
-	"tbl_exists" => "Es existiert bereits eine Tablle mit dem selben Namen.",
+	"tbl_exists" => "Es existiert bereits eine Tabelle mit demselben Namen.",
 	"show" => "Anzeigen",
 	"show_rows" => "Zeige %s Zeile(n). ",
 	"showing" => "Zeige",
@@ -173,7 +173,7 @@ $lang = array(
 	"import_suc" => "Import war erfolgreich.",
 	"import_into" => "Importiere nach",
 	"import_f" => "Zu importierende Datei",
-	"rename_tbl" => "Bennene Tabelle '%s' um in",
+	"rename_tbl" => "Benenne Tabelle '%s' um in",
 	
 	"rows_records" => "Zeile(n) beginnend ab Datensatz Nr. ",
 	"rows_aff" => "Zeile(n) betroffen",
@@ -185,7 +185,7 @@ $lang = array(
 	"with_sel" => "Die markierten",
 	
 	"no_tbl" => "Keine Tabelle in der Datenbank vorhanden.",
-	"no_chart" => "Wenn Sie dies lesen können, bedeutet dies, dass das Diagramm nicht generiert werden konnte. Die Daten, die Sie versuchen anzuzeigen, ist evtl. für die Darsetllung als Diagramm nicht geeignet.",
+	"no_chart" => "Wenn Sie dies lesen können, bedeutet dies, dass das Diagramm nicht generiert werden konnte. Die Daten, die Sie versuchen anzuzeigen, ist evtl. für die Darstellung als Diagramm nicht geeignet.",
 	"no_rows" => "In der Tabelle gibt er keine Zeilen im angegebenen Bereich.",
 	"no_sel" => "Sie haben nichts ausgewählt.",
 	
@@ -213,7 +213,7 @@ $lang = array(
 	"add_flds" => "Felder hinzufügen",
 	"edit_col" => "Bearbeite Spalte '%s'",
 	"vac" => "Vacuum",
-	"vac_desc" => "Große Datenbanken müssen manchaml geVACUUMt werden, um ihre Größe auf dem Server zu reduzieren. Klicke auf den folgenden Button um die Datenbank '%s' zu VACUUMen.",
+	"vac_desc" => "Große Datenbanken müssen manchmal geVACUUMt werden, um ihre Größe auf dem Server zu reduzieren. Klicke auf den folgenden Button um die Datenbank '%s' zu VACUUMen.",
 	"event" => "Event",
 	"each_row" => "Für jede Zeile",
 	"define_index" => "Index-Eigenschaften angeben",
@@ -233,8 +233,8 @@ $lang = array(
 	"define_in_col" => "Wähle Index Spalte(n)",
 	
 	/* Help documentation */
-	"help1" => "SQLite Library Extensions",
-	"help1_x" => "phpLiteAdmin uses PHP library extensions that allow interaction with SQLite databases. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
+	"help1" => "SQLite-Bibliothek Erweiterungen",
+	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff aud SQLite Datenbanken erlauben. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
 	"help2" => "Creating a New Database",
 	"help2_x" => "When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the \$directory variable.",
 	"help3" => "Tables vs. Views",
@@ -250,9 +250,7 @@ $lang = array(
 	"help8" => "Add Transaction to Exported SQL File",
 	"help8_x" => "During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.",
 	"help9" => "Add Comments to Exported SQL File",
-	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening.",
-	
-	"next_line" => "2774"
+	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening."
 );
 
 ?>
