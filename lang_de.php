@@ -236,23 +236,23 @@ $lang = array(
 	
 	/* Help documentation */
 	"help1" => "SQLite-Bibliothek Erweiterungen",
-	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff aud SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automnatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
+	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff auf SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
 	"help2" => "Eine neue Datenbank anlegen",
 	"help2_x" => "Wenn Sie eine neue Datenbank anlegen, wird der von Ihnen eingegebene Name mit einer passenden Dateiendung erweitert (.db, .db3, .sqlite, etc.) falls Sie nicht selbst eine angeben. Die Datenbank wird in dem Verzeichnis angelegt, den Sie mit der \$directory Variable angegeben haben.",
 	"help3" => "Tabellen vs. Sichten",
 	"help3_x" => "Auf der Übersichtseite der Datenbank gibt es eine Liste von Tabellen und Sichten. Da Sichten nur gelesen werden können, sind einige Operationen deaktiviert und erscheinen daher auch nicht in der Liste. Wenn Sie eine Sicht ändern möchten, müssen Sie sie löschen und neu mit dem angepassten SELECT Ausdruck anlegen. Für mehr Informationen, siehe <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
 	"help4" => "Schreiben eines SELECT-Ausdrucks für eine neue Sicht",
-	"help4_x" => "When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.",
+	"help4_x" => "Wenn Sie eine Sicht erstellen, müssen Sie einen SQL SELECT-Ausdruck definieren, der die Sicht definiert. Eine Sicht ist wie eine Tabelle, die nur gelesen und nicht durch Einfügen, Löschen oder Bearbeiten von Zeilen direkt geändert werden kann.",
 	"help5" => "Struktur in eine SQL-Datei exportieren",
-	"help5_x" => "During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.",
+	"help5_x" => "Wenn Sie in eine SQL-Datei exportieren, können Sie auswählen, ob Sie die Ausdrücke, welche die Struktur der Tabellen, Sichten (inkl. Indizes etc.) mit exportieren möchten.",
 	"help6" => "Daten in eine SQL-Datei exportieren",
-	"help6_x" => "During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).",
+	"help6_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, ob die SQL-Ausdrücke, welche die Tabelle(n) mit Daten füllen, mit exportiert werden sollen.",
 	"help7" => "Füge DROP TABLE zu einer exportierten SQL-Datei hinzu",
-	"help7_x" => "During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.",
+	"help7_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in der Datei Befehle zum Löschen der Tabellen vor dem Erzeugen der Tabellen eingefügt werden. Dies verhindert Probleme, die entstehen, wenn die Datei importiert wird aber die Tabellen schon existieren.",
 	"help8" => "Füge TRANSACTION zu einer exportieren SQL-Datei hinzu",
-	"help8_x" => "During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.",
+	"help8_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie die Anfragen mit einer Transaktion umschließen, sodass falls ein Fehler beim Importieren der Datei auftritt, die Datenbank wieder zurück in ihren Ausgangszustand gebracht werden kann, sodass nicht nur Teile der importierten Daten in der Datenbank verbleiben.",
 	"help9" => "Füge Kommentare zu einer exportierten SQL-Datei hinzu",
-	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening."
+	"help9_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in die SQL-Datei Kommentare eingefügt werden, welche die einzelnen Abschnitte der Datei erklären, sodass ein Mensch den Inhalt der Datei besser nachvollziehen kann."
 );
 
 ?>
