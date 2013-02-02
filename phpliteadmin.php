@@ -157,6 +157,8 @@ $lang = array(
 	"passwd" => "Password",
 	"passwd_incorrect" => "Incorrect password.",
 	"chk_ext" => "Checking supported SQLite PHP extensions",
+	"autoincrement" => "Autoincrement",
+	"not_null" => "Not NULL",
 	
 	"sqlite_ext" => "SQLite extension",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",
@@ -4434,10 +4436,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key");    #todo: $lang
-					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";       #todo: $lang
-					$headings[] = "Not NULL";                                     #todo: $lang
-					$headings[] = "Default Value";                              #todo: $lang
+					$headings = array($lang["fld"], $lang["type"], $lang["prim_key"]);    
+					if($db->getType() != "SQLiteDatabase") $headings[] = $lang["autoincrement"];
+					$headings[] = $lang["not_null"];
+					$headings[] = $lang["def_val"];
 					
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
@@ -4551,7 +4553,7 @@ else //user is authorized - display the main application
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
-					$headings = array("Field", "Type");                         #todo: $lang
+					$headings = array($lang["fld"], $lang["type"]);
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>".$headings[$k]."</td>";
 					echo "</tr>";

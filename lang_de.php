@@ -46,6 +46,8 @@ $lang = array(
 	"passwd" => "Passwort",
 	"passwd_incorrect" => "Falsches Passwort.",
 	"chk_ext" => "Prüfe unterstützte SQLite PHP Erweiterungen",
+	"autoincrement" => "Autoincrement",
+	"not_null" => "Nicht NULL",
 	
 	"sqlite_ext" => "SQLite Erweiterung",
 	"sqlite_ext_support" => "Es erscheint so, dass keine der unterstützten SQLite Erweiterungen in Ihrer PHP-Installation verfügbar ist. Sie können %s nicht nutzen, bevor Sie mindestens eine davon installieren.",
@@ -234,22 +236,22 @@ $lang = array(
 	
 	/* Help documentation */
 	"help1" => "SQLite-Bibliothek Erweiterungen",
-	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff aud SQLite Datenbanken erlauben. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
-	"help2" => "Creating a New Database",
-	"help2_x" => "When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the \$directory variable.",
-	"help3" => "Tables vs. Views",
-	"help3_x" => "On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
-	"help4" => "Writing a Select Statement for a New View",
+	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff aud SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automnatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
+	"help2" => "Eine neue Datenbank anlegen",
+	"help2_x" => "Wenn Sie eine neue Datenbank anlegen, wird der von Ihnen eingegebene Name mit einer passenden Dateiendung erweitert (.db, .db3, .sqlite, etc.) falls Sie nicht selbst eine angeben. Die Datenbank wird in dem Verzeichnis angelegt, den Sie mit der \$directory Variable angegeben haben.",
+	"help3" => "Tabellen vs. Sichten",
+	"help3_x" => "Auf der Übersichtseite der Datenbank gibt es eine Liste von Tabellen und Sichten. Da Sichten nur gelesen werden können, sind einige Operationen deaktiviert und erscheinen daher auch nicht in der Liste. Wenn Sie eine Sicht ändern möchten, müssen Sie sie löschen und neu mit dem angepassten SELECT Ausdruck anlegen. Für mehr Informationen, siehe <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
+	"help4" => "Schreiben eines SELECT-Ausdrucks für eine neue Sicht",
 	"help4_x" => "When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.",
-	"help5" => "Export Structure to SQL File",
+	"help5" => "Struktur in eine SQL-Datei exportieren",
 	"help5_x" => "During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.",
-	"help6" => "Export Data to SQL File",
+	"help6" => "Daten in eine SQL-Datei exportieren",
 	"help6_x" => "During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).",
-	"help7" => "Add Drop Table to Exported SQL File",
+	"help7" => "Füge DROP TABLE zu einer exportierten SQL-Datei hinzu",
 	"help7_x" => "During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.",
-	"help8" => "Add Transaction to Exported SQL File",
+	"help8" => "Füge TRANSACTION zu einer exportieren SQL-Datei hinzu",
 	"help8_x" => "During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.",
-	"help9" => "Add Comments to Exported SQL File",
+	"help9" => "Füge Kommentare zu einer exportierten SQL-Datei hinzu",
 	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening."
 );
 
