@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-02-01
+//  Last updated: 2013-02-10
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -879,10 +879,10 @@ class Database
 		}
 	}
 
-	//get the size of the database
+	//get the size of the database (in KB)
 	public function getSize()
 	{
-		return round(filesize($this->data["path"])*0.0009765625, 1)." KB";
+		return round(filesize($this->data["path"])*0.0009765625, 1);
 	}
 
 	//get the last modified time of database
@@ -1396,11 +1396,36 @@ class Database
 		}
 	}
 
-	//get number of rows in table
-	public function numRows($table)
+	
+	// checks whether a table has a primary key
+	public function hasPrimaryKey($table)
 	{
-		$result = $this->select("SELECT Count(*) FROM ".$this->quote_id($table));
-		return $result[0];
+		$query = "PRAGMA table_info(".$this->quote_id($table).")";
+		$table_info = $this->selectArray($query);
+		foreach($table_info as $row_id => $row_data)
+		{
+			if($row_data['pk'])
+			{
+				return true;
+			}
+		 
+		}
+		return false;
+	}
+	
+	//get number of rows in table
+	public function numRows($table, $dontTakeLong = false)
+	{
+		// as Count(*) can be slow on huge tables without PK,
+		// if $dontTakeLong is set and the size is > 2MB only count() if there is a PK
+		if(!$dontTakeLong || $this->getSize() <= 2000 || $this->hasPrimaryKey($table))
+		{
+			$result = $this->select("SELECT Count(*) FROM ".$this->quote_id($table));
+			return $result[0];
+		} else
+		{
+			return '?';
+		}
 	}
 
 	//correctly escape a string to be injected into an SQL query
@@ -4808,7 +4833,7 @@ else //user is authorized - display the main application
 			
 			echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
 			echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
-			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()."<br/>";
+			echo "<b>".$lang['db_size']."</b>: ".$db->getSize()." KB<br/>";
 			echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 			echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
 			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 
@@ -4870,10 +4895,14 @@ else //user is authorized - display the main application
 				echo "</tr>";
 				
 				$totalRecords = 0;
+				$skippedTables = false;
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					$records = $db->numRows($result[$i]['name']);
-					$totalRecords += $records;
+					$records = $db->numRows($result[$i]['name'], true);
+					if($records == '?')
+						$skippedTables = true;
+					else
+						$totalRecords += $records;
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					
@@ -4968,7 +4997,7 @@ else //user is authorized - display the main application
 				}
 				echo "<tr>";
 				echo "<td class='tdheader' colspan='12'>".sizeof($result)." total</td>";
-				echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords."</td>";
+				echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?' + ?':'')."</td>";
 				echo "</tr>";
 				echo "</table>";
 				echo "<br/>";
