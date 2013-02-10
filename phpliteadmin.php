@@ -92,7 +92,7 @@ function mydate($value)
 }
 function myreplace($value)
 {
-	return ereg_replace("[^A-Za-z0-9]", "", strval($value));	
+	return preg_replace("/[^A-Za-z0-9]/", "", strval($value));	
 }
 
 //changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
