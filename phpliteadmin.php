@@ -623,7 +623,7 @@ class Authorization
 			// correct password stored in session
 			|| isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == SYSTEMPASSWORDENCRYPTED
 			// correct password stored in cookie
-			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5($_COOKIE[COOKIENAME]."_".$_COOKIE[COOKIENAME.'_salt']) == SYSTEMPASSWORDENCRYPTED;
+			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5(SYSTEMPASSWORD."_".$_COOKIE[COOKIENAME.'_salt']) == $_COOKIE[COOKIENAME];
 	}
 
 	public function attemptGrant($password, $remember)
@@ -632,7 +632,7 @@ class Authorization
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
 				$expire = time()+60*60*24*30; //set expiration to 1 month from now
-				setcookie(COOKIENAME, SYSTEMPASSWORD, $expire);
+				setcookie(COOKIENAME, SYSTEMPASSWORDENCRYPTED, $expire);
 				setcookie(COOKIENAME."_salt", $_SESSION[COOKIENAME.'_salt'], $expire);
 			} else {
 				// user does not want to be remembered, so destroy any potential cookies
