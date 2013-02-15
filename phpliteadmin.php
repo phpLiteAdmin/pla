@@ -422,21 +422,6 @@ if (get_magic_quotes_gpc()) {
 	unset($process);
 }
 
-//the salt and password encrypting is probably unnecessary protection but is done just for the sake of being very secure
-//create a random salt for this session if a cookie doesn't already exist for it
-if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
-{
-	$n = rand(10e16, 10e20);
-	$_SESSION[COOKIENAME.'_salt'] = base_convert($n, 10, 36);
-}
-else if(!isset($_SESSION[COOKIENAME.'_salt']) && isset($_COOKIE[COOKIENAME.'_salt'])) //session doesn't exist, but cookie does so grab it
-{
-	$_SESSION[COOKIENAME.'_salt'] = $_COOKIE[COOKIENAME.'_salt'];
-}
-
-//constants 2
-define("SYSTEMPASSWORDENCRYPTED", md5($password."_".$_SESSION[COOKIENAME.'_salt'])); //extra security - salted and encrypted password used for checking
-
 
 //data types array
 $types = array("INTEGER", "REAL", "TEXT", "BLOB");
@@ -614,14 +599,32 @@ class Authorization
 {
 	private $authorized;
 	private $login_failed;
+	private $system_password_encrypted;
 
 	public function __construct()
 	{
+		// the salt and password encrypting is probably unnecessary protection but is done just
+		// for the sake of being very secure
+		if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
+		{
+			// create a random salt for this session if a cookie doesn't already exist for it
+			$n = rand(10e16, 10e20);
+			$_SESSION[COOKIENAME.'_salt'] = base_convert($n, 10, 36);
+		}
+		else if(!isset($_SESSION[COOKIENAME.'_salt']) && isset($_COOKIE[COOKIENAME.'_salt']))
+		{
+			// session doesn't exist, but cookie does so grab it
+			$_SESSION[COOKIENAME.'_salt'] = $_COOKIE[COOKIENAME.'_salt'];
+		}
+
+		// salted and encrypted password used for checking
+		$this->system_password_encrypted = md5(SYSTEMPASSWORD."_".$_SESSION[COOKIENAME.'_salt']);
+
 		$this->authorized =
 			// no password
 			SYSTEMPASSWORD == ''
 			// correct password stored in session
-			|| isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == SYSTEMPASSWORDENCRYPTED
+			|| isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] == $this->system_password_encrypted 
 			// correct password stored in cookie
 			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5(SYSTEMPASSWORD."_".$_COOKIE[COOKIENAME.'_salt']) == $_COOKIE[COOKIENAME];
 	}
@@ -632,7 +635,7 @@ class Authorization
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
 				$expire = time()+60*60*24*30; //set expiration to 1 month from now
-				setcookie(COOKIENAME, SYSTEMPASSWORDENCRYPTED, $expire);
+				setcookie(COOKIENAME, $this->system_password_encrypted, $expire);
 				setcookie(COOKIENAME."_salt", $_SESSION[COOKIENAME.'_salt'], $expire);
 			} else {
 				// user does not want to be remembered, so destroy any potential cookies
@@ -642,7 +645,7 @@ class Authorization
 				unset($_COOKIE[COOKIENAME.'_salt']);
 			}
 
-			$_SESSION[COOKIENAME.'password'] = SYSTEMPASSWORDENCRYPTED;
+			$_SESSION[COOKIENAME.'password'] = $this->system_password_encrypted;
 			$this->authorized = true;
 			return true;
 		}
