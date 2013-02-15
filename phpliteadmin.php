@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-02-10
+//  Last updated: 2013-02-15
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1737,18 +1737,8 @@ if ($auth->isAuthorized())
 						$databases[$j]['name'] = basename($arr[$i]);
 					else
 						$databases[$j]['name'] = $arr[$i];
-					// 22 August 2011: gkf fixed bug 49.
-					$perms = 0;
-					$perms += is_readable($databases[$j]['path']) ? 4 : 0;
-					$perms += is_writeable($databases[$j]['path']) ? 2 : 0;
-					switch($perms)
-					{
-						case 6: $perms = "[rw] "; break;
-						case 4: $perms = "[r ] "; break;
-						case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
-						default: $perms = "[  ] "; break;
-					}
-					$databases[$j]['perms'] = $perms;
+					$databases[$j]['writeable'] = (is_writeable($databases[$j]['path']));
+					$databases[$j]['readable'] = (is_readable($databases[$j]['path']));
 					$j++;
 				}
 			}
@@ -1778,17 +1768,8 @@ if ($auth->isAuthorized())
 		{
 			if(!file_exists($databases[$i]['path']))
 				continue; //skip if file not found ! - probably a warning can be displayed - later
-			$perms = 0;
-			$perms += is_readable($databases[$i]['path']) ? 4 : 0;
-			$perms += is_writeable($databases[$i]['path']) ? 2 : 0;
-			switch($perms)
-			{
-				case 6: $perms = "[rw] "; break;
-				case 4: $perms = "[r ] "; break;
-				case 2: $perms = "[ w] "; break; // God forbid, but it might happen.
-				default: $perms = "[  ] "; break;
-			}
-			$databases[$i]['perms'] = $perms;
+			$databases[$j]['writeable'] = (is_writeable($databases[$j]['path']));
+			$databases[$j]['readable'] = (is_readeable($databases[$j]['path']));
 		}
 		sort($databases);
 	}
@@ -2940,7 +2921,7 @@ else //user is authorized - display the main application
 		foreach($databases as $database)
 		{
 			$i++;
-			echo $database['perms'];
+			echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writeable'] ? 'w':' ' ) . '] ';
 			$url_path = str_replace(DIRECTORY_SEPARATOR,'/',$database['path']);
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
@@ -2956,10 +2937,11 @@ else //user is authorized - display the main application
 		echo "<select name='database_switch'>";
 		foreach($databases as $database)
 		{
+			$perms_string = htmlencode('[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] ? 'w':' ' ) . '] ');
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
-				echo "<option value='".htmlencode($database['path'])."' selected='selected'>".htmlencode($database['perms'].$database['name'])."</option>";
+				echo "<option value='".htmlencode($database['path'])."' selected='selected'>".$perms_string.htmlencode($database['name'])."</option>";
 			else
-				echo "<option value='".htmlencode($database['path'])."'>".htmlencode($database['perms'].$database['name'])."</option>";
+				echo "<option value='".htmlencode($database['path'])."'>".$perms_string.htmlencode($database['name'])."</option>";
 		}
 		echo "</select> ";
 		echo "<input type='submit' value='".$lang['go']."' class='btn'>";
