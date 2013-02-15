@@ -3612,7 +3612,7 @@ else //user is authorized - display the main application
 					  if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 						  echo "<input type='text' id='".htmlencode($field)."_search' name='".htmlencode($field)."'/>";
 					  else
-						  echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' wrap='hard' rows='1' cols='60'></textarea>";
+						  echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' rows='1' cols='60'></textarea>";
 					  echo "</td>";
 					  echo "</tr>";
 					}
@@ -4182,7 +4182,7 @@ else //user is authorized - display the main application
 								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
 									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
-									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' wrap='hard' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 								echo "</td>";
 								echo "</tr>";
 							}
