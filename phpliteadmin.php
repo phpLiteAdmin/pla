@@ -612,8 +612,7 @@ class Authorization
 		if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
 		{
 			// create a random salt for this session if a cookie doesn't already exist for it
-			$n = rand(10e16, 10e20);
-			$_SESSION[COOKIENAME.'_salt'] = base_convert($n, 10, 36);
+			$_SESSION[COOKIENAME.'_salt'] = self::generateSalt(20);
 		}
 		else if(!isset($_SESSION[COOKIENAME.'_salt']) && isset($_COOKIE[COOKIENAME.'_salt']))
 		{
@@ -683,6 +682,17 @@ class Authorization
 	public function isPasswordDefault()
 	{
 		return SYSTEMPASSWORD == 'admin';
+	}
+
+	private static function generateSalt($saltSize)
+	{
+		$set = 'ABCDEFGHiJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		$setLast = strlen($set) - 1;
+		$salt = '';
+		while ($saltSize-- > 0) {
+			$salt .= $set[mt_rand(0, $setLast)];
+		}
+		return $salt;
 	}
 
 }
