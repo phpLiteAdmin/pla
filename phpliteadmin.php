@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-02-15
+//  Last updated: 2013-02-20
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -3008,7 +3008,7 @@ else //user is authorized - display the main application
 	echo "</form>";
 	echo "</div>";
 	echo "</div>";
-	echo '</td><td valign="top" class="right_td" style="padding:9px 2px 9px 9px;">';
+	echo '</td><td valign="top" id="main_column" class="right_td" style="padding:9px 2px 9px 9px;">';
 
 	//breadcrumb navigation
 	echo "<a href='".PAGE."'>".htmlencode($currentDB['name'])."</a>";
@@ -3931,7 +3931,7 @@ else //user is authorized - display the main application
 								$height = 800;
 							?>
 							]);
-							var chartWidth = document.getElementById("content").offsetWidth - document.getElementById("chartsettingsbox").offsetWidth - 100;
+							var chartWidth = document.getElementById("main_column").offsetWidth - document.getElementById("chartsettingsbox").offsetWidth - 100;
 							if(chartWidth>1000)
 								chartWidth = 1000;
 								
