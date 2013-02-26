@@ -1785,8 +1785,8 @@ if ($auth->isAuthorized())
 		{
 			if(!file_exists($databases[$i]['path']))
 				continue; //skip if file not found ! - probably a warning can be displayed - later
-			$databases[$j]['writable'] = is_writable($databases[$j]['path']);
-			$databases[$j]['readable'] = is_readable($databases[$j]['path']);
+			$databases[$i]['writable'] = is_writable($databases[$i]['path']);
+			$databases[$i]['readable'] = is_readable($databases[$i]['path']);
 		}
 		sort($databases);
 	}
