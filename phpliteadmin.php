@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-02-20
+//  Last updated: 2013-02-26
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1754,8 +1754,8 @@ if ($auth->isAuthorized())
 						$databases[$j]['name'] = basename($arr[$i]);
 					else
 						$databases[$j]['name'] = $arr[$i];
-					$databases[$j]['writeable'] = (is_writeable($databases[$j]['path']));
-					$databases[$j]['readable'] = (is_readable($databases[$j]['path']));
+					$databases[$j]['writable'] = is_writable($databases[$j]['path']);
+					$databases[$j]['readable'] = is_readable($databases[$j]['path']);
 					$j++;
 				}
 			}
@@ -1785,8 +1785,8 @@ if ($auth->isAuthorized())
 		{
 			if(!file_exists($databases[$i]['path']))
 				continue; //skip if file not found ! - probably a warning can be displayed - later
-			$databases[$j]['writeable'] = (is_writeable($databases[$j]['path']));
-			$databases[$j]['readable'] = (is_readeable($databases[$j]['path']));
+			$databases[$j]['writable'] = is_writable($databases[$j]['path']);
+			$databases[$j]['readable'] = is_readable($databases[$j]['path']);
 		}
 		sort($databases);
 	}
@@ -2938,7 +2938,7 @@ else //user is authorized - display the main application
 		foreach($databases as $database)
 		{
 			$i++;
-			echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writeable'] ? 'w':' ' ) . '] ';
+			echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] ? 'w':' ' ) . '] ';
 			$url_path = str_replace(DIRECTORY_SEPARATOR,'/',$database['path']);
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
