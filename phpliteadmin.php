@@ -3803,16 +3803,16 @@ else //user is authorized - display the main application
 						{
 							echo "<td class='tdheader'>";
 							if(!isset($_GET['view']))
-								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;sort=".urlencode($result[$i][1]);
+								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;sort=".urlencode($result[$i]['name']);
 							else
-								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;view=1&amp;sort=".urlencode($result[$i][1]);
+								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;view=1&amp;sort=".urlencode($result[$i]['name']);
 							if(isset($_SESSION[COOKIENAME.'sort']))
-								$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i][1] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+								$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i]['name'] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
 							else
 								$orderTag = "ASC";
 							echo "&amp;order=".$orderTag;
-							echo "'>".$result[$i][1]."</a>";
-							if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']==$result[$i][1])
+							echo "'>".$result[$i]['name']."</a>";
+							if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']==$result[$i]['name'])
 								echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 							echo "</td>";
 						}
@@ -3840,7 +3840,7 @@ else //user is authorized - display the main application
 							}
 							for($j=0; $j<sizeof($result); $j++)
 							{
-								if(strtolower($result[$j][2])=="integer" || strtolower($result[$j][2])=="float" || strtolower($result[$j][2])=="real")
+								if(strtolower($result[$j]['type'])=="integer" || strtolower($result[$j]['type'])=="float" || strtolower($result[$j]['type'])=="real")
 									echo $tdWithClass;
 								else
 									echo $tdWithClassLeft;
@@ -3870,26 +3870,55 @@ else //user is authorized - display the main application
 					{
 						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']))
 						{
+							// No label-column set. Try to pick a text-column as label-column.
 							for($i=0; $i<sizeof($result); $i++)
 							{
-								if(strtolower($result[$i][2])=="text")
+								$col_type = strtolower($result[$i]['type']);
+								if(strpos($col_type, 'text')!==false || strpos($col_type, 'char')!==false || strpos($col_type, 'clob')!==false)
+								{
 									$_SESSION[COOKIENAME.$_GET['table'].'chartlabels'] = $i;
+									break;
+								}
 							}
 						}
 						if(!isset($_SESSION[COOKIENAME.'chartlabels']))
+							// no text column found, use the first column
 							$_SESSION[COOKIENAME.'chartlabels'] = 0;
 							
 						if(!isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']))
 						{
+							// No value-column set. Pick the first numeric column if possible.
+							// If not possible, pick the first column that is not the label-column.
+							
+							$potential_value_column = null;
 							for($i=0; $i<sizeof($result); $i++)
 							{
-								if(strtolower($result[$i][2])=="integer" || strtolower($result[$i][2])=="float" || strtolower($result[$i][2])=="real")
+								if($potential_value_column===null && $i != $_SESSION[COOKIENAME.$_GET['table'].'chartlabels'])
+									// the first column (of any type) that is not the label-column
+									$potential_value_column = $i;
+								// check if the col is numeric
+								$col_type = strtolower($result[$i]['type']);  
+								if(strpos($col_type, 'int')!==false || strpos($col_type, 'real')!==false || strpos($col_type, 'floa')!==false || strpos($col_type, 'doub')!==false)
+								{
+									// this is defined as a numeric column, so prefer this as a value column over $potential_value_column
 									$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $i;
+									break;
+								}
+							}
+							if(!isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']))
+							{
+								// we did not find a numeric column
+								if($potential_value_column!==null)
+									// use the $potential_value_column, i.e. the second column which is not the label-column
+									$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $potential_value_column;
+								else
+									// it's hopeless, there is only 1 column
+									$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = 0;  
 							}
 						}
 						
 						if(!isset($_SESSION[COOKIENAME.'charttype']))
-							$_SESSION[COOKIENAME.'charttype'] = "bar";
+							$_SESSION[COOKIENAME.'charttype'] = 'bar';
 							
 						if(isset($_POST['chartsettings']))
 						{
@@ -3906,8 +3935,8 @@ else //user is authorized - display the main application
 						function drawChart()
 						{
 							var data = new google.visualization.DataTable();
-							data.addColumn('string', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']][1]; ?>');
-							data.addColumn('number', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']][1]; ?>');
+							data.addColumn('string', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']]['name']; ?>');
+							data.addColumn('number', '<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']]['name']; ?>');
 							data.addRows([
 							<?php
 							for($i=0; $i<sizeof($arr); $i++)
@@ -3939,7 +3968,7 @@ else //user is authorized - display the main application
 							{
 								'width':chartWidth,
 								'height':<?php echo $height; ?>,
-								'title':'<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']][1]." vs ".$result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']][1]; ?>'
+								'title':'<?php echo $result[$_SESSION[COOKIENAME.$_GET['table'].'chartlabels']]['name']." vs ".$result[$_SESSION[COOKIENAME.$_GET['table'].'chartvalues']]['name']; ?>'
 							};
 							<?php
 							if($_SESSION[COOKIENAME.'charttype']=="bar")
@@ -3975,22 +4004,19 @@ else //user is authorized - display the main application
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartlabels']) && $_SESSION[COOKIENAME.$_GET['table'].'chartlabels']==$i)
-								echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i][1])."</option>";
+								echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i]['name'])."</option>";
 							else
-								echo "<option value='".$i."'>".htmlencode($result[$i][1])."</option>";
+								echo "<option value='".$i."'>".htmlencode($result[$i]['name'])."</option>";
 						}
 						echo "</select>";
 						echo "<br/><br/>";
 						echo $lang['val'].": <select name='chartvalues'>";
 						for($i=0; $i<sizeof($result); $i++)
 						{
-							if(strtolower($result[$i][2])=="integer" || strtolower($result[$i][2])=="float" || strtolower($result[$i][2])=="real")
-							{
-								if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']) && $_SESSION[COOKIENAME.$_GET['table'].'chartvalues']==$i)
-									echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i][1])."</option>";
-								else
-									echo "<option value='".$i."'>".htmlencode($result[$i][1])."</option>";
-							}
+							if(isset($_SESSION[COOKIENAME.$_GET['table'].'chartvalues']) && $_SESSION[COOKIENAME.$_GET['table'].'chartvalues']==$i)
+								echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i]['name'])."</option>";
+							else
+								echo "<option value='".$i."'>".htmlencode($result[$i]['name'])."</option>";
 						}
 						echo "</select>";
 						echo "<br/><br/>";
