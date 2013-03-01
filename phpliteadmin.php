@@ -36,14 +36,19 @@
 //BEGIN USER-DEFINED VARIABLES
 //////////////////////////////
 
+// These are the default configuration value for phpLiteAdmin and will be overridden
+// by the optional configuration file. Feel free to edit below if you want to use
+// phpLiteAdmin as a single file; otherwise, rename phpliteadmin.config.sample.php to
+// phpliteadmin.config.php and edit it.
+
 //password to gain access
-$password = "admin";
+$password = 'admin';
 
-// Theme! If you want to change theme, save the CSS file in same folder of phpliteadmin or in folder "themes"
-$theme = "phpliteadmin.css";
+// Theme! If you want to change theme, save the CSS file in same folder of phpliteadmin or in folder 'themes'
+$theme = 'phpliteadmin.css';
 
-// the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
-$language = "en";
+// the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder 'languages'
+$language = 'en';
 
 // set default number of rows. You need to relog after changing the number
 $rowsNum = 30;
@@ -52,48 +57,18 @@ $rowsNum = 30;
 $charsNum = 300;
 
 //directory relative to this file to search for databases (if false, manually list databases in the $databases variable)
-$directory = ".";
+$directory = '.';
 
 //whether or not to scan the subdirectories of the above directory infinitely deep
 $subdirectories = false;
 
 //if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically
-$databases = array
-(
-	array
-	(
-		"path"=> "database1.sqlite",
-		"name"=> "Database 1"
-	),
-	array
-	(
-		"path"=> "database2.sqlite",
-		"name"=> "Database 2"
-	)
-);
+$databases = array();
 
 //a list of custom functions that can be applied to columns in the databases
 //make sure to define every function below if it is not a core PHP function
-$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
-
-//define all the non-core custom functions
-function md5rev($value)
-{
-	return strrev(md5($value));
-}
-function sha1rev($value)
-{
-	return strrev(sha1($value));
-}
-function mydate($value)
-{
-	return date("g:ia n/j/y", intval($value));
-}
-function myreplace($value)
-{
-	return preg_replace("/[^A-Za-z0-9]/", "", strval($value));	
-}
+$custom_functions = array('md5', 'sha1', 'time', 'strtotime');
 
 //changing the following variable allows multiple phpLiteAdmin installs to work under the same domain.
 $cookie_name = 'pla3412';
@@ -106,6 +81,12 @@ $allowed_extensions = array('db','db3','sqlite','sqlite3');
 
 ////////////////////////////
 //END USER-DEFINED VARIABLES
+
+// load optional configuration file
+$config_filename = './phpliteadmin.config.php';
+if (is_readable($config_filename)) {
+	include_once $config_filename;
+}
 
 
 // Start English language-texts
