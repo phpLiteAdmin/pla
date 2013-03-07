@@ -357,9 +357,6 @@ $lang = array(
 ini_set('session.cookie_httponly', '1');
 session_start();
 
-// needed to fix STRICT warnings about timezone issues
-date_default_timezone_set(date_default_timezone_get());
-
 if($debug==true)
 {
 	ini_set("display_errors", 1);
@@ -886,7 +883,7 @@ class Database
 	//get the last modified time of database
 	public function getDate()
 	{
-		return date("g:ia \o\\n F j, Y", filemtime($this->data["path"]));
+		return date('g:ia \o\n F j, Y (T)', filemtime($this->data['path']));
 	}
 
 	//get number of affected rows from last query
@@ -1581,7 +1578,7 @@ class Database
 			echo "----\r\n";
 			echo "-- ".PROJECT." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
 			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION."\r\n";
-			echo "-- ".$lang['exp_on']." ".date('M jS, Y, h:i:sA')."\r\n";
+			echo "-- ".$lang['exp_on']." ".date('M jS, Y, h:i:sA (T)')."\r\n";
 			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
@@ -3381,7 +3378,7 @@ else //user is authorized - display the main application
 				echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
 				$file = pathinfo($db->getPath());
 				$name = $file['filename'];
-				echo "<input type='text' name='filename' value='".htmlencode($name).".".htmlencode($_GET['table']).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
+				echo "<input type='text' name='filename' value='".htmlencode($name)."_".htmlencode($_GET['table'])."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 				echo "</fieldset>";
 				echo "</form>";
 				echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode(str_replace(DIRECTORY_SEPARATOR,'/',$currentDB['path']))."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
@@ -5188,7 +5185,7 @@ else //user is authorized - display the main application
 			echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
 			$file = pathinfo($db->getPath());
 			$name = $file['filename'];
-			echo "<input type='text' name='filename' value='".htmlencode($name).".".date("n-j-y").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
+			echo "<input type='text' name='filename' value='".htmlencode($name)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 			echo "</fieldset>";
 			echo "</form>";
 		}
