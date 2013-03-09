@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-02-26
+//  Last updated: 2013-03-09
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -1768,6 +1768,9 @@ if ($auth->isAuthorized())
 		}
 		sort($databases);
 	}
+	// we now have the $databases array set. Check whethet currentDB is a managed Db (is in this array)
+	if(isset($_SESSION[COOKIENAME.'currentDB']) && !isManagedDB($_SESSION[COOKIENAME.'currentDB']['path']))
+		unset($_SESSION[COOKIENAME.'currentDB']);
 	
 	//user is deleting a database
 	if(isset($_GET['database_delete']))
