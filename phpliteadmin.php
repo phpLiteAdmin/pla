@@ -3641,8 +3641,8 @@ else //user is authorized - display the main application
 				
 				if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$table)
 				{
-					unset($_SESSION[COOKIENAME.'sort']);
-					unset($_SESSION[COOKIENAME.'order']);	
+					unset($_SESSION[COOKIENAME.'sortRows']);
+					unset($_SESSION[COOKIENAME.'orderRows']);	
 				}
 				if(isset($_POST['viewtype']))
 				{
@@ -3732,22 +3732,22 @@ else //user is authorized - display the main application
 				$startRow = $_POST['startRow'];
 				if(isset($_GET['sort']))
 				{
-					$_SESSION[COOKIENAME.'sort'] = $_GET['sort'];
+					$_SESSION[COOKIENAME.'sortRows'] = $_GET['sort'];
 					$_SESSION[COOKIENAME.'currentTable'] = $table;
 				}
 				if(isset($_GET['order']))
 				{
-					$_SESSION[COOKIENAME.'order'] = $_GET['order'];
+					$_SESSION[COOKIENAME.'orderRows'] = $_GET['order'];
 					$_SESSION[COOKIENAME.'currentTable'] = $table;
 				}
 				$_SESSION[COOKIENAME.'numRows'] = $numRows;
 				$query = "SELECT *, ROWID FROM ".$db->quote_id($table);
 				$queryDisp = "SELECT * FROM ".$db->quote_id($table);
 				$queryAdd = "";
-				if(isset($_SESSION[COOKIENAME.'sort']))
-					$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sort']);
-				if(isset($_SESSION[COOKIENAME.'order']))
-					$queryAdd .= " ".$_SESSION[COOKIENAME.'order'];
+				if(isset($_SESSION[COOKIENAME.'sortRows']))
+					$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sortRows']);
+				if(isset($_SESSION[COOKIENAME.'orderRows']))
+					$queryAdd .= " ".$_SESSION[COOKIENAME.'orderRows'];
 				$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
 				$query .= $queryAdd;
 				$queryDisp .= $queryAdd;
@@ -3789,14 +3789,14 @@ else //user is authorized - display the main application
 								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;sort=".urlencode($result[$i]['name']);
 							else
 								echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($table)."&amp;view=1&amp;sort=".urlencode($result[$i]['name']);
-							if(isset($_SESSION[COOKIENAME.'sort']))
-								$orderTag = ($_SESSION[COOKIENAME.'sort']==$result[$i]['name'] && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+							if(isset($_SESSION[COOKIENAME.'sortRows']))
+								$orderTag = ($_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'] && $_SESSION[COOKIENAME.'orderRows']=="ASC") ? "DESC" : "ASC";
 							else
 								$orderTag = "ASC";
 							echo "&amp;order=".$orderTag;
 							echo "'>".$result[$i]['name']."</a>";
-							if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']==$result[$i]['name'])
-								echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+							if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'])
+								echo (($_SESSION[COOKIENAME.'orderRows']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 							echo "</td>";
 						}
 						echo "</tr>";
@@ -4847,23 +4847,19 @@ else //user is authorized - display the main application
 			echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 
 			echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
 			
-			if(isset($_GET['sort']))
-				$_SESSION[COOKIENAME.'sort'] = $_GET['sort'];
-			else
-				unset($_SESSION[COOKIENAME.'sort']);
-			if(isset($_GET['order']))
-				$_SESSION[COOKIENAME.'order'] = $_GET['order'];
-			else
-				unset($_SESSION[COOKIENAME.'order']);
+			if(isset($_GET['sort']) && ($_GET['sort']=='type' || $_GET['sort']=='name'))
+				$_SESSION[COOKIENAME.'sortTables'] = $_GET['sort'];
+			if(isset($_GET['order']) && ($_GET['order']=='ASC' || $_GET['order']=='DESC'))
+				$_SESSION[COOKIENAME.'orderTables'] = $_GET['order'];
 					
 			$query = "SELECT type, name FROM sqlite_master WHERE (type='table' OR type='view') AND name!='' AND name NOT LIKE 'sqlite_%'";
 			$queryAdd = "";
-			if(isset($_SESSION[COOKIENAME.'sort']))
-				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sort']);
+			if(isset($_SESSION[COOKIENAME.'sortTables']))
+				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sortTables']);
 			else
 				$queryAdd .= " ORDER BY \"name\"";
-			if(isset($_SESSION[COOKIENAME.'order']))
-				$queryAdd .= " ".$_SESSION[COOKIENAME.'order'];
+			if(isset($_SESSION[COOKIENAME.'orderTables']))
+				$queryAdd .= " ".$_SESSION[COOKIENAME.'orderTables'];
 			$query .= $queryAdd;
 			$result = $db->selectArray($query);
 
@@ -4876,26 +4872,26 @@ else //user is authorized - display the main application
 				
 				echo "<td class='tdheader'>";
 				echo "<a href='".PAGE."?sort=type";
-				if(isset($_SESSION[COOKIENAME.'sort']))
-					$orderTag = ($_SESSION[COOKIENAME.'sort']=="type" && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+				if(isset($_SESSION[COOKIENAME.'sortTables']))
+					$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="type" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
 				echo "'>".$lang['type']."</a> ".helpLink($lang['help3']); 
-				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="type")
-					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+				if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="type")
+					echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
 				
 				echo "<td class='tdheader'>";
 				echo "<a href='".PAGE."?sort=name";
-				if(isset($_SESSION[COOKIENAME.'sort']))
-					$orderTag = ($_SESSION[COOKIENAME.'sort']=="name" && $_SESSION[COOKIENAME.'order']=="ASC") ? "DESC" : "ASC";
+				if(isset($_SESSION[COOKIENAME.'sortTables']))
+					$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="name" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 				else
 					$orderTag = "ASC";
 				echo "&amp;order=".$orderTag;
 				echo "'>".$lang['name']."</a>";
-				if(isset($_SESSION[COOKIENAME.'sort']) && $_SESSION[COOKIENAME.'sort']=="name")
-					echo (($_SESSION[COOKIENAME.'order']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+				if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="name")
+					echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 				echo "</td>";
 				
 				echo "<td class='tdheader' colspan='10'>".$lang['act']."</td>";
