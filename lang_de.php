@@ -1,6 +1,7 @@
 <?php
 $lang = array(
 	"direction" => "LTR",
+	"date_format" => '\a\m d.m.Y \u\m H:i:s (T)',
 	"ver" => "Version",
 	"for" => "für",
 	"to" => "in",
@@ -76,7 +77,7 @@ $lang = array(
 	"db_setup" => "Es gab ein Problem Ihre Datenbank %s anzulegen. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
 	"db_exists" => "Eine Datenbank mit Namen '%s' existiert bereits.",
 	
-	"exp_on" => "Exportiert am",
+	"exported" => "Exportiert",
 	"struct" => "Struktur",
 	"struct_for" => "Struktur für",
 	"on_tbl" => "der Tabelle",

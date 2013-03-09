@@ -93,6 +93,7 @@ if (is_readable($config_filename)) {
 
 $lang = array(
 	"direction" => "LTR",
+	"date_format" => 'g:ia \o\n F j, Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
 	"ver" => "version",
 	"for" => "for",
 	"to" => "to",
@@ -168,7 +169,7 @@ $lang = array(
 	"db_setup" => "There was a problem setting up your database, %s. An attempt will be made to find out what's going on so you can fix the problem more easily",
 	"db_exists" => "A database of the name '%s' already exists.",
 	
-	"exp_on" => "Exported on",
+	"exported" => "Exported",
 	"struct" => "Structure",
 	"struct_for" => "structure for",
 	"on_tbl" => "on table",
@@ -883,7 +884,8 @@ class Database
 	//get the last modified time of database
 	public function getDate()
 	{
-		return date('g:ia \o\n F j, Y (T)', filemtime($this->data['path']));
+		global $lang;
+		return date($lang['date_format'], filemtime($this->data['path']));
 	}
 
 	//get number of affected rows from last query
@@ -1578,7 +1580,7 @@ class Database
 			echo "----\r\n";
 			echo "-- ".PROJECT." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
 			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION."\r\n";
-			echo "-- ".$lang['exp_on']." ".date('M jS, Y, h:i:sA (T)')."\r\n";
+			echo "-- ".$lang['exported'].": ".date($lang['date_format'])."\r\n";
 			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
 			echo "----\r\n";
 		}
