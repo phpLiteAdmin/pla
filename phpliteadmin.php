@@ -354,6 +354,20 @@ $lang = array(
 //there is no reason for the average user to edit anything below this comment
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+//constants 1
+define("PROJECT", "phpLiteAdmin");
+define("VERSION", "1.9.4");
+define("PAGE", basename(__FILE__));
+define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
+define("SYSTEMPASSWORD", $password); // Makes things easier.
+
+// Resource output (css and javascript files)
+// we get out of the main code as soon as possible, without inizializing the session
+if (isset($_GET['resource'])) {
+	Resources::output($_GET['resource']);
+	exit();
+}
+
 // don't mess with this - required for the login session
 ini_set('session.cookie_httponly', '1');
 session_start();
@@ -374,13 +388,6 @@ $pageTimer = new MicroTimer();
 if($language != 'en' && is_file('lang_'.$language.'.php')){
 	include('lang_'.$language.'.php');
 }
-
-//constants 1
-define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.4");
-define("PAGE", basename(__FILE__));
-define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
-define("SYSTEMPASSWORD", $password); // Makes things easier.
 
 // version-number added so after updating, old session-data is not used anylonger
 // cookies names cannot contain symbols, except underscores
@@ -1920,271 +1927,13 @@ if(isset($_GET['theme'])) $theme = basename($_GET['theme']);
 // allow themes to be dropped in subfolder "themes"
 if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
 
-if(!file_exists($theme)) //only use the inline stylesheet if an external one does not exist
-{
-?>
-<!-- begin the customizable stylesheet/theme -->
-<style type="text/css">
-/* overall styles for entire page */
-body {
-	margin: 0px;
-	padding: 0px;
-	font-family: Arial, Helvetica, sans-serif;
-	font-size: 14px;
-	color: #000000;
-	background-color: #e0ebf6;
-	overflow:auto;
-}
-.body_tbl td{ padding:9px 2px 9px 9px; }
-.left_td{ width:100px; }
+if (file_exists($theme))
+	// an external stylesheet exists - import it
+	echo "<link href='{$theme}' rel='stylesheet' type='text/css' />", PHP_EOL;
+else
+	// only use the default stylesheet if an external one does not exist
+	echo "<link href='", PAGE, "?resource=css' rel='stylesheet' type='text/css' />", PHP_EOL;
 
-/* general styles for hyperlink */
-a { color: #03F; text-decoration: none; cursor :pointer; }
-a:hover { color: #06F; }
-hr {
-	height: 1px;
-	border: 0;
-	color: #bbb;
-	background-color: #bbb;
-	width: 100%;	
-}
-/* logo text containing name of project */
-h1 {
-	margin: 0px;
-	padding: 5px;
-	font-size: 24px;
-	background-color: #f3cece;
-	text-align: center;
-	color: #000;
-	border-top-left-radius:5px;
-	border-top-right-radius:5px;
-	-moz-border-radius-topleft:5px;
-	-moz-border-radius-topright:5px;
-}
-/* the div container for the links */
-#headerlinks {
-	text-align:center;
-	margin-bottom:10px;
-	padding:5px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	border-left-style:none;
-	border-right-style:none;
-	font-size:12px;
-	background-color:#e0ebf6;
-	font-weight:bold;
-}
-/* version text within the logo */
-h1 #version { color: #000000; font-size: 16px; }
-/* logo text within logo */
-h1 #logo { color:#000; }
-/* general header for various views */
-h2 {
-	margin:0px;
-	padding:0px;
-	font-size:14px;
-	margin-bottom:20px;
-}
-/* input buttons and areas for entering text */
-input, select, textarea {
-	font-family:Arial, Helvetica, sans-serif;
-	background-color:#eaeaea;
-	color:#03F;
-	border-color:#03F;
-	border-style:solid;
-	border-width:1px;
-	margin:5px;
-	border-radius:5px;
-	-moz-border-radius:5px;
-	padding:3px;
-}
-/* just input buttons */
-input.btn { cursor:pointer; }
-input.btn:hover { background-color:#ccc; }
-/* general styles for hyperlink */
-fieldset {
-	padding:15px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	border-radius:5px;
-	-moz-border-radius:5px;
-	background-color:#f9f9f9;
-}
-/* outer div that holds everything */
-#container { padding:10px; }
-/* div of left box with log, list of databases, etc. */
-#leftNav {
-	min-width:250px;
-	padding:0px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-	padding-bottom:15px;
-	border-radius:5px;
-	-moz-border-radius:5px;
-}
-/* The table that hold left */
-.viewTable tr td{ padding:1px; }
-/* div holding the login fields */
-#loginBox {
-	width:500px;
-	margin-left:auto;
-	margin-right:auto;
-	margin-top:50px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	background-color:#FFF;
-	border-radius:5px;
-	-moz-border-radius:5px;
-}
-/* div under tabs with tab-specific content */
-#main {
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	padding:15px;
-	background-color:#FFF;
-	border-bottom-left-radius:5px;
-	border-bottom-right-radius:5px;
-	border-top-right-radius:5px;
-	-moz-border-radius-bottomleft:5px;
-	-moz-border-radius-bottomright:5px;
-	-moz-border-radius-topright:5px;
-}
-/* odd-numbered table rows */
-.td1 {
-	background-color:#f9e3e3;
-	text-align:right;
-	font-size:12px;
-	padding-left:10px;
-	padding-right:10px;
-}
-/* even-numbered table rows */
-.td2 {
-	background-color:#f3cece;
-	text-align:right;
-	font-size:12px;
-	padding-left:10px;
-	padding-right:10px;
-}
-/* table column headers */
-.tdheader {
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	font-weight:bold;
-	font-size:12px;
-	padding-left:10px;
-	padding-right:10px;
-	background-color:#e0ebf6;
-	border-radius:5px;
-	-moz-border-radius:5px;
-}
-/* div holding the confirmation text of certain actions */
-.confirm {
-	border-color:#03F;
-	border-width:1px;
-	border-style:dashed;
-	padding:15px;
-	background-color:#e0ebf6;
-}
-/* tab navigation for each table */
-.tab {
-	display:block;
-	padding:5px;
-	padding-right:8px;
-	padding-left:8px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:5px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	padding-bottom:4px;
-	background-color:#eaeaea;
-	border-top-left-radius:5px;
-	border-top-right-radius:5px;
-	-moz-border-radius-topleft:5px;
-	-moz-border-radius-topright:5px;
-}
-/* pressed state of tab */
-.tab_pressed {
-	display:block;
-	padding:5px;
-	padding-right:8px;
-	padding-left:8px;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	margin-right:5px;
-	float:left;
-	border-bottom-style:none;
-	position:relative;
-	top:1px;
-	background-color:#FFF;
-	cursor:default;
-	border-top-left-radius:5px;
-	border-top-right-radius:5px;
-	-moz-border-radius-topleft:5px;
-	-moz-border-radius-topright:5px;
-}
-/* help section */
-.helpq { font-size:11px; font-weight:normal; }
-#help_container {
-	padding:0px;
-	font-size:12px;
-	margin-left:auto;
-	margin-right:auto;
-	background-color:#ffffff;
-}
-.help_outer {
-	background-color:#FFF;
-	padding:0px;
-	height:300px;
-	
-	position:relative;
-}
-.help_list { padding:10px; height:auto; }
-
-.headd {
-	font-size:14px;
-	font-weight:bold;	
-	display:block;
-	padding:10px;
-	background-color:#e0ebf6;
-	border-color:#03F;
-	border-width:1px;
-	border-style:solid;
-	border-left-style:none;
-	border-right-style:none;
-}
-.help_inner { padding:10px;	}
-.help_top {
-	display:block;
-	position:absolute;
-	right:10px;
-	bottom:10px;	
-}
-.warning, .delete, .empty, .drop, .delete_db { color:red; }
-.sidebar_table { font-size:11px; }
-.active_table, .active_db { text-decoration:underline; }
-.null { color:#888; }
-.found { background:#FFFF00; text-decoration:none; }
-
-</style>
-<!-- end the customizable stylesheet/theme -->
-<?php
-}
-else //an external stylesheet exists - import it
-{
-	echo 	"<link href='".$theme."' rel='stylesheet' type='text/css' />";
-}
 if(isset($_GET['help'])) //this page is used as the popup help section
 {
 	//help section array
@@ -2226,179 +1975,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 }
 ?>
 <!-- JavaScript Support -->
-<script type="text/javascript">
-/* <![CDATA[ */
-//initiated autoincrement checkboxes
-function initAutoincrement()
-{
-	var i=0;
-	while(document.getElementById('i'+i+'_autoincrement')!=undefined)
-	{
-		document.getElementById('i'+i+'_autoincrement').disabled = true;
-		i++;
-	}
-}
-//makes sure autoincrement can only be selected when integer type is selected
-function toggleAutoincrement(i)
-{
-	var type = document.getElementById('i'+i+'_type');
-	var primarykey = document.getElementById('i'+i+'_primarykey');
-	var autoincrement = document.getElementById('i'+i+'_autoincrement');
-	if(!autoincrement) return false;
-	if(type.value=='INTEGER' && primarykey.checked)
-		autoincrement.disabled = false;
-	else
-	{
-		autoincrement.disabled = true;
-		autoincrement.checked = false;
-	}
-}
-function toggleNull(i)
-{
-	var pk = document.getElementById('i'+i+'_primarykey');
-	var notnull = document.getElementById('i'+i+'_notnull');
-	if(pk.checked)
-	{
-		notnull.disabled = true;
-		notnull.checked = true;
-	}
-	else
-	{
-		notnull.disabled = false;
-	}
-}
-//finds and checks all checkboxes for all rows on the Browse or Structure tab for a table
-function checkAll(field)
-{
-	var i=0;
-	while(document.getElementById('check_'+i)!=undefined)
-	{
-		document.getElementById('check_'+i).checked = true;
-		i++;
-	}
-}
-//finds and unchecks all checkboxes for all rows on the Browse or Structure tab for a table
-function uncheckAll(field)
-{
-	var i=0;
-	while(document.getElementById('check_'+i)!=undefined)
-	{
-		document.getElementById('check_'+i).checked = false;
-		i++;
-	}
-}
-//unchecks the ignore checkbox if user has typed something into one of the fields for adding new rows
-function changeIgnore(area, e, u)
-{
-	if(area.value!="")
-	{
-		if(document.getElementById(e)!=undefined)
-			document.getElementById(e).checked = false;
-		if(document.getElementById(u)!=undefined)
-			document.getElementById(u).checked = false;
-	}
-}
-//moves fields from select menu into query textarea for SQL tab
-function moveFields()
-{
-	var fields = document.getElementById("fieldcontainer");
-	var selected = new Array();
-	for(var i=0; i<fields.options.length; i++)
-		if(fields.options[i].selected)
-			selected.push(fields.options[i].value);
-	for(var i=0; i<selected.length; i++)
-		insertAtCaret("queryval", '"'+selected[i].replace(/"/g,'""')+'"');
-}
-//helper function for moveFields
-function insertAtCaret(areaId,text)
-{
-	var txtarea = document.getElementById(areaId);
-	var scrollPos = txtarea.scrollTop;
-	var strPos = 0;
-	var br = ((txtarea.selectionStart || txtarea.selectionStart == '0') ? "ff" : (document.selection ? "ie" : false ));
-	if(br=="ie")
-	{
-		txtarea.focus();
-		var range = document.selection.createRange();
-		range.moveStart ('character', -txtarea.value.length);
-		strPos = range.text.length;
-	}
-	else if(br=="ff")
-		strPos = txtarea.selectionStart;
-
-	var front = (txtarea.value).substring(0,strPos);
-	var back = (txtarea.value).substring(strPos,txtarea.value.length);
-	txtarea.value=front+text+back;
-	strPos = strPos + text.length;
-	if(br=="ie")
-	{
-		txtarea.focus();
-		var range = document.selection.createRange();
-		range.moveStart ('character', -txtarea.value.length);
-		range.moveStart ('character', strPos);
-		range.moveEnd ('character', 0);
-		range.select();
-	}
-	else if(br=="ff")
-	{
-		txtarea.selectionStart = strPos;
-		txtarea.selectionEnd = strPos;
-		txtarea.focus();
-	}
-	txtarea.scrollTop = scrollPos;
-}
-
-function notNull(checker)
-{
-	document.getElementById(checker).checked = false;
-}
-
-function disableText(checker, textie)
-{
-	if(checker.checked)
-	{
-		document.getElementById(textie).value = "";
-		document.getElementById(textie).disabled = true;	
-	}
-	else
-	{
-		document.getElementById(textie).disabled = false;	
-	}
-}
-
-function toggleExports(val)
-{
-	document.getElementById("exportoptions_sql").style.display = "none";	
-	document.getElementById("exportoptions_csv").style.display = "none";	
-	
-	document.getElementById("exportoptions_"+val).style.display = "block";	
-}
-
-function toggleImports(val)
-{
-	document.getElementById("importoptions_sql").style.display = "none";	
-	document.getElementById("importoptions_csv").style.display = "none";	
-	
-	document.getElementById("importoptions_"+val).style.display = "block";	
-}
-
-function openHelp(section)
-{
-	PopupCenter('<?php echo PAGE."?help=1"; ?>#'+section, "Help Section");	
-}
-var helpsec = false;
-function PopupCenter(pageURL, title)
-{
-	helpsec = window.open(pageURL, title, "toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=0,width=400,height=300");
-} 
-function checkLike(srchField, selOpt){
-	if(selOpt=="LIKE%"){
-		var textArea = document.getElementById(srchField);
-		textArea.value = "%" + textArea.value + "%";
-	}
-}
-/* ]]> */ 
-</script>
+<script type='text/javascript' src='<?php echo PAGE ?>?resource=javascript'></script>
 </head>
 <body style="direction:<?php echo $lang['direction']; ?>;">
 <?php
@@ -5340,6 +4917,73 @@ class MicroTimer {
 	public function __toString()
 	{
 		return (string) $this->elapsed();
+	}
+
+}
+
+
+/*	class Resources (issue #157)
+	outputs secondary files, such as css and javascript
+	data is stored gzipped (gzencode) and encoded (base64_encode)
+*/
+
+class Resources {
+
+	private static $_resources = array(
+		'css' => array(
+			'mime' => 'text/css',
+			'data' => 'H4sIAAAAAAAAA91XTY/jNgz9KwMEvcWGnXQGGfvUPQQ99dR7IFt0LIxseSUlmazh/15KlhPF9nxlWyxQBAESSqLIR/KRygQ9txWRe1YnUdoQSlm9x1+FqHVQkIrxc/KHZIQv/wR+BM1yslSkVoECyYp+m2I/IIl/b17TXHAhk0UURWlG8pe9FIeaBk4KEWTFUyqOIAsuTgk5aJF2YYYW7HTGHzRth/ufm9eHFX6f+y/u4lDoHe44MarLJI4iIyXtcOF6m2p41QGFXEiimaiTWtSQ5gepcEMjWK1B4omkNPdfzj1t066UbQlsX+okRqWZkBQkIuC2ZFk244uRXkz5DXXEUxAfUdsVn5XBZ6qoWOeQQ2884WxfJzlYU30orUmBFk1gYAgkoeygrH5vSRoX/LWgEj8Ct6EXm31GwzvLVotd7xYlEFzkrH5R7dTA3l/UoLWoEAY84nvuNHsBchIH23WL0mcOiRKc0UFk3ezlNoyDmdZFT+6l32oWXpdzdt+pD3ImODUBe1hgIijMlNaD2lP4ZDAw27jYC39PV67erJhrKdzCs7L5yurmoJcKOOR6aRAlEkj7yVKbcY6YTzqFeCqZwfgaB+eMF7V3s8iKB7/XF7/CTCOUo3q7rLi6mzqR53naFQw4VaAvBBD/dAp97MJMMT6bD2Z+jiEhrEaDLwbZAC5MYv5Fjm2Foe2tWD36mR/da/TElu12O2i91NiXItSFRwanv0nG4UFLn13j3hWBQf8mXh2lPlpKdVlrScLysxP0tOBLkCsS6/q/6fDnnVtUGJ/2vrtvk+w9Q3rg32Jdtzoh3i+Scq/mPV7ud1yp+UPqDjWNZ2qteIY1rP1mY8+MaXRIO2uST+wuDfpawDtWc3dMGtrP3dE3oTsjPeH9e6x4s6t8oRSRUAomqy+7QYkq4cOMdfYgXCRrKVMNJ+ck4yJ/uWnJt75txv5v7i7mG5KwYw8XRCdG66hWvN7dCMXsoCaB48R2xJxBSok9qxztzQ9Orvn9otnIIL1rJCgF9H+A+DwJumZOoSAHrn8Z1CXw5nvrVW48DNausmshK8LtwMqb3bR3R+Oy/0SXmyG2onDG7MRBz84yXs/GS92jYm0b6xR7p4szpW+nDHfOPY8M/9F2NFxOeG0+BT9FX//thO68ZPV0mOpXMNjjAhqgIhleiVCnPhl7z40uPBFZo8JlSHGm1rAMoWr0Gf9K0QzCHc3c9C6RSbtQMQoZkTttJqNxWnUhyU10+tXl8A9VjJ+XiKd9GxkX6wPnwwths9mgpDB4exliciOaf6J2/wAraB0Fgw8AAA==',
+		),
+		'javascript' => array(
+			'mime' => 'text/javascript',
+			'data' => 'H4sIAAAAAAAAA8VW247bNhD9FS+LxBKkKgrapyiq4QZuajQIgmTfimJBUSOJWJlUKGodZ+N/75CUL9KuvW4DtC+2RM7lnDPDoYpOMM2lmHDB9bzTkgumYAVCe/79HVUTmsbJuuI1eLlkndmIStCL2tr8ulnmHuEkoAG5ocfexL9KO5FDwQXk/v0/9I1y3tKshjzVqoOEBsF2W+yQalmWNQyxZg4sS88lyjCR3jRA/MQY508aN4qvqNrcwqZ3oU+6jIgkvPCuqH+vQHdKTApat7DFNRbd0bqDNCXL99eLt4uP5PnzPGIVsFsjFz0I4FwAf45XnSw7h95oLNH7rq496pTJziKnj5E9L6ZxEVILzOFoZgf4bASU7YGaV0eGjSke0FvjOWLPLm5B63KDqC5su4P9ANqo0/D/f4FiBRlhYRUVJSxLIRV4WchCLKxV3TbSVUqIfT+Vhl2Gho1AbM+EvJDgmNf2iNRK3sFvHOq83U+bkzoVxo5JoSnmU/seFbCezJWiG89PCqk81+xxkr2mkWxMljaqQZS6SrIgsBrtN/7M/opaqIFp17VN11bDXSuuj4gHkdkwomhB6bl+Q/GUe+RzB2qDfiSckmnATBQFTU0ZeC/IixJXydQPcM8/EmIYowwrJ0dxUo5yN5CKqGVK1vW1bHpFYvvPU88renaY4ZOmSn/7Nl7BARQTf0aKgrw6FHpvMyMcyCtbNt8eco4OuOTfF1GB1lg2mwzSh74RDkGq4aNpWzSDyBTbJjU9TxVF1RUJfyycyL2kfsJSiDR80f2CmxZ9aoSJdUrHLLZbVxuvj+VHbZe1WnFRenHIduP+sW0WjvP372kWVEGOaFhQ7cr93whwypDtthYiH2zEZsOl9fyHej2oOUuOljCYXejZYE8eGiqlhw7FWb+7Ty4+6XvnftRfY1k9Gmb9KdzfF6cCZn5fC0KSMzaDy8bxv8T68Utz8aWRSrfneBKwNv2YuGk/4w0YtXpTgwmOR32TEiEFnAY9isDau++MYK+PUYCsluyWjPktV0/z46vv5TeM8G/4DSNcwk82IH6HujHUPsima95gMFDe9PWsqZoJsEpOPszfLiIyq9AsfUmSyeyXH6YBDYnxm3xyJ4L4dpwYmxZYfxnvsxxHtq28s1tzkct1ZFCYjZBoKeuMqjQO3YHC5zZ9GSJqaiKZdU111zobZN65JwUt/2paFJ/XPNdV+nMchxXwstLpTzHO69Gn0jt+az4J3AcBxWP/bvnH4hl56pM4w1m7O1/PSNA/B/i83SZ/A5Gd09AYDAAA',
+		),
+	);
+
+	// override the internal resource with an external file
+	public static function useExternal($resource, $filename)
+	{
+		if (isset(self::$_resources[$resource]) && is_readable($filename)) {
+			self::$_resources[$resource]['file'] = $filename;
+		}
+	}
+
+	// outputs the specified resource, if defined in this class.
+	// the main script should do no further output after calling this function.
+	public static function output($resource)
+	{
+		if (isset(self::$_resources[$resource])) {
+			$res =& self::$_resources[$resource];
+
+			// use last-modified time as etag; etag must be quoted
+			$etag = '"' . filemtime(isset($res['file']) ? $res['file'] : PAGE) . '"';
+
+			// check headers for matching etag; if etag hasn't changed, use the cached version
+			if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag) {
+				header('HTTP/1.0 304 Not Modified');
+				return;
+			}
+
+			header('Etag: ' . $etag);
+
+			// cache file for at most 30 days
+			header('Cache-control: max-age=2592000');
+
+			// output resource
+			header('Content-type: ' . $res['mime']);
+
+			if (isset($res['file'])) {
+				readfile($res['file']);
+			} else {
+				if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== false) {
+					header('Content-encoding: gzip');
+					echo base64_decode($res['data']);
+				} else {
+					// browser does not accept gzipped data, decompress
+					echo gzdecode(base64_decode($res['data']));
+				}
+			}
+		}
 	}
 
 }
