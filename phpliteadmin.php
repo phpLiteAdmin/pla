@@ -1917,8 +1917,7 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
 <!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-<link rel="shortcut icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon" />
-<link rel="icon" href="http://phpliteadmin.googlecode.com/svn-history/r300/source/themes/phpliteadmin.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="<?php echo PAGE ?>?resource=favicon" />
 <title><?php echo PROJECT ?></title>
 
 <?php
@@ -4937,6 +4936,10 @@ class Resources {
 		'javascript' => array(
 			'mime' => 'text/javascript',
 			'data' => 'H4sIAAAAAAAAA8VW247bNhD9FS+LxBKkKgrapyiq4QZuajQIgmTfimJBUSOJWJlUKGodZ+N/75CUL9KuvW4DtC+2RM7lnDPDoYpOMM2lmHDB9bzTkgumYAVCe/79HVUTmsbJuuI1eLlkndmIStCL2tr8ulnmHuEkoAG5ocfexL9KO5FDwQXk/v0/9I1y3tKshjzVqoOEBsF2W+yQalmWNQyxZg4sS88lyjCR3jRA/MQY508aN4qvqNrcwqZ3oU+6jIgkvPCuqH+vQHdKTApat7DFNRbd0bqDNCXL99eLt4uP5PnzPGIVsFsjFz0I4FwAf45XnSw7h95oLNH7rq496pTJziKnj5E9L6ZxEVILzOFoZgf4bASU7YGaV0eGjSke0FvjOWLPLm5B63KDqC5su4P9ANqo0/D/f4FiBRlhYRUVJSxLIRV4WchCLKxV3TbSVUqIfT+Vhl2Gho1AbM+EvJDgmNf2iNRK3sFvHOq83U+bkzoVxo5JoSnmU/seFbCezJWiG89PCqk81+xxkr2mkWxMljaqQZS6SrIgsBrtN/7M/opaqIFp17VN11bDXSuuj4gHkdkwomhB6bl+Q/GUe+RzB2qDfiSckmnATBQFTU0ZeC/IixJXydQPcM8/EmIYowwrJ0dxUo5yN5CKqGVK1vW1bHpFYvvPU88renaY4ZOmSn/7Nl7BARQTf0aKgrw6FHpvMyMcyCtbNt8eco4OuOTfF1GB1lg2mwzSh74RDkGq4aNpWzSDyBTbJjU9TxVF1RUJfyycyL2kfsJSiDR80f2CmxZ9aoSJdUrHLLZbVxuvj+VHbZe1WnFRenHIduP+sW0WjvP372kWVEGOaFhQ7cr93whwypDtthYiH2zEZsOl9fyHej2oOUuOljCYXejZYE8eGiqlhw7FWb+7Ty4+6XvnftRfY1k9Gmb9KdzfF6cCZn5fC0KSMzaDy8bxv8T68Utz8aWRSrfneBKwNv2YuGk/4w0YtXpTgwmOR32TEiEFnAY9isDau++MYK+PUYCsluyWjPktV0/z46vv5TeM8G/4DSNcwk82IH6HujHUPsima95gMFDe9PWsqZoJsEpOPszfLiIyq9AsfUmSyeyXH6YBDYnxm3xyJ4L4dpwYmxZYfxnvsxxHtq28s1tzkct1ZFCYjZBoKeuMqjQO3YHC5zZ9GSJqaiKZdU111zobZN65JwUt/2paFJ/XPNdV+nMchxXwstLpTzHO69Gn0jt+az4J3AcBxWP/bvnH4hl56pM4w1m7O1/PSNA/B/i83SZ/A5Gd09AYDAAA',
+		),
+		'favicon' => array(
+			'mime' => 'image/x-icon',
+			'data' => 'H4sIAAAAAAAAA2NgYARCAQEGIKnAoMHCwCDGwMCgAcRAIaAIRJxYwM/FlQqkhInWgAYEeXgmAylZcvUL8fEdBFIeZGhlFObnd+Lk5LzKysq6D8hPBomRYgAfN3cYkHovISz8H0i/BeKNQCxIrH4RXl5vIHUSpB9qBgjvAGJ+YvRLCgra8HJxHQLpFeDlXYNkjj2xbuDh4KgE2QuMh7NA+hDUDe+AOJEY/dAw+Aiyl4OVdStUPwg/ZSAyXoF+OAh2Az//GSB9EsmMKiK94QxSD3IDME6PAtmfoPpfAbEaEfqZgHgrzAwgvRPJDZ1EukEeiB+D9LCxsYHccBOq/xiR+kEgDoh/AvFfpPRwgQT9IOAIxI8YEO4vI1E/CCgD8TogzkOXAAAwF/00PgQAAA==',
 		),
 	);
 
