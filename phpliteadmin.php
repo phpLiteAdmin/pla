@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-03-09
+//  Last updated: 2013-03-14
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -862,6 +862,18 @@ class Database
 	public function getPath()
 	{
 		return $this->data["path"];
+	}
+
+	//is the db-file writable?
+	public function isWritable()
+	{
+		return $this->data["writable"];
+	}
+
+	//is the db-folder writable?
+	public function isDirWritable()
+	{
+		return $this->data["writable_dir"];
 	}
 
 	//get the version of the database
@@ -1742,6 +1754,7 @@ if ($auth->isAuthorized())
 					else
 						$databases[$j]['name'] = $arr[$i];
 					$databases[$j]['writable'] = is_writable($databases[$j]['path']);
+					$databases[$j]['writable_dir'] = is_writable(dirname($databases[$j]['path']));
 					$databases[$j]['readable'] = is_readable($databases[$j]['path']);
 					$j++;
 				}
@@ -1773,6 +1786,7 @@ if ($auth->isAuthorized())
 			if(!file_exists($databases[$i]['path']))
 				continue; //skip if file not found ! - probably a warning can be displayed - later
 			$databases[$i]['writable'] = is_writable($databases[$i]['path']);
+			$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
 			$databases[$i]['readable'] = is_readable($databases[$i]['path']);
 		}
 		sort($databases);
@@ -2497,7 +2511,7 @@ else //user is authorized - display the main application
 		foreach($databases as $database)
 		{
 			$i++;
-			echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] ? 'w':' ' ) . '] ';
+			echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ';
 			$url_path = str_replace(DIRECTORY_SEPARATOR,'/',$database['path']);
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<a href='".PAGE."?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
@@ -2513,7 +2527,7 @@ else //user is authorized - display the main application
 		echo "<select name='database_switch'>";
 		foreach($databases as $database)
 		{
-			$perms_string = htmlencode('[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] ? 'w':' ' ) . '] ');
+			$perms_string = htmlencode('[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ');
 			if($database == $_SESSION[COOKIENAME.'currentDB'])
 				echo "<option value='".htmlencode($database['path'])."' selected='selected'>".$perms_string.htmlencode($database['name'])."</option>";
 			else
@@ -4395,6 +4409,13 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
 				echo "Error: A database, other file or directory of the name '".htmlencode($dbname)."' already exists.";    #todo: translate
+				echo "</div><br/>";
+			}
+			
+			if($db->isWritable() && !$db->isDirWritable())
+			{
+				echo "<div class='confirm' style='margin:10px 20px;'>";
+				echo "Attention: The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.";    #todo: translate
 				echo "</div><br/>";
 			}
 			
