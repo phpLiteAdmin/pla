@@ -146,8 +146,7 @@ $lang = array(
 	"sqlite_ext" => "SQLite extension",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",
 	"sqlite_v" => "SQLite version",
-	"sqlite_v3_error" => "It appears that your database is of SQLite version 3 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 2.",
-	"sqlite_v2_error" => "It appears that your database is of SQLite version 2 but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version 3.",
+	"sqlite_v_error" => "It appears that your database is of SQLite version %s but your installation of PHP does not contain the necessary extensions to handle this version. To fix the problem, either delete the database and allow %s to create it automatically or recreate it manually as SQLite version %s.",
 	"report_issue" => "The problem cannot be diagnosed properly. Please file an issue report at",
 	"sqlite_limit" => "Due to the limitations of SQLite, only the field name and data type can be modified.",
 	
@@ -184,8 +183,8 @@ $lang = array(
 	"page_gen" => "Page generated in %s seconds.",
 	"powered" => "Powered by",
 	"remember" => "Remember me",
-	"no_db" => "Welcome to phpLiteAdmin. It appears that you have selected to scan a directory for databases to manage. However, phpLiteAdmin could not find any valid SQLite databases. You may use the form below to create your first database.",
-	"no_db2" => "The directory you specified does not contain any existing databases to manage, and the directory is not writable. This means you can't create any new databases using phpLiteAdmin. Either make the directory writable or manually upload databases to the directory.",
+	"no_db" => "Welcome to %s. It appears that you have selected to scan a directory for databases to manage. However, %s could not find any valid SQLite databases. You may use the form below to create your first database.",
+	"no_db2" => "The directory you specified does not contain any existing databases to manage, and the directory is not writable. This means you can't create any new databases using %s. Either make the directory writable or manually upload databases to the directory.",
 	
 	"create" => "Create",
 	"created" => "has been created",
@@ -337,7 +336,7 @@ $lang = array(
 	
 	/* Help documentation */
 	"help1" => "SQLite Library Extensions",
-	"help1_x" => "phpLiteAdmin uses PHP library extensions that allow interaction with SQLite databases. Currently, phpLiteAdmin supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, phpLiteAdmin will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
+	"help1_x" => "%s uses PHP library extensions that allow interaction with SQLite databases. Currently, %s supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, %s will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
 	"help2" => "Creating a New Database",
 	"help2_x" => "When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the \$directory variable.",
 	"help3" => "Tables vs. Views",
@@ -368,6 +367,8 @@ define("VERSION", "1.9.4");
 define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
+define('PROJECT_URL','http://phpliteadmin.googlecode.com');
+define('PROJECT_BUGTRACKER_LINK','<a href="http://code.google.com/p/phpliteadmin/issues/list" target="_blank">http://code.google.com/p/phpliteadmin/issues/list</a>');
 
 // Resource output (css and javascript files)
 // we get out of the main code as soon as possible, without inizializing the session
@@ -839,11 +840,11 @@ class Database
 		else
 		{
 			if(!$classPDO && !$classSQLite3 && $this->getVersion()==3)
-				printf($lang['sqlite_v3_error'], PROJECT);
+				printf($lang['sqlite_v_error'], 3, PROJECT, 2);
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
-				printf($lang['sqlite_v2_error'], PROJECT);
+				printf($lang['sqlite_v_error'], 2, PROJECT, 3);
 			else
-				echo $lang['report_issue']." <a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>.";
+				echo $lang['report_issue'].' '.PROJECT_BUGTRACKER_LINK.'.';
 		}
 		echo "</div><br/>";
 	}
@@ -1127,7 +1128,7 @@ class Database
 				$result->closeCursor();
 			if(sizeof($resultArr)<1)
 			{
-				$this->alterError="Error: Altering of Table ".htmlencode($table)." not possible as table does not exist!?";
+				$this->alterError="Error: Altering of Table ".htmlencode($table)." not possible as table does not exist!?";   #todo: translate
 				if($debug) echo "ERROR: unknown table<hr>";
 				return false;
 			}
@@ -1150,7 +1151,7 @@ class Database
 					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<hr>";
 					if($origsql_no_create == $origsql)
 					{
-						$this->alterError="Error: Altering of Table failed - could not replace the tablename with the temporary one!?";
+						$this->alterError="Error: Altering of Table failed - could not replace the tablename with the temporary one!?";        #todo: translate
 						if($debug) echo "ERROR: could not get rid of CREATE TABLE<hr />";
 						return false;
 					}
@@ -1182,7 +1183,7 @@ class Database
 					$createtesttableSQL = $createtemptableSQL;
 					if(count($defs)<1)
 					{
-						$this->alterError="Error: Altering of Table failed - no alter definition!?";
+						$this->alterError="Error: Altering of Table failed - no alter definition!?";        #todo: translate
 						if($debug) echo "ERROR: defs&lt;1<hr />";
 						return false;
 					}
@@ -1192,13 +1193,13 @@ class Database
 						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
-							$this->alterError="Error: Altering of Table failed - failed to parse ALTER definition";
+							$this->alterError="Error: Altering of Table failed - failed to parse ALTER definition";            #todo: translate
 							if($debug) echo "ERROR: !parse_def<hr />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
-							$this->alterError="Error: Altering of Table failed - ALTER action could not be recognized";
+							$this->alterError="Error: Altering of Table failed - ALTER action could not be recognized";      #todo: translate
 							if($debug) echo "ERROR: !isset(matches[1])<hr />";
 							return false;
 						}
@@ -1244,7 +1245,7 @@ class Database
 							case 'add':
 								if(!isset($matches[4]))
 								{
-									$this->alterError="Error: Altering of Table failed (add) - no column to add detected in ALTER statement";
+									$this->alterError="Error: Altering of Table failed (add) - no column to add detected in ALTER statement";    #todo: translate
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
@@ -1259,7 +1260,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL) // pattern did not match, so column adding did not succed
 									{
-									$this->alterError="Error: Altering of Table failed (add) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
+									$this->alterError="Error: Altering of Table failed (add) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";   #todo: translate
 									return false;
 									}
 								$createtesttableSQL = $newSQL;
@@ -1267,7 +1268,7 @@ class Database
 							case 'change':
 								if(!isset($matches[5]) || !isset($matches[6]))
 								{
-									$this->alterError="Error: Altering of Table failed (change) - could not recognize new column name or name";
+									$this->alterError="Error: Altering of Table failed (change) - could not recognize new column name or name";   #todo: translate
 									return false;
 								}
 								$new_col_name = $matches[5];
@@ -1294,7 +1295,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError="Error: Altering of Table failed (change) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
+									$this->alterError="Error: Altering of Table failed (change) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";      #todo: translate
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
@@ -1317,7 +1318,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError="Error: Altering of Table failed (drop) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report.";
+									$this->alterError="Error: Altering of Table failed (drop) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";     #todo: translate
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
@@ -1331,7 +1332,7 @@ class Database
 								break;
 							default:
 								if($debug) echo 'ERROR: unknown alter operation!<hr />';
-								$this->alterError="Error: Altering of Table failed - Unknown ALTER operation!";
+								$this->alterError="Error: Altering of Table failed - Unknown ALTER operation!";  #todo: translate
 								return false;
 						}
 					}
@@ -1605,7 +1606,7 @@ class Database
 		if($comments)
 		{
 			echo "----\r\n";
-			echo "-- ".PROJECT." ".$lang['db_dump']." (<a href='http://phpliteadmin.googlecode.com'>http://phpliteadmin.googlecode.com</a>)\r\n";
+			echo "-- ".PROJECT." ".$lang['db_dump']." (".PROJECT_URL.")\r\n";
 			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION."\r\n";
 			echo "-- ".$lang['exported'].": ".date($lang['date_format'])."\r\n";
 			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
@@ -1936,7 +1937,7 @@ header('Content-Type: text/html; charset=utf-8');
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<!-- Copyright <?php echo date("Y"); ?> phpLiteAdmin (http://phpliteadmin.googlecode.com) -->
+<!-- Copyright <?php echo date("Y").' '.PROJECT.' ('.PROJECT_URL.')'; ?> -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 <link rel="shortcut icon" href="<?php echo PAGE ?>?resource=favicon" />
 <title><?php echo PROJECT ?></title>
@@ -1959,7 +1960,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	//help section array
 	$help = array
 	(
-		$lang['help1'] => $lang['help1_x'], $lang['help2'] => $lang['help2_x'], $lang['help3'] => $lang['help3_x'], 
+		$lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT), $lang['help2'] => $lang['help2_x'], $lang['help3'] => $lang['help3_x'], 
 		$lang['help4'] => $lang['help4_x'], $lang['help5'] => $lang['help5_x'], $lang['help6'] => $lang['help6_x'],
 		$lang['help7'] => $lang['help7_x'], $lang['help8'] => $lang['help8_x'], $lang['help9'] => $lang['help9_x']
 	);
@@ -1969,7 +1970,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	<div id='help_container'>
 	<?php
 	echo "<div class='help_list'>";
-	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";        # TODO: $lang
+	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";        #todo: translate
 	foreach((array)$help as $key => $val)
 	{
 		echo "<a href='#".$key."'>".$key."</a><br/>";
@@ -2023,7 +2024,7 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	echo "</div>";
 	echo "<br/>";
 	echo "<div style='text-align:center;'>";
-	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://phpliteadmin.googlecode.com' target='_blank' style='font-size:11px;'>".PROJECT."</a> | "; 
+	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='".PROJECT_URL."' target='_blank' style='font-size:11px;'>".PROJECT."</a> | "; 
 	printf($lang['page_gen'], $pageTimer);
 	echo "</span></div>";
 }
@@ -2044,7 +2045,7 @@ else //user is authorized - display the main application
 		if($directory!==false && is_writable($directory))
 		{
 			echo "<div class='confirm' style='margin:20px;'>";
-			echo $lang['no_db'];
+			printf($lang['no_db'], PROJECT, PROJECT);
 			echo "</div>";	
 			if(isset($extension_not_allowed))
 			{
@@ -2064,7 +2065,7 @@ else //user is authorized - display the main application
 		else
 		{
 			echo "<div class='confirm' style='margin:20px;'>";
-			echo $lang['err'].": ".$lang['no_db2'];
+			echo $lang['err'].": ".sprintf($lang['no_db2'], PROJECT);
 			echo "</div><br/>";	
 		}
 		exit();
@@ -2509,7 +2510,7 @@ else //user is authorized - display the main application
 	echo "<div id='headerlinks'>";
 	echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</a> | ";
 	echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
-	echo "<a href='http://code.google.com/p/phpliteadmin/' target='_blank'>".$lang['proj_site']."</a>";
+	echo "<a href='".PROJECT_URL."' target='_blank'>".$lang['proj_site']."</a>";
 	echo "</div>";
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_ch']."</b></legend>";
 	if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
@@ -2602,7 +2603,7 @@ else //user is authorized - display the main application
 		echo "<div id='main'>";
 		echo "<div class='confirm'>";
 		if(isset($error) && $error) //an error occured during the action, so show an error message
-			echo $lang['err'].": ".$db->getError().".<br/>".$lang['bug_report']." <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a>";
+			echo $lang['err'].": ".$db->getError().".<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
 		else //action was performed successfully - show success message
 			echo $completed;
 		echo "</div>";
@@ -3098,7 +3099,7 @@ else //user is authorized - display the main application
 					}
 					else
 					{
-						echo $lang['err'].": ".$db->getError().".</b><br/>".$lang['bug_report']." <a href='http://code.google.com/p/phpliteadmin/issues/list' target='_blank'>code.google.com/p/phpliteadmin/issues/list</a><br/>";
+						echo $lang['err'].": ".$db->getError().".</b><br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK.'<br/>';
 					}
 					echo "<span style='font-size:11px;'>".htmlencode($query)."</span>";
 					echo "</div><br/>";
@@ -4900,7 +4901,7 @@ else //user is authorized - display the main application
 	}
 
 	echo "<br/>";
-	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='http://code.google.com/p/phpliteadmin/' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
+	echo "<span style='font-size:11px;'>".$lang['powered']." <a href='".PROJECT_URL."' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
 	printf($lang['page_gen'], $pageTimer);
 	echo "</span>";
 	echo "</td></tr></table>";

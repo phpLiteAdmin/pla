@@ -54,8 +54,7 @@ $lang = array(
 	"sqlite_ext" => "SQLite Erweiterung",
 	"sqlite_ext_support" => "Es erscheint so, dass keine der unterstützten SQLite Erweiterungen in Ihrer PHP-Installation verfügbar ist. Sie können %s nicht nutzen, bevor Sie mindestens eine davon installieren.",
 	"sqlite_v" => "SQLite Version",
-	"sqlite_v3_error" => "Es erscheint so, also ob Ihre Datenbank das SQLite Version 2 Format hat aber Ihre PHP-Installation die zugehörige Erweiterung nicht installiert hat um dieses Format zu nutzen. Um das Problem zu beheben, löschen Sie entweder die Datenbank und erzeugen Sie mit %s erneut oder erzeugen Sie sie manuell im SQLite 2 Format.",
-	"sqlite_v2_error" => "Es erscheint so, also ob Ihre Datenbank das SQLite Version 3 Format hat aber Ihre PHP-Installation die zugehörige Erweiterung nicht installiert hat um dieses Format zu nutzen. Um das Problem zu beheben, löschen Sie entweder die Datenbank und erzeugen Sie mit %s erneut oder erzeugen Sie sie manuell im SQLite 3 Format.",
+	"sqlite_v_error" => "Es erscheint so, also ob Ihre Datenbank das SQLite Version %s Format hat aber Ihre PHP-Installation die zugehörige Erweiterung nicht installiert hat um dieses Format zu nutzen. Um das Problem zu beheben, löschen Sie entweder die Datenbank und erzeugen Sie mit %s erneut oder erzeugen Sie sie manuell im SQLite %s Format.",
 	"report_issue" => "Das Problem kann nicht ausreichend diagnostiziert werden. Bitte sende einen Problembericht auf ",
 	"sqlite_limit" => "Auf Grund von Einschränkungen von SQLite kann nur der Feldname und Datentyp verändert werden.",
 	
@@ -92,8 +91,8 @@ $lang = array(
 	"page_gen" => "Seite erzeugt in %s Sekunden.",
 	"powered" => "Powered by",
 	"remember" => "Eingeloggt bleiben",
-	"no_db" => "Willkommen zu phpLiteAdmin. Es erscheint so, als ob Sie konfiguriert haben, dass in einem Verzeichnis nach zu verwaltenden Datenbanken gesucht wird. Allerdings konnte in dem angegebenen Verzeichnis keine SQLite Datenbank gefunden werden. Sie können das folgende Formular nutzen um Ihre erste Datenbank anzulegen.",
-	"no_db2" => "Das von Ihnen angegebene Verzeichnis enthält keine SQLite Datenbanken und ist darüber hinaus nicht schreibbar. Aus diesem Grund können Sie mit phpLiteAdmin keine neuen Datenbanken in diesem Verzeichnis anlegen. Machen Sie entweder das Verzeichnis beschreibbar oder laden Sie manuell Datenbanken in das angegebene Verzeichnis.",
+	"no_db" => "Willkommen zu %s. Es erscheint so, als ob Sie konfiguriert haben, dass in einem Verzeichnis nach zu verwaltenden Datenbanken gesucht wird. Allerdings konnte %s in dem angegebenen Verzeichnis keine SQLite Datenbank gefunden werden. Sie können das folgende Formular nutzen um Ihre erste Datenbank anzulegen.",
+	"no_db2" => "Das von Ihnen angegebene Verzeichnis enthält keine SQLite Datenbanken und ist darüber hinaus nicht schreibbar. Aus diesem Grund können Sie mit %s keine neuen Datenbanken in diesem Verzeichnis anlegen. Machen Sie entweder das Verzeichnis beschreibbar oder laden Sie manuell Datenbanken in das angegebene Verzeichnis.",
 	
 	"create" => "Erzeugen",
 	"created" => "wurde erzeugt",
@@ -245,7 +244,7 @@ $lang = array(
 
 	/* Help documentation */
 	"help1" => "SQLite-Bibliothek Erweiterungen",
-	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff auf SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
+	"help1_x" => "%s verwendet PHP Erweiterungen, welche den Zugriff auf SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
 	"help2" => "Eine neue Datenbank anlegen",
 	"help2_x" => "Wenn Sie eine neue Datenbank anlegen, wird der von Ihnen eingegebene Name mit einer passenden Dateiendung erweitert (.db, .db3, .sqlite, etc.) falls Sie nicht selbst eine angeben. Die Datenbank wird in dem Verzeichnis angelegt, den Sie mit der \$directory Variable angegeben haben.",
 	"help3" => "Tabellen vs. Sichten",
