@@ -141,6 +141,7 @@ $lang = array(
 	"chk_ext" => "Checking supported SQLite PHP extensions",
 	"autoincrement" => "Autoincrement",
 	"not_null" => "Not NULL",
+	"attention" => "Attention",
 	
 	"sqlite_ext" => "SQLite extension",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",
@@ -167,7 +168,7 @@ $lang = array(
 	"db_vac" => "The database, '%s', has been VACUUMed.",
 	"db_not_writeable" => "The database, '%s', does not exist and cannot be created because the containing directory, '%s', is not writable. The application is unusable until you make it writable.",
 	"db_setup" => "There was a problem setting up your database, %s. An attempt will be made to find out what's going on so you can fix the problem more easily",
-	"db_exists" => "A database of the name '%s' already exists.",
+	"db_exists" => "A database, other file or directory of the name '%s' already exists.",
 	
 	"exported" => "Exported",
 	"struct" => "Structure",
@@ -326,6 +327,13 @@ $lang = array(
 	"choose_f" => "Choose File",
 	"instead" => "Instead of",
 	"define_in_col" => "Define index column(s)",
+	
+	"delete_only_managed" => "You can only delete databases managed by this tool!",
+	"rename_only_managed" => "You can only rename databases managed by this tool!",
+	"db_moved_outside" => "You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.",
+	"extension_not_allowed" => "The extension you provided is not within the list of allowed extensions. Please use one of the following extensions",
+	"add_allowed_extension" => "You can add extensions to this list by adding your extension to \$allowed_extensions in the configuration.",
+	"directory_not_writable" => "The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.",
 	
 	/* Help documentation */
 	"help1" => "SQLite Library Extensions",
@@ -1806,7 +1814,7 @@ if ($auth->isAuthorized())
 			unlink($dbpath);
 			unset($_SESSION[COOKIENAME.'currentDB']);
 			unset($databases[$checkDB]);
-		} else die('You can only delete databases managed by this tool!');      #todo: translate
+		} else die($lang['err'].': '.$lang['delete_only_managed']);
 	}
 	
 	//user is renaming a database
@@ -1829,7 +1837,7 @@ if ($auth->isAuthorized())
 				// its okay, the new directory is within $directory
 				$newpath =  $_POST['newname'];
 			}
-			else die('You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.');   #todo: translate
+			else die($lang['err'].': '.$lang['db_moved_outside']);
 		}
 		
 		if(checkDbName($newpath))
@@ -1837,14 +1845,13 @@ if ($auth->isAuthorized())
 			$checkDB = isManagedDB($oldpath);
 			if($checkDB !==false )
 			{
-				copy($oldpath, $newpath);
-				unlink($oldpath);                                #todo: move instead copy&unlink - otherwise, if copy fails, unlink will drop the file!
+				rename($oldpath, $newpath);
 				$databases[$checkDB]['path'] = $newpath;
 				$databases[$checkDB]['name'] = basename($newpath);
 				$_SESSION[COOKIENAME.'currentDB'] = $databases[$checkDB]; 
 				$justrenamed = true;
 			}
-			else die('You can only rename databases managed by this tool!');    #todo: translate
+			else die($lang['err'].': '.$lang['rename_only_managed']);
 		}
 		else
 		{
@@ -2042,10 +2049,10 @@ else //user is authorized - display the main application
 			if(isset($extension_not_allowed))
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
-				echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";      #todo: translate
+				echo $lang['err'].': '.$lang['extension_not_allowed'].': ';
 				foreach($allowed_extensions as $ext_i => $extension)
 					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
-				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';   #todo: translate
+				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}			
 			echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
@@ -4408,31 +4415,31 @@ else //user is authorized - display the main application
 			if(isset($dbexists))
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
-				echo "Error: A database, other file or directory of the name '".htmlencode($dbname)."' already exists.";    #todo: translate
+				echo $lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname));
 				echo "</div><br/>";
 			}
 			
 			if($db->isWritable() && !$db->isDirWritable())
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
-				echo "Attention: The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.";    #todo: translate
+				echo $lang['attention'].': '.$lang['directory_not_writable'];
 				echo "</div><br/>";
 			}
 			
 			if(isset($extension_not_allowed))
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
-				echo "The extension you provided for the new database is not within the list of allowed extensions. Please use one of the following extensions: ";     #todo: translate
+				echo $lang['extension_not_allowed'].': ';
 				foreach($allowed_extensions as $ext_i => $extension)
 					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
-				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.';      #todo: translate
+				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}
 
 			if ($auth->isPasswordDefault())
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
-				echo sprintf($lang['warn_passwd'],'phpliteadmin.php')."<br />".$lang['warn0'];
+				echo sprintf($lang['warn_passwd'],(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':PAGE))."<br />".$lang['warn0'];
 				echo "</div>";
 			}
 			
@@ -4848,10 +4855,10 @@ else //user is authorized - display the main application
 			if(isset($extension_not_allowed))
 			{
 				echo "<div class='confirm'>";
-				echo "The new extension you provided for the database is not within the list of allowed extensions. Please use one of the following extensions: "; #todo: translate
+				echo $lang['extension_not_allowed'].': ';
 				foreach($allowed_extensions as $ext_i => $extension)
 					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
-				echo '<br />You can add extensions to this list by opening phpliteadmin.php and adding your extension to $allowed_extensions in the configuration.'; #todo: translate
+				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}
 			if(isset($dbexists))

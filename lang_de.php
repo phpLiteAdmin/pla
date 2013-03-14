@@ -49,6 +49,7 @@ $lang = array(
 	"chk_ext" => "Prüfe unterstützte SQLite PHP Erweiterungen",
 	"autoincrement" => "Autoincrement",
 	"not_null" => "Nicht NULL",
+	"attention" => "Achtung",
 	
 	"sqlite_ext" => "SQLite Erweiterung",
 	"sqlite_ext_support" => "Es erscheint so, dass keine der unterstützten SQLite Erweiterungen in Ihrer PHP-Installation verfügbar ist. Sie können %s nicht nutzen, bevor Sie mindestens eine davon installieren.",
@@ -75,7 +76,7 @@ $lang = array(
 	"db_vac" => "Die Datenbank '%s' wurde geVACUUMt.",
 	"db_not_writeable" => "Die Datenbank '%s' existiert nicht und kann nicht erzeugt werden, da der Ordner '%s' nicht beschreibbar ist. Die Anwendung kann nicht benutzt werden bevor Sie den Ordner beschreibbar machen.",
 	"db_setup" => "Es gab ein Problem Ihre Datenbank %s anzulegen. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
-	"db_exists" => "Eine Datenbank mit Namen '%s' existiert bereits.",
+	"db_exists" => "Eine Datenbank, eine andere Datei oder ein Verzeichnis mit Namen '%s' existiert bereits.",
 	
 	"exported" => "Exportiert",
 	"struct" => "Struktur",
@@ -234,7 +235,14 @@ $lang = array(
 	"choose_f" => "Datei wählen",
 	"instead" => "Anstatt",
 	"define_in_col" => "Wähle Index Spalte(n)",
-	
+
+	"delete_only_managed" => "Sie können nur Datenbanken löschen, die mit diesem Tool verwaltet werden!",
+	"rename_only_managed" => "Sie können nur Datenbanken umbenennen, die mit diesem Tool verwaltet werden!",
+	"db_moved_outside" => "Sie haben entweder versucht, die Datenbank in ein Verzeichnis zu verschieben, wo sie nicht mehr gemanaged werden kann, oder die Überprüfung, ob Sie das getan haben, schlug wegen ungenügenden Rechten fehl.",
+	"extension_not_allowed" => "Die angegebene Dateierweiterung ist nicht in der Liste erlaubter Dateierweiterungen. Bitte verwenden Sie eine der folgenden Dateierweiterungen",
+	"add_allowed_extension" => "Sie können die gewählte Dateierweiterung zur Liste erlaubter Dateierweiterungen hinzufügen, indem Sie sie \$allowed_extensions in der Konfiguration hinzufügen.",
+	"directory_not_writable" => "Die Datenbank-Datei selbst ist schreibbar, aber um darin zu schreiben, muss auch das Verzeichnis, indem sie liegt schreibbar sein. Dies liegt daran, dass SQLite eine temporäre Sperrdatei darin ablegen muss.",
+
 	/* Help documentation */
 	"help1" => "SQLite-Bibliothek Erweiterungen",
 	"help1_x" => "phpLiteAdmin verwendet PHP Erweiterungen, welche den Zugriff auf SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
