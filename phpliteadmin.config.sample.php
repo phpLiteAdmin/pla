@@ -7,7 +7,7 @@
 //    You can leave here only your custom settings. All other settings will be set to defaults.
 // 2. Change parameters directly in main phpliteadmin.php file
 //
-//
+// Please see http://code.google.com/p/phpliteadmin/wiki/Configuration for more details
 
 //password to gain access
 $password = 'admin';

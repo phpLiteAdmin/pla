@@ -40,6 +40,8 @@
 // by the optional configuration file. Feel free to edit below if you want to use
 // phpLiteAdmin as a single file; otherwise, rename phpliteadmin.config.sample.php to
 // phpliteadmin.config.php and edit it.
+//
+// Please see http://code.google.com/p/phpliteadmin/wiki/Configuration for more details
 
 //password to gain access
 $password = 'admin';
