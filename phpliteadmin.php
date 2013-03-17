@@ -3245,6 +3245,7 @@ else //user is authorized - display the main application
 			/////////////////////////////////////////////// view row
 			case "row_view":
 				$table = $_GET['table'];
+				$is_view = isset($_GET['view']) ? '&amp;view=1' : '';
 
 				if(!isset($_POST['startRow']))
 					$_POST['startRow'] = 0;
@@ -3276,14 +3277,14 @@ else //user is authorized - display the main application
 				if($_POST['startRow']>0)
 				{
 					echo "<div style='float:left;'>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table).$is_view."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='0'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&larr;&larr;' name='previous' class='btn'/> ";
 					echo "</form>";
 					echo "</div>";
 					echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table).$is_view."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']-$_SESSION[COOKIENAME.'numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&larr;' name='previous_full' class='btn'/> ";
@@ -3293,7 +3294,7 @@ else //user is authorized - display the main application
 				
 				//show certain number buttons
 				echo "<div style='float:left;'>";
-				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
+				echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table).$is_view."' method='post'>";
 				echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 				echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 				echo $lang['rows_records'];
@@ -3322,14 +3323,14 @@ else //user is authorized - display the main application
 				if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])<$rowCount)
 				{
 					echo "<div style='float:left; margin-left:20px; '>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table).$is_view."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;' name='next' class='btn'/> ";
 					echo "</form>";
 					echo "</div>";
 					echo "<div style='float:left; '>";
-					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table)."' method='post'>";
+					echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($table).$is_view."' method='post'>";
 					echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
 					echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 					echo "<input type='submit' value='&rarr;&rarr;' name='next_full' class='btn'/> ";
@@ -3392,7 +3393,7 @@ else //user is authorized - display the main application
 					
 					if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 					{
-						echo "<form action='".PAGE."?action=row_editordelete&amp;table=".urlencode($table)."' method='post' name='checkForm'>";
+						echo "<form action='".PAGE."?action=row_editordelete&amp;table=".urlencode($table).$is_view."' method='post' name='checkForm'>";
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						if(!isset($_GET['view']))
@@ -3583,7 +3584,7 @@ else //user is authorized - display the main application
 						<div id="chart_div" style="float:left;"><?php echo $lang['no_chart']; ?></div>
 						<?php
 						echo "<fieldset style='float:right; text-align:center;' id='chartsettingsbox'><legend><b>Chart Settings</b></legend>";
-						echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table'])."' method='post'>";
+						echo "<form action='".PAGE."?action=row_view&amp;table=".urlencode($_GET['table']).$is_view."' method='post'>";
 						echo $lang['chart_type'].": <select name='charttype'>";
 						echo "<option value='bar'";
 						if($_SESSION[COOKIENAME.'charttype']=="bar")
@@ -3630,7 +3631,7 @@ else //user is authorized - display the main application
 				{
 					echo "<br/><br/>".$lang['no_rows'];
 				}
-				else
+				elseif(!isset($_GET['view']))
 				{
 					echo "<br/><br/>".$lang['empty_tbl']." <a href='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=row_create'>".$lang['click']."</a> ".$lang['insert_rows'];
 				}
