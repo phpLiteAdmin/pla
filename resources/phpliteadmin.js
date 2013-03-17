@@ -154,7 +154,7 @@ function toggleImports(val)
 
 function openHelp(section)
 {
-	PopupCenter('<?php echo PAGE."?help=1"; ?>#'+section, "Help Section");	
+	PopupCenter('?help=1#'+section, "Help Section");	
 }
 var helpsec = false;
 function PopupCenter(pageURL, title)

@@ -155,7 +155,7 @@ $lang = array(
 	"ques_empty" => "Sind Sie sicher, dass Sie die Tabelle '%s' leeren möchten?",        
 	"ques_drop" => "Sind Sie sicher, dass Sie die Tabelle '%s' löschen möchten?",
 	"ques_drop_view" => "Sind Sie sicher, dass Sie die Sicht '%s' löschen möchten?",
-	"ques_del_rows" => "Sind Sie siche, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
+	"ques_del_rows" => "Sind Sie sicher, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
 	"ques_del_db" => "Sind Sie sicher, dass Sie die Datenbank '%s' löschen möchten?",
 	"ques_del_col" => "Sie Sie sicher, dass Sie die Spalten %s aus der Tabelle '%s' löschen möchten?",
 	"ques_del_index" => "Sind Sie sicher, dass Sie den Index '%s' löschen möchten?",
@@ -237,12 +237,25 @@ $lang = array(
 
 	"delete_only_managed" => "Sie können nur Datenbanken löschen, die mit diesem Tool verwaltet werden!",
 	"rename_only_managed" => "Sie können nur Datenbanken umbenennen, die mit diesem Tool verwaltet werden!",
-	"db_moved_outside" => "Sie haben entweder versucht, die Datenbank in ein Verzeichnis zu verschieben, wo sie nicht mehr gemanaged werden kann, oder die Überprüfung, ob Sie das getan haben, schlug wegen ungenügenden Rechten fehl.",
+	"db_moved_outside" => "Sie haben entweder versucht, die Datenbank in ein Verzeichnis zu verschieben, wo sie nicht mehr verwaltet werden kann, oder die Überprüfung, ob Sie das getan haben, schlug wegen ungenügenden Rechten fehl.",
 	"extension_not_allowed" => "Die angegebene Dateierweiterung ist nicht in der Liste erlaubter Dateierweiterungen. Bitte verwenden Sie eine der folgenden Dateierweiterungen",
 	"add_allowed_extension" => "Sie können die gewählte Dateierweiterung zur Liste erlaubter Dateierweiterungen hinzufügen, indem Sie sie \$allowed_extensions in der Konfiguration hinzufügen.",
 	"directory_not_writable" => "Die Datenbank-Datei selbst ist schreibbar, aber um darin zu schreiben, muss auch das Verzeichnis, indem sie liegt schreibbar sein. Dies liegt daran, dass SQLite eine temporäre Sperrdatei darin ablegen muss.",
+	"tbl_inexistent" => "Tabelle %s existiert nicht",
+
+	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
+	"alter_failed" => "Änderung der Tabelle %s fehlgeschlagen",
+	"alter_tbl_name_not_replacable" => "Der Tabellenname konnte nicht mit dem temporärem ersetzt werden",
+	"alter_no_def" => "keine ALTER Definition",
+	"alter_parse_failed" =>"das Parsen der ALTER Definition schlug fehl",
+	"alter_action_not_recognized" => "ALTER Aktion konnte nicht erkannt werden",
+	"alter_no_add_col" => "keine Spalte, die hinzugefügt werden soll im ALTER Ausdruck erkannt",
+	"alter_pattern_mismatch"=>"Ihr ursprünglicher CREATE TABLE Ausdruck passt nicht auf unser Muster",
+	"alter_col_not_recognized" => "Konnte neuen oder alten Spaltennamen nicht erkennen",
+	"alter_unknown_operation" => "Unbekannte ALTER Operation!",
 
 	/* Help documentation */
+	"help_doc" => "Dokumentation / Hilfe",
 	"help1" => "SQLite-Bibliothek Erweiterungen",
 	"help1_x" => "%s verwendet PHP Erweiterungen, welche den Zugriff auf SQLite Datenbanken erlauben. Aktuell unterstützt phpLiteAdmin PDO, SQLite3 und SQLiteDatabase. Sowohl PDO und SQLite3 werden für Version 3 von SQLite verwendet und SQLiteDatabase für Version 2. Falls in Ihrer PHP-Installation mehr als eine SQLite Erweiterung verfügbar ist, wird PDO und SQLite3 bevorzugt verwendet um den Vorteil der neuen Version nutzen zu können. Sollten Sie aber existierende SQLite-Datenbanken der Version 2 haben wird phpLiteAdmin SQLiteDatabase automatisch nur für diese Datenbanken verwenden. Es müssen nicht alle Datenbanken der gleichen Version sein. Zur Erzeugung neuer Datenbanken wird allerdings stets die beste verfügbare Version genutzt.",
 	"help2" => "Eine neue Datenbank anlegen",

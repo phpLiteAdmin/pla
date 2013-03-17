@@ -4,7 +4,7 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-03-14
+//  Last updated: 2013-03-17
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
@@ -308,7 +308,7 @@ $lang = array(
 	"create_trigger2" => "Create a new trigger",
 	"new_fld" => "Adding new field(s) to table '%s'",
 	"add_flds" => "Add Fields",
-	"edit_col" => "Editing colum '%s'",
+	"edit_col" => "Editing column '%s'",
 	"vac" => "Vacuum",
 	"vac_desc" => "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database '%s'.",
 	"event" => "Event",
@@ -335,8 +335,21 @@ $lang = array(
 	"extension_not_allowed" => "The extension you provided is not within the list of allowed extensions. Please use one of the following extensions",
 	"add_allowed_extension" => "You can add extensions to this list by adding your extension to \$allowed_extensions in the configuration.",
 	"directory_not_writable" => "The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.",
+	"tbl_inexistent" => "Table %s does not exist",
+
+	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
+	"alter_failed" => "Altering of Table %s failed",
+	"alter_tbl_name_not_replacable" => "could not replace the table name with the temporary one",
+	"alter_no_def" => "no ALTER definition",
+	"alter_parse_failed" =>"failed to parse ALTER definition",
+	"alter_action_not_recognized" => "ALTER action could not be recognized",
+	"alter_no_add_col" => "no column to add detected in ALTER statement",
+	"alter_pattern_mismatch"=>"Pattern did not match on your original CREATE TABLE statement",
+	"alter_col_not_recognized" => "could not recognize new or old column name",
+	"alter_unknown_operation" => "Unknown ALTER operation!",
 	
 	/* Help documentation */
+	"help_doc" => "Help Documentation",
 	"help1" => "SQLite Library Extensions",
 	"help1_x" => "%s uses PHP library extensions that allow interaction with SQLite databases. Currently, %s supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, %s will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
 	"help2" => "Creating a New Database",
@@ -396,10 +409,12 @@ if($debug==true)
 $pageTimer = new MicroTimer();
 
 // load language file
-if($language != 'en' && is_file('lang_'.$language.'.php')){
-	include('lang_'.$language.'.php');
+if($language != 'en') {
+	if(is_file('languages/lang_'.$language.'.php'))
+		include('languages/lang_'.$language.'.php');
+	elseif(is_file('lang_'.$language.'.php'))
+		include('lang_'.$language.'.php');
 }
-
 // version-number added so after updating, old session-data is not used anylonger
 // cookies names cannot contain symbols, except underscores
 define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . VERSION) );
@@ -525,7 +540,7 @@ function dir_tree($dir)
 function helpLink($name)
 {
 	global $lang;
-	return "<a href='javascript:void' onclick='openHelp(\"".$name."\");' class='helpq' title='".$lang['help'].": ".$name."'><span>[?]</span></a>";	
+	return "<a href='".PAGE."?help=1' onclick='openHelp(\"".$name."\"); return false;' class='helpq' title='".$lang['help'].": ".$name."' target='_blank'><span>[?]</span></a>";	
 }
 
 // function to encode value into HTML just like htmlentities, but with adjusted default settings
@@ -1117,8 +1132,9 @@ class Database
 	// this has been completely debugged / rewritten by Christopher Kramer
 	public function alterTable($table, $alterdefs)
 	{
-		global $debug;
+		global $debug, $lang;
 		$this->alterError="";
+		$errormsg = $lang['err'].': '.sprintf($lang['alter_failed'],htmlencode($table)).' - ';
 		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
@@ -1130,7 +1146,7 @@ class Database
 				$result->closeCursor();
 			if(sizeof($resultArr)<1)
 			{
-				$this->alterError="Error: Altering of Table ".htmlencode($table)." not possible as table does not exist!?";   #todo: translate
+				$this->alterError = $errormsg . sprintf($lang['tbl_inexistent'], htmlencode($table));
 				if($debug) echo "ERROR: unknown table<hr>";
 				return false;
 			}
@@ -1153,7 +1169,7 @@ class Database
 					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<hr>";
 					if($origsql_no_create == $origsql)
 					{
-						$this->alterError="Error: Altering of Table failed - could not replace the tablename with the temporary one!?";        #todo: translate
+						$this->alterError = $errormsg . $lang['alter_tbl_name_not_replacable'];
 						if($debug) echo "ERROR: could not get rid of CREATE TABLE<hr />";
 						return false;
 					}
@@ -1185,7 +1201,7 @@ class Database
 					$createtesttableSQL = $createtemptableSQL;
 					if(count($defs)<1)
 					{
-						$this->alterError="Error: Altering of Table failed - no alter definition!?";        #todo: translate
+						$this->alterError = $errormsg . $lang['alter_no_def'];
 						if($debug) echo "ERROR: defs&lt;1<hr />";
 						return false;
 					}
@@ -1195,13 +1211,13 @@ class Database
 						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
-							$this->alterError="Error: Altering of Table failed - failed to parse ALTER definition";            #todo: translate
+							$this->alterError = $errormsg . $lang['alter_parse_failed'];
 							if($debug) echo "ERROR: !parse_def<hr />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
-							$this->alterError="Error: Altering of Table failed - ALTER action could not be recognized";      #todo: translate
+							$this->alterError = $errormsg . $lang['alter_action_not_recognized'];
 							if($debug) echo "ERROR: !isset(matches[1])<hr />";
 							return false;
 						}
@@ -1247,7 +1263,7 @@ class Database
 							case 'add':
 								if(!isset($matches[4]))
 								{
-									$this->alterError="Error: Altering of Table failed (add) - no column to add detected in ALTER statement";    #todo: translate
+									$this->alterError = $errormsg . ' (add) - '. $lang['alter_no_add_col'];
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
@@ -1262,7 +1278,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL) // pattern did not match, so column adding did not succed
 									{
-									$this->alterError="Error: Altering of Table failed (add) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";   #todo: translate
+									$this->alterError = $errormsg . ' (add) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
 									return false;
 									}
 								$createtesttableSQL = $newSQL;
@@ -1270,7 +1286,7 @@ class Database
 							case 'change':
 								if(!isset($matches[5]) || !isset($matches[6]))
 								{
-									$this->alterError="Error: Altering of Table failed (change) - could not recognize new column name or name";   #todo: translate
+									$this->alterError = $errormsg . ' (change) - '.$lang['alter_col_not_recognized'];
 									return false;
 								}
 								$new_col_name = $matches[5];
@@ -1297,7 +1313,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError="Error: Altering of Table failed (change) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";      #todo: translate
+									$this->alterError = $errormsg . ' (change) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
@@ -1320,7 +1336,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError="Error: Altering of Table failed (drop) - Pattern did not match on your original CREATE TABLE statement. Please post a bug report at ".PROJECT_BUGTRACKER_LINK.".";     #todo: translate
+									$this->alterError = $errormsg . ' (drop) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
@@ -1334,7 +1350,7 @@ class Database
 								break;
 							default:
 								if($debug) echo 'ERROR: unknown alter operation!<hr />';
-								$this->alterError="Error: Altering of Table failed - Unknown ALTER operation!";  #todo: translate
+								$this->alterError = $errormsg . $lang['alter_unknown_operation'];
 								return false;
 						}
 					}
@@ -1972,7 +1988,7 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	<div id='help_container'>
 	<?php
 	echo "<div class='help_list'>";
-	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." Help Documentation</span><br/><br/>";        #todo: translate
+	echo "<span style='font-size:18px;'>".PROJECT." v".VERSION." ".$lang['help_doc']."</span><br/><br/>";
 	foreach((array)$help as $key => $val)
 	{
 		echo "<a href='#".$key."'>".$key."</a><br/>";
@@ -4335,8 +4351,8 @@ else //user is authorized - display the main application
 						echo "</select> ";
 						echo "<select name='".$i."_order'>";
 						echo "<option value=''></option>";
-						echo "<option value=' ASC'>".$lang['asc']."</option>";            #todo: check if space ASC is correct
-						echo "<option value=' DESC'>".$lang['desc']."</option>";          #todo: check if space DESC is correct
+						echo "<option value=' ASC'>".$lang['asc']."</option>";
+						echo "<option value=' DESC'>".$lang['desc']."</option>";
 						echo "</select><br/>";
 					}
 					echo "</fieldset>";
@@ -4871,7 +4887,7 @@ else //user is authorized - display the main application
 					echo $lang['err'].": ".$lang['warn_dumbass'];
 				else{
 					echo $lang['err'].": "; 
-					printf($lang['db_exists'], htmlencode($newpath));     # todo: adjust lang test ("A database, other file or directory...")
+					printf($lang['db_exists'], htmlencode($newpath));
 				}
 				echo "</div><br/>";
 			}
@@ -4966,7 +4982,7 @@ class Resources {
 		),
 		'javascript' => array(
 			'mime' => 'text/javascript',
-			'data' => 'H4sIAAAAAAAAA8VW247bNhD9FS+LxBKkKgrapyiq4QZuajQIgmTfimJBUSOJWJlUKGodZ+N/75CUL9KuvW4DtC+2RM7lnDPDoYpOMM2lmHDB9bzTkgumYAVCe/79HVUTmsbJuuI1eLlkndmIStCL2tr8ulnmHuEkoAG5ocfexL9KO5FDwQXk/v0/9I1y3tKshjzVqoOEBsF2W+yQalmWNQyxZg4sS88lyjCR3jRA/MQY508aN4qvqNrcwqZ3oU+6jIgkvPCuqH+vQHdKTApat7DFNRbd0bqDNCXL99eLt4uP5PnzPGIVsFsjFz0I4FwAf45XnSw7h95oLNH7rq496pTJziKnj5E9L6ZxEVILzOFoZgf4bASU7YGaV0eGjSke0FvjOWLPLm5B63KDqC5su4P9ANqo0/D/f4FiBRlhYRUVJSxLIRV4WchCLKxV3TbSVUqIfT+Vhl2Gho1AbM+EvJDgmNf2iNRK3sFvHOq83U+bkzoVxo5JoSnmU/seFbCezJWiG89PCqk81+xxkr2mkWxMljaqQZS6SrIgsBrtN/7M/opaqIFp17VN11bDXSuuj4gHkdkwomhB6bl+Q/GUe+RzB2qDfiSckmnATBQFTU0ZeC/IixJXydQPcM8/EmIYowwrJ0dxUo5yN5CKqGVK1vW1bHpFYvvPU88renaY4ZOmSn/7Nl7BARQTf0aKgrw6FHpvMyMcyCtbNt8eco4OuOTfF1GB1lg2mwzSh74RDkGq4aNpWzSDyBTbJjU9TxVF1RUJfyycyL2kfsJSiDR80f2CmxZ9aoSJdUrHLLZbVxuvj+VHbZe1WnFRenHIduP+sW0WjvP372kWVEGOaFhQ7cr93whwypDtthYiH2zEZsOl9fyHej2oOUuOljCYXejZYE8eGiqlhw7FWb+7Ty4+6XvnftRfY1k9Gmb9KdzfF6cCZn5fC0KSMzaDy8bxv8T68Utz8aWRSrfneBKwNv2YuGk/4w0YtXpTgwmOR32TEiEFnAY9isDau++MYK+PUYCsluyWjPktV0/z46vv5TeM8G/4DSNcwk82IH6HujHUPsima95gMFDe9PWsqZoJsEpOPszfLiIyq9AsfUmSyeyXH6YBDYnxm3xyJ4L4dpwYmxZYfxnvsxxHtq28s1tzkct1ZFCYjZBoKeuMqjQO3YHC5zZ9GSJqaiKZdU111zobZN65JwUt/2paFJ/XPNdV+nMchxXwstLpTzHO69Gn0jt+az4J3AcBxWP/bvnH4hl56pM4w1m7O1/PSNA/B/i83SZ/A5Gd09AYDAAA',
+			'data' => 'H4sIAAAAAAAAC8VWbW/bNhD+Kw6HNhKkqSq2T9WIICu8zWhRDG2+DUNAUSeJiEyqFBXXS/3fdyTlFymx463A9sWW7v157nhU2UtuhJIzIYW57o0SkmtYgjRB+HDP9IzRNFvVooGgULy3iqQCM2+czc/rRREQQSIWkVt26E3CC9rLAkohoQgf/qFvUoiO5Q0U1OgeMhZFm025rdSoqmpgXGvui+X0VKIcE5l1CyTMrHHxrHGrxZLp9R2sBxf2rMsESCbK4IKFDxpMr+WsZE0HG5Tx5J41PVBKFh9u5r/OP5KXL4uE18DvLF1sT4B3Afw5lHpatg6D0ZSiD33TBMwzk5+snD0F9jSZ1kUqIzGHh5nvy+eTQvmuUPvqwfApxH31zvgaa8/PHkHncotVnTl2e/tRaZNJw///pRRHyKQWXjNZwaKSSkOQxzzGxjrW3SBdUELc+7E0/Lxq+KSIzYmQZwKc4tocgFqqe/hFQFN0u21zlKfS2nElDcN8ejejElaza63ZOgizUunAD3ua5T+xRLU2S5c0ICtTZ3kUOY52ij/yP5MOGuDGT23bd/VY68gNseJRZD6OKDvQ5tq8ZXjKA/K5B71GPxJfksuI2yga2oZxCF6RVxVKyWUYoS48IGIco4prT0d5lI5qu5DKpONaNc2NagdGUvcvaBCUAzrM8Mkwbb5+nUpwAaUkvCJlSd7sG72zuSICyBvXttAdcoEOKAofyqREa2ybSwb0sW+CS5AZ+GjHFs0gsc12Se3MM82QdU3i70tP8kBpmHEKiYEvZhD4bTGkxjKxT3SKYrPxvQmGWGHS9XlntJBVkMZ8u+6fUvN4mn94p3lURwVWw6N62+7/hoBjhnyrmstipEitwqcNwsd8Peo5zw5EGMwJBjQ4k/uBomw/objrt/fJ2Sd95zys+htsa8DifDiFu/viWMA8HHpBSHbCZnTZePznWD99ac6/tEqb7hROAs5mWBO33We8AZPOrBuwwfGorymRSsLxoicReHf/jRHc9TEJkDeK35EpvsXyeXxi+a34xhH+Db5xhHPwqRbkb9C0Ftrvqu3btxgMdHB5VaOUvv7uMmIxsRazT372SegWh1V3wIdrdxfvMIYb2q3dSshCrRKbzypiYpRqcqZpGvujg88dfR1jfcxGsnLDTN95G8TY+ycNnfjLDiM+r0RhavpjmsY1iKo29IcUN/Pko+i9uLOXv7/6GR7w94t38xfkuY/fHLfq9iS9INHwHOHzZpP9DYY8LKACDAAA',
 		),
 		'favicon' => array(
 			'mime' => 'image/x-icon',
