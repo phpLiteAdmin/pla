@@ -50,6 +50,7 @@ $password = 'admin';
 $theme = 'phpliteadmin.css';
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder 'languages'
+// More about localizations (downloads, how to translate etc.): http://code.google.com/p/phpliteadmin/wiki/Localization
 $language = 'en';
 
 // set default number of rows. You need to relog after changing the number
@@ -92,7 +93,7 @@ if (is_readable($config_filename)) {
 
 
 // Start English language-texts
-
+// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'g:ia \o\n F j, Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
