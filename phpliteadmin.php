@@ -4,13 +4,14 @@
 //  Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
 //  Version: 1.9.4
 //  Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
-//  Last updated: 2013-03-17
+//  Last updated: 2013-03-18
 //  Developers:
 //     Dane Iracleous (daneiracleous@gmail.com)
 //     Ian Aldrighetti (ian.aldrighetti@gmail.com)
 //     George Flanagin & Digital Gaslight, Inc (george@digitalgaslight.com)
 //     Christopher Kramer (crazy4chrissi@gmail.com, http://en.christosoft.de)
 //     Ayman Teryaki (http://havalite.com)
+//     Dreadnaut (dreadnaut@gmail.com, http://dreadnaut.altervista.org)
 //
 //
 //  Copyright (C) 2013  phpLiteAdmin
