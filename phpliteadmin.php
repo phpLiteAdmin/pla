@@ -2272,7 +2272,7 @@ else //user is authorized - display the main application
 							}
 							else
 								$value = "";
-							$type = $result[$j][2];
+							$type = $result[$j]['type'];
 							$function = $_POST["function_".$i."_".$fields[$j]];
 							if($function!="")
 								$query .= $function."(";
@@ -3678,11 +3678,11 @@ else //user is authorized - display the main application
 
 					for($i=0; $i<sizeof($result); $i++)
 					{
-						$field = $result[$i][1];
+						$field = $result[$i]['name'];
 						$field_html = htmlencode($field);
 						if($j==0)
 							$fieldStr .= ":".$field;
-						$type = strtolower($result[$i][2]);
+						$type = strtolower($result[$i]['type']);
 						$scalarField = $type=="integer" || $type=="real" || $type=="null";
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
@@ -3705,24 +3705,20 @@ else //user is authorized - display the main application
 						echo "</td>";
 						//we need to have a column dedicated to nulls -di
 						echo $tdWithClassLeft;
-						if($result[$i][3]==0)
+						if($result[$i]['notnull']==0)
 						{
-							if($result[$i][4]===NULL)
+							if($result[$i]['dflt_value']===NULL)
 								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' checked='checked' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 							else
 								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 						}
 						echo "</td>";
 						echo $tdWithClassLeft;
-						// 22 August 2011: gkf fixed bug #55. The form is now prepopulated with the default values
-						//                 so that the insert proceeds normally.
-						// 22 August 2011: gkf fixed bug #53. The form now displays more of the text.
-						// 19 October 2011: di fixed the bug caused by the previous fix where the null column does not exist anymore
 						$type = strtolower($type);
 						if($scalarField)
-							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".deQuoteSQL($result[$i][4])."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".htmlencode(deQuoteSQL($result[$i]['dflt_value']))."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 						else
-							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".deQuoteSQL($result[$i][4])."</textarea>";
+							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".htmlencode(deQuoteSQL($result[$i]['dflt_value']))."</textarea>";
 					echo "</td>";
 					echo "</tr>";
 					}
