@@ -1821,7 +1821,7 @@ if ($auth->isAuthorized())
 		sort($databases);
 	}
 	// we now have the $databases array set. Check whethet currentDB is a managed Db (is in this array)
-	if(isset($_SESSION[COOKIENAME.'currentDB']) && !isManagedDB($_SESSION[COOKIENAME.'currentDB']['path']))
+	if(isset($_SESSION[COOKIENAME.'currentDB']) && isManagedDB($_SESSION[COOKIENAME.'currentDB']['path']) === false)
 		unset($_SESSION[COOKIENAME.'currentDB']);
 	
 	//user is deleting a database
