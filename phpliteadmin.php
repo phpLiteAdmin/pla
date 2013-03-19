@@ -2580,10 +2580,8 @@ else //user is authorized - display the main application
 	{
 		if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 		{
-			if($result[$i]['type']=="table")
-				echo "<span class='sidebar_table'><span>[".$lang['tbl']."]</span></span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."'";
-			else
-				echo "<span style='font-size:11px;'>[".$lang['view']."]</span> <a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name'])."&amp;view=1'";
+			echo "<span class='sidebar_table'>[".$lang[$result[$i]['type']=='table'?'tbl':'view']."]</span> ";
+			echo "<a href='".PAGE."?action=row_view&amp;table=".urlencode($result[$i]['name']).($result[$i]['type']=='view'?'&amp;view=1':'')."'";
 			if(isset($_GET['table']) && $_GET['table']==$result[$i]['name'])
 				echo " class='active_table'";
 			echo ">".htmlencode($result[$i]['name'])."</a><br/>";
