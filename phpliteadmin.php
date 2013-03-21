@@ -1136,7 +1136,7 @@ class Database
 	{
 		global $debug, $lang;
 		$this->alterError="";
-		$errormsg = $lang['err'].': '.sprintf($lang['alter_failed'],htmlencode($table)).' - ';
+		$errormsg = sprintf($lang['alter_failed'],htmlencode($table)).' - ';
 		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs)<hr>";
 		if($alterdefs != '')
 		{
