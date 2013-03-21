@@ -2795,7 +2795,7 @@ else //user is authorized - display the main application
 							echo $tdWithClass;
 							echo "<label><input type='checkbox' name='".$i."_autoincrement' id='i".$i."_autoincrement'/> ".$lang['yes']."</label>";
 							echo "</td>";
-						} else echo "NIO";
+						}
 						echo $tdWithClass;
 						echo "<label><input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
