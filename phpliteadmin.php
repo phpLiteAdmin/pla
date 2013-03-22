@@ -103,6 +103,7 @@ $lang = array(
 	"to" => "to",
 	"go" => "Go",
 	"yes" => "Yes",
+	"no" => "No",
 	"sql" => "SQL",
 	"csv" => "CSV",
 	"csv_tbl" => "Table that CSV pertains to",
@@ -3880,13 +3881,13 @@ else //user is authorized - display the main application
 					$primarykeyVal = $result[$i][5];
 
 					if(intval($notnullVal)!=0)
-						$notnullVal = "yes";
+						$notnullVal = $lang['yes'];
 					else
-						$notnullVal = "no";
+						$notnullVal = $lang['no'];
 					if(intval($primarykeyVal)!=0)
-						$primarykeyVal = "yes";
+						$primarykeyVal = $lang['yes'];
 					else
-						$primarykeyVal = "no";
+						$primarykeyVal = $lang['no'];
 
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
@@ -3982,9 +3983,9 @@ else //user is authorized - display the main application
 						for($i=0; $i<sizeof($result); $i++)
 						{
 							if($result[$i]['unique']==0)
-								$unique = "no";
+								$unique = $lang['no'];
 							else
-								$unique = "yes";
+								$unique = $lang['yes'];
 	
 							$query = "PRAGMA index_info(".$db->quote_id($result[$i]['name']).")";
 							$info = $db->selectArray($query);

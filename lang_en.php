@@ -10,6 +10,7 @@ $lang = array(
 	"to" => "to",
 	"go" => "Go",
 	"yes" => "Yes",
+	"no" => "No",
 	"sql" => "SQL",
 	"csv" => "CSV",
 	"csv_tbl" => "Table that CSV pertains to",
