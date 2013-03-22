@@ -1234,11 +1234,11 @@ class Database
 						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
 
 						/* we build a regex that devides the CREATE TABLE statement parts:
-						  Part example								Group	Explanation
-						  1. CREATE TABLE t... (					$1
-						  2. 'col1' ..., 'col2' ..., 'colN' ...,	$3		(with col1-colN being columns that are not changed and listed before the col to change)
-						  3. 'colX' ...,							-		(with colX being the column to change/drop)
-						  4. 'colX+1' ..., ..., 'colK')				$5		(with colX+1-colK being columns after the column to change/drop)
+						  Part example                            Group  Explanation
+						  1. CREATE TABLE t... (                  $1
+						  2. 'col1' ..., 'col2' ..., 'colN' ...,  $3     (with col1-colN being columns that are not changed and listed before the col to change)
+						  3. 'colX' ...,                                 (with colX being the column to change/drop)
+						  4. 'colX+1' ..., ..., 'colK')           $5     (with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
 						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
@@ -1269,9 +1269,11 @@ class Database
 									return false;
 								}
 								$new_col_definition = "'$column_escaped' ".$matches[4];
-								$preg_pattern_add = "/^".$preg_create_table."(.*)\\)\s*$/s";
+								$preg_pattern_add = "/^".$preg_create_table.   // the CREATE TABLE statement ($1)
+									"((?:(?!,\s*(?:PRIMARY\s+KEY\s*\(|CONSTRAINT\s|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()).)*)". // column definitions ($2)
+									"(.*)\\)\s*$/s"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
 								// append the column definiton in the CREATE TABLE statement
-								$newSQL = preg_replace($preg_pattern_add, '$1$2, ', $createtesttableSQL).$new_col_definition.')';
+								$newSQL = preg_replace($preg_pattern_add, '$1$2, '.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).' $3', $createtesttableSQL).')';
 								if($debug)
 								{
 									echo $createtesttableSQL."<hr>";
