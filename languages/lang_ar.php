@@ -278,5 +278,3 @@ $lang = array(
 	"help9" => "أضف التعليقات للملف المصدر",
 	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening."
 );
-
-?>

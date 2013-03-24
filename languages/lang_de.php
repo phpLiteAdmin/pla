@@ -278,5 +278,3 @@ $lang = array(
 	"help9" => "Füge Kommentare zu einer exportierten SQL-Datei hinzu",
 	"help9_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in die SQL-Datei Kommentare eingefügt werden, welche die einzelnen Abschnitte der Datei erklären, sodass ein Mensch den Inhalt der Datei besser nachvollziehen kann."
 );
-
-?>
