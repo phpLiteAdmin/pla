@@ -1,0 +1,271 @@
+/*
+phpLiteAdmin Default Theme
+Created by Dane Iracleous on 6/1/11
+*/
+
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	color: #000000;
+	background-color: #e0ebf6;
+}
+/* general styles for hyperlink */
+a
+{
+	color: #03F;
+	text-decoration: none;
+	cursor :pointer;
+}
+a:hover
+{
+	color: #06F;
+}
+/* horizontal rule */
+hr
+{
+	height: 1px;
+	border: 0;
+	color: #bbb;
+	background-color: #bbb;
+	width: 100%;	
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 24px;
+	background-color: #f3cece;
+	text-align: center;
+	margin-bottom: 10px;
+	color: #000;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-topleft:5px;
+	-moz-border-radius-topright:5px;
+}
+/* version text within the logo */
+h1 #version
+{
+	color: #000000;
+	font-size: 16px;
+}
+/* logo text within logo */
+h1 #logo
+{
+	color:#000;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:14px;
+	margin-bottom:20px;
+}
+/* input buttons and areas for entering text */
+input, select, textarea
+{
+	font-family:Arial, Helvetica, sans-serif;
+	background-color:#eaeaea;
+	color:#03F;
+	border-color:#03F;
+	border-style:solid;
+	border-width:1px;
+	margin:5px;
+	border-radius:5px;
+	-moz-border-radius:5px;
+	padding:3px;
+}
+/* just input buttons */
+input.btn
+{
+	cursor:pointer;	
+}
+input.btn:hover
+{
+	background-color:#ccc;
+}
+/* general styles for hyperlink */
+fieldset
+{
+	padding:15px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	border-radius:5px;
+	-moz-border-radius:5px;
+	background-color:#f9f9f9;
+}
+/* outer div that holds everything */
+#container
+{
+	padding:10px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:left;
+	width:250px;
+	padding:0px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+	padding-bottom:15px;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:10px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:500px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	background-color:#FFF;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+/* div under tabs with tab-specific content */
+#main
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	padding:15px;
+	overflow:auto;
+	background-color:#FFF;
+	border-bottom-left-radius:5px;
+	border-bottom-right-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-bottomleft:5px;
+	-moz-border-radius-bottomright:5px;
+	-moz-border-radius-topright:5px;
+}
+/* odd-numbered table rows */
+.td1
+{
+	background-color:#f9e3e3;
+	text-align:right;
+	font-size:12px;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* even-numbered table rows */
+.td2
+{
+	background-color:#f3cece;
+	text-align:right;
+	font-size:12px;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* table column headers */
+.tdheader
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	font-weight:bold;
+	font-size:12px;
+	padding-left:10px;
+	padding-right:10px;
+	background-color:#e0ebf6;
+	border-radius:5px;
+	-moz-border-radius:5px;
+}
+/* div holding the confirmation text of certain actions */
+.confirm
+{
+	border-color:#03F;
+	border-width:1px;
+	border-style:dashed;
+	padding:15px;
+	background-color:#e0ebf6;
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:5px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	padding-bottom:4px;
+	background-color:#eaeaea;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-topleft:5px;
+	-moz-border-radius-topright:5px;
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+	border-color:#03F;
+	border-width:1px;
+	border-style:solid;
+	margin-right:5px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	background-color:#FFF;
+	cursor:default;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-topleft:5px;
+	-moz-border-radius-topright:5px;
+}
+/* tooltip styles */
+#tt
+{
+	position:absolute;
+	display:block;
+}
+#tttop
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+#ttcont
+{
+	display:block;
+	padding:2px 12px 3px 7px;
+	margin-left:5px;
+	background:#f3cece;
+	color:#333
+}
+#ttbot
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}

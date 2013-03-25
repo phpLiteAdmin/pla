@@ -1,0 +1,142 @@
+/*
+phpLiteAdmin simpleGray Theme
+Created by Ayman Teryaki on 28.Okt.2012
+
+posted here: http://code.google.com/p/phpliteadmin/issues/detail?id=130
+*/
+
+/* overall styles for entire page */
+body{ margin: 0px; padding: 0px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #2B2B2B; background: #ccc url(bg.gif); }
+/* general styles for hyperlink */
+a{ color: #2B2B2B; text-decoration: none; cursor :pointer; }
+a:hover{ color: #FF9900; }
+/* horizontal rule */
+hr { height: 1px; border: 0; color: #3C3C3C; background-color: #ccc; width: 100%; }
+/* logo text containing name of project */
+h1 {
+	margin: 0px; padding: 5px; font-size: 24px;
+	background: url(logo.png) no-repeat 7px 9px ;
+	text-align: center; margin-bottom: 5px;color:#3C3C3C; }
+/* version text within the logo */
+h1 #version { color:#666; font-size: 16px; }
+/* logo text within logo */
+h1 #logo { padding-left:9px; }
+/* general header for various views */
+h2 { margin:0px; padding:0px; font-size:14px; margin-bottom:20px; }
+/* input buttons and areas for entering text */
+input, select, textarea {
+	font-family:Arial, Helvetica, sans-serif;
+	background-color:#eaeaea; color:#3B3B3B;
+	border-color:#3B3B3B; border-style:solid;
+	border-width:1px; margin:5px;
+	border-radius:5px; -moz-border-radius:5px; padding:1px 3px;
+}
+select{	border-radius:1px; -moz-border-radius:1px; }
+input:focus, textarea:focus, select:focus{ background:#fff; }
+/* just input buttons */
+input.btn { cursor:pointer;
+	background: -moz-linear-gradient( top, #ffffff 0%, #ebebeb 50%, #dbdbdb 50%, #b5b5b5);
+	background: -webkit-gradient( linear, left top, left bottom, from(#ffffff), color-stop(0.50, #ebebeb), color-stop(0.50, #dbdbdb), to(#b5b5b5));
+	border: 1px solid #949494;
+	-moz-box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px 0px 3px rgba(255,255,255,1);
+	-webkit-box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px 0px 3px rgba(255,255,255,1);
+	box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px 0px 3px rgba(255,255,255,1);
+	text-shadow: 0px -1px 0px rgba(000,000,000,0.2), 0px 1px 0px rgba(255,255,255,1);
+}
+input.btn:hover { 
+	-moz-box-shadow: 0px 0px 0px rgba(000,000,000,0.5), inset 0px 0px 0px rgba(255,255,255,1);
+	-webkit-box-shadow: 0px 0px 0px rgba(000,000,000,0.5), inset 0px 0px 0px rgba(255,255,255,1);
+	box-shadow: 0px 0px 1px rgba(000,000,000,0.5), inset 0px 0px 0px rgba(255,255,255,1);
+	text-shadow: 0px -1px 0px rgba(000,000,000,0.2), 0px 1px 0px rgba(255,255,255,1);
+}
+/* general styles for hyperlink */
+#headerlinks{ background:#DDDDDD; text-align:center; }
+fieldset{ padding:15px; border:#A7A7A7 1px solid; border-radius:5px; -moz-border-radius:5px; background-color:#f9f9f9; }
+/* outer div that holds everything */
+#container { padding:10px; }
+/* div of left box with log, list of databases, etc. */
+#leftNav{
+	float:left; width:250px; padding:0px;
+	border:#3B3B3B 1px solid; background-color:#FFF; padding-bottom:15px;
+	border-radius:5px; -moz-border-radius:5px;
+	-webkit-box-shadow: 2px 2px 2px 2px rgba(33, 33, 33, 0.5);
+	box-shadow: 2px 2px 2px 2px rgba(33, 33, 33, 0.5);
+
+}
+/* div holding the content to the right of the leftNav */
+#content { overflow:hidden; padding-left:10px; }
+/* div holding the login fields */
+#loginBox {
+	width:500px; margin-left:auto; margin-right:auto;
+	margin-top:50px; border:#3B3B3B 1px solid;
+	background-color:#FFF; border-radius:5px; -moz-border-radius:5px;
+}
+/* div under tabs with tab-specific content */
+#main {
+	border:#3B3B3B 1px solid; padding:15px; overflow:auto; background-color:#FFF;
+	border-bottom-left-radius:5px;
+	border-bottom-right-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-bottomleft:5px;
+	-moz-border-radius-bottomright:5px;
+	-moz-border-radius-topright:5px; 
+	-webkit-box-shadow: 2px 2px 2px 2px rgba(33, 33, 33, 0.5);
+	box-shadow: 2px 2px 2px 2px rgba(33, 33, 33, 0.5);
+
+}
+/* odd-numbered table rows */
+.td1 { background-color:#eee; text-align:right; font-size:12px; padding-left:10px; padding-right:10px; }
+/* even-numbered table rows */
+.td2 { background-color:#ddd; text-align:right; font-size:12px; padding-left:10px; padding-right:10px; }
+/* table column headers */
+.tdheader { 
+	border:#A7A7A7 1px solid; font-weight:bold; font-size:12px; padding-left:10px; padding-right:10px; 
+	background-color:#3B3B3B; color:#fff;
+}
+.tdheader a:link, .tdheader a:visited{ color:#fff; }
+.tdheader a:hover{ color:#FF9900; }
+/* div holding the confirmation text of certain actions */
+.confirm { border:#3B3B3B 1px dashed; padding:15px; background-color:#eee; }
+/* tab navigation for each table */
+.tab{
+	display:block;
+	padding:5px 8px;
+	border:#3B3B3B 1px solid;
+	margin-right:5px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	padding-bottom:4px;
+	background-color:#eaeaea;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-topleft:5px;
+	-moz-border-radius-topright:5px;
+}
+/* pressed state of tab */
+.tab_pressed{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+	border:#3B3B3B 1px solid;
+	margin-right:5px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	background-color:#FFF;
+	cursor:default;
+	border-top-left-radius:5px;
+	border-top-right-radius:5px;
+	-moz-border-radius-topleft:5px;
+	-moz-border-radius-topright:5px;
+	-webkit-box-shadow: 1px -3px 1px 0px rgba(33, 33, 33, 0.2);
+	box-shadow: 1px -3px 1px 0px rgba(33, 33, 33, 0.2);
+}
+/* tooltip styles */
+#tt{ position:absolute; display:block; }
+#tttop { display:block; height:5px; margin-left:5px; overflow:hidden }
+#ttcont { display:block; padding:2px 12px 3px 7px; margin-left:5px; background:#f3cece; color:#333 }
+#ttbot { display:block; height:5px; margin-left:5px; overflow:hidden }
