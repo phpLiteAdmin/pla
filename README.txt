@@ -1,5 +1,11 @@
 INSTALLATION:
 
+  --- NEW as of 1.9.4: You can now configure phpLiteAdmin in an external file. ---
+  If you want to do this:
+  - rename phpliteadmin.config.sample.php into phpliteadmin.config.php
+  - do not change the settings in phpliteadmin.php but in phpliteadmin.config.php
+  See https://code.google.com/p/phpliteadmin/wiki/Configuration for details.
+
 	1. Open phpliteadmin.php in a text editor.
 	
 	2. If you want to have a directory scanned for your databases instead of listing them manually, specify the directory as the value of the $directory variable and skip to step 4. 
@@ -30,7 +36,7 @@ INSTALLING A THEME:
 
 REQUIREMENTS:
 
-	- a server with PHP installed
+	- a server with PHP >= 5.1.0 installed
 	
 	- at least one PHP SQLite library extension installed and enabled: PDO, SQLite3, or SQLiteDatabase
 
