@@ -104,8 +104,7 @@ class Database
 		}
 		else if($this->type=="PDO")
 		{
-			$e = $this->db->errorInfo();
-			return $e[2];	
+			return $this->db->errorInfo()[2];
 		}
 		else if($this->type=="SQLite3")
 		{
@@ -259,6 +258,7 @@ class Database
 	}
 
 	//generic query wrapper
+	//returns false on error and the query result on success
 	public function query($query, $ignoreAlterCase=false)
 	{
 		global $debug;
@@ -280,7 +280,7 @@ class Database
 			$result = $this->db->query($query);
 			if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
 		}
-		if(!$result)
+		if($result===false)
 			return false;
 		$this->lastResult = $result;
 		return $result;
@@ -703,31 +703,16 @@ class Database
 	}
 
 	//multiple query execution
+	//returns true on success, false otherwise. Use getError() to fetch the error.
 	public function multiQuery($query)
 	{
-		$error = "Unknown error.";
 		if($this->type=="PDO")
-		{
 			$success = $this->db->exec($query);
-			if(!$success) $error =  implode(" - ", $this->db->errorInfo());
-		}
 		else if($this->type=="SQLite3")
-		{
 			$success = $this->db->exec($query);
-			if(!$success) $error = $this->db->lastErrorMsg();
-		}
 		else
-		{
 			$success = $this->db->queryExec($query, $error);
-		}
-		if(!$success)
-		{
-			return "Error in query: '".htmlencode($error)."'";
-		}
-		else
-		{
-			return true;	
-		}
+		return $success;
 	}
 
 	
@@ -790,12 +775,18 @@ class Database
 
 
 	//import sql
+	//returns true on success, error message otherwise
 	public function import_sql($query)
 	{
-		return $this->multiQuery($query);
+		$import = $this->multiQuery($query);
+		if(!$import)
+			return $this->getError();
+		else
+			return true;
 	}
 	
 	//import csv
+	//returns true on success, error message otherwise
 	public function import_csv($filename, $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row)
 	{
 		// CSV import implemented by Christopher Kramer - http://www.christosoft.de
@@ -840,8 +831,11 @@ class Database
 		}
 		$csv_insert .= "COMMIT;";
 		fclose($csv_handle);
-		return $this->multiQuery($csv_insert);
-
+		$import = $this->multiQuery($csv_insert);
+		if(!$import)
+			return $this->getError();
+		else
+			return true;
 	}
 	
 	//export csv

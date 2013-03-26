@@ -1557,7 +1557,7 @@ else //user is authorized - display the main application
 					if($importSuccess===true)
 						echo $lang['import_suc'];
 					else
-						echo $importSuccess;
+						echo $lang['err'].': '.$importSuccess;
 					echo "</div><br/>";
 				}
 				echo "<form method='post' action='".PAGE."?table=".urlencode($_GET['table'])."&amp;action=table_import' enctype='multipart/form-data'>";
