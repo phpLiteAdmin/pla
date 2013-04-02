@@ -1,0 +1,291 @@
+/*
+phpLiteAdmin Modern Theme
+Created by Petar Koretic on 01/04/2013
+*/
+
+html,body 
+{
+    font: 81.25% arial, helvetica, sans-serif;
+}
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-size: 1em;
+	color: #000;
+	background:#F5F5FA;
+}
+/* general styles for hyperlink */
+a
+{
+	color: #15c;
+	text-decoration: none;
+	cursor :pointer;
+  text-shadow: 0 1px 1px #FFF;
+}
+a:hover
+{
+	color: #00A;
+}
+/* horizontal rule */
+hr
+{
+  height:1px;
+	border: 0;
+	color: #d2d2d2;
+	background: #d2d2d2;
+	width: 100%;	
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 1.85em;
+	text-align: center;
+	margin-bottom: 10px;
+}
+/* version text within the logo */
+h1 #version
+{
+	font-size: 0.65em;
+  color:#FFF;
+  text-shadow: 0 1px 1px #194B7E;
+}
+/* logo text within logo */
+h1 #logo
+{
+	color:#FFF;
+  text-shadow: 0 1px 1px #194B7E;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:1em;
+	margin-bottom:20px;
+}
+select
+{
+ background: #FFF;
+ border: 1px solid #CCC;
+ height:27px;
+ line-height:27px;
+ vertical-align:middle;
+}
+
+[multiple]
+{
+ height:100%;
+}
+ 
+
+/* input buttons and areas for entering text */
+textarea
+{
+  background:#FBFBFF;
+  padding:5px;
+  margin:0;
+  outline: none;  
+  border:1px solid #FFF;
+  border-color:#D2D2DC #E6E6F0 #E6E6F0 #D2D2DC;
+  -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+
+}
+input[type=text],
+input[type=password]
+{
+  background:#FBFBFF;
+  display: inline-block;
+  height: 25px;
+  line-height:25px;
+  margin: 0;
+  padding: 0 8px;
+  vertical-align:middle;
+  border:1px solid #FFF;
+  border-color:#D2D2DC #E6E6F0 #E6E6F0 #D2D2DC;
+  -webkit-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+/* just input buttons */
+input.btn
+{
+  cursor:pointer; 
+  vertical-align:middle;
+  display:inline-block;
+  margin: 0;
+  outline:none;
+  border:1px solid #C8C8C8;  
+  border-bottom-color:#B4B4B4;
+  border-right-color:#AAAAAA;
+  height:27px;
+  padding:0 10px;
+}
+input.btn:hover
+{
+  border-color:#D2D2D2;
+}
+
+/* general styles for hyperlink */
+fieldset,.confirm
+{
+	padding:15px;
+	background:#f9f9f9;
+  border: 1px solid #B4B4FA;
+}
+/* outer div that holds everything */
+#container
+{
+	padding:10px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:left;
+	width:250px;
+	padding:0px;
+	padding-bottom:15px;
+	border:1px solid #B4B4FA;
+	background:#FFF;
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:10px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:500px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border:1px solid #B4B4FA;
+	background:#FFF;
+}
+/* div under tabs with tab-specific content */
+#main
+{
+  border:1px solid #B4B4FA;
+	padding:15px;
+	overflow:auto;
+	background:#FFF;
+}
+/* odd-numbered table rows */
+.td1
+{
+	background:#fff;
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* even-numbered table rows */
+.td2
+{
+	background:#F9F9F9;
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* table column headers */
+.tdheader
+{
+  border:1px solid #B4B4FA;
+	font-weight:bold;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+  border:1px solid #B4B4FA;
+	margin-right:1px;
+	float:left;
+	position:relative;
+	top:1px;
+	padding-bottom:4px;
+	background:#eaeaea;
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	padding:5px 8px;
+  border:1px solid #B4B4FA;
+	margin-right:1px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	top:1px;
+	background:#FFF;
+	cursor:default;
+}
+/* tooltip styles */
+#tt
+{
+	position:absolute;
+	display:block;
+}
+#tttop
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+#ttcont
+{
+	display:block;
+	padding:2px 12px 3px 7px;
+	margin-left:5px;
+	background:#f3cece;
+	color:#333
+}
+#ttbot
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+
+h1
+{
+  background: #81a8ce; /* Old browsers */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzgxYThjZSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ZTg3YjAiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: linear-gradient(#81a8ce,#5e87b0); /* W3C */
+}
+
+input.btn, .tab, .tdheader
+{
+  background: #fdfdfd; /* Old browsers */
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZkZmRmZCIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlZWVlZWUiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
+  background: linear-gradient(#fdfdfd,#eeeeee); /* W3C */
+}
+
+table 
+{ 
+  border-collapse: collapse; 
+}
+table td 
+{ 
+  border: 1px solid #eee; 
+  padding:5px; 
+}
+#headerlinks
+{
+   text-align:center;                                                                                                                                                                                                                     }
+
