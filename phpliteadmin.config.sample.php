@@ -52,28 +52,19 @@ $charsNum = 300;
 
 //a list of custom functions that can be applied to columns in the databases
 //make sure to define every function below if it is not a core PHP function
-$custom_functions = array('md5', 'md5rev', 'sha1', 'sha1rev', 'time', 'mydate', 'strtotime', 'myreplace');
+$custom_functions = array(
+	'md5', 'sha1', 'time', 'strtotime',
+	// add the names of your custom functions to this array
+	/* 'leet_text', */
+);
 
-//define all the non-core custom functions
-function md5rev($value)
+// define your custom functions here
+/*
+function leet_text($value)
 {
-	return strrev(md5($value));
+  return strtr($value, 'eaAsSOl', '344zZ01');
 }
-
-function sha1rev($value)
-{
-	return strrev(sha1($value));
-}
-
-function mydate($value)
-{
-	return date('g:ia n/j/y', intval($value));
-}
-
-function myreplace($value)
-{
-	return preg_replace('/[^A-Za-z0-9]/', '', strval($value));	
-}
+*/
 
 
 /* ---- Advanced options ---- */
