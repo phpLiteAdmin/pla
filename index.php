@@ -616,8 +616,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
 				echo $lang['err'].': '.$lang['extension_not_allowed'].': ';
-				foreach($allowed_extensions as $ext_i => $extension)
-					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo implode(', ', array_map('htmlencode', $allowed_extensions));
 				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}			
@@ -2991,8 +2990,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm' style='margin:10px 20px;'>";
 				echo $lang['extension_not_allowed'].': ';
-				foreach($allowed_extensions as $ext_i => $extension)
-					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo implode(', ', array_map('htmlencode', $allowed_extensions));
 				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}
@@ -3417,8 +3415,7 @@ else //user is authorized - display the main application
 			{
 				echo "<div class='confirm'>";
 				echo $lang['extension_not_allowed'].': ';
-				foreach($allowed_extensions as $ext_i => $extension)
-					echo htmlencode($extension). ($ext_i==count($allowed_extensions)-1?'':', ');
+				echo implode(', ', array_map('htmlencode', $allowed_extensions));
 				echo '<br />'.$lang['add_allowed_extension'];
 				echo "</div><br/>";
 			}
