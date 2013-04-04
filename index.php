@@ -598,10 +598,7 @@ else //user is authorized - display the main application
 	if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
 	{
 		//set the current database to the first existing one in the array (default)
-		$i=0;
-		// this might not be $databases[0], as this might have just been dropped
-		while(!isset($databases[$i]) && $i<(count($databases)+1)) $i++;
-		$_SESSION[COOKIENAME.'currentDB'] = $databases[$i];
+		$_SESSION[COOKIENAME.'currentDB'] = reset($databases);
 	}
 	if(sizeof($databases)>0)
 		$currentDB = $_SESSION[COOKIENAME.'currentDB'];
