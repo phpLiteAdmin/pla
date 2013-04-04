@@ -103,10 +103,10 @@ class Database
 			return $error;
 		}
 		else if($this->type=="PDO")
-        {
-          $e = $this->db->errorInfo();
-          return $e[2];
-        }
+		{
+			$e = $this->db->errorInfo();
+			return $e[2];
+		}
 		else if($this->type=="SQLite3")
 		{
 			return $this->db->lastErrorMsg();
