@@ -5,6 +5,8 @@
 //
 class Resources {
 
+	public static $embedding_file = __FILE__;
+
 	private static $_resources = array(
 		'css' => array(
 			'mime' => 'text/css',
@@ -29,7 +31,7 @@ class Resources {
 			$res =& self::$_resources[$resource];
 
 			if (function_exists('getInternalResource') && $data = getInternalResource($res['data'])) {
-				$filename = PAGE;
+				$filename = self::$embedding_file;
 			} else {
 				$filename = $res['data'];
 			}
