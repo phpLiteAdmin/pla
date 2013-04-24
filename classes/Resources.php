@@ -5,6 +5,8 @@
 //
 class Resources {
 
+	// set this to the file containing getInternalResource;
+	// currently unused in split mode; set to __FILE__ for built PLA.
 	public static $embedding_file = __FILE__;
 
 	private static $_resources = array(
