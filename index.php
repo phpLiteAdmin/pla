@@ -13,11 +13,11 @@ function pla_autoload($classname)
 {
 	$classfile = __DIR__ . '/classes/' . $classname . '.php';
 
-    if (is_readable($classfile)) {
-      include $classfile;
-      return true;
-    }
-    return false;
+	if (is_readable($classfile)) {
+		include $classfile;
+		return true;
+	}
+	return false;
 }
 spl_autoload_register('pla_autoload');
 # END REMOVE_FROM_BUILD
@@ -722,7 +722,7 @@ else //user is authorized - display the main application
 				$query = substr($query, 0, sizeof($query)-3);
 				$query .= ")";
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -730,11 +730,11 @@ else //user is authorized - display the main application
 			case "table_empty":
 				$query = "DELETE FROM ".$db->quote_id($_POST['tablename']);
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$query = "VACUUM";
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -742,7 +742,7 @@ else //user is authorized - display the main application
 			case "view_create":
 				$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".$_POST['select'];
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -750,7 +750,7 @@ else //user is authorized - display the main application
 			case "table_drop":
 				$query = "DROP TABLE ".$db->quote_id($_POST['tablename']);
 				$result=$db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
 				break;
@@ -758,7 +758,7 @@ else //user is authorized - display the main application
 			case "view_drop":
 				$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
 				$result=$db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
 				break;
@@ -769,7 +769,7 @@ else //user is authorized - display the main application
 					$result = $db->query($query, true);
 				else
 					$result = $db->query($query, false);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -833,7 +833,7 @@ else //user is authorized - display the main application
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ")";
 						$result1 = $db->query($query);
-						if(!$result1)
+						if($result1===false)
 							$error = true;
 						$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
 						$z++;
@@ -850,7 +850,7 @@ else //user is authorized - display the main application
 					$query .= " OR ROWID = ".$pks[$i];
 				}
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -905,7 +905,7 @@ else //user is authorized - display the main application
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ")";
 						$result1 = $db->query($query);
-						if(!$result1)
+						if($result1===false)
 							$error = true;
 						$z++;
 					}
@@ -932,7 +932,7 @@ else //user is authorized - display the main application
 						$query = substr($query, 0, sizeof($query)-3);
 						$query .= " WHERE ROWID = ".$pks[$i];
 						$result1 = $db->query($query);
-						if(!$result1)
+						if($result1===false)
 						{
 							$error = true;
 						}
@@ -967,7 +967,7 @@ else //user is authorized - display the main application
 							$result = $db->query($query, true);
 						else
 							$result = $db->query($query, false);
-						if(!$result)
+						if($result===false)
 							$error = true;
 					}
 				}
@@ -982,7 +982,7 @@ else //user is authorized - display the main application
 					$query .= ", DROP ".$db->quote_id($pks[$i]);
 				}
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
 				break;
@@ -990,7 +990,7 @@ else //user is authorized - display the main application
 			case "column_edit":
 				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' CHANGE '.$db->quote_id($_POST['oldvalue'])." ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
 				break;
@@ -998,7 +998,7 @@ else //user is authorized - display the main application
 			case "trigger_delete":
 				$query = "DROP TRIGGER ".$db->quote_id($_GET['pk']);
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -1006,7 +1006,7 @@ else //user is authorized - display the main application
 			case "index_delete":
 				$query = "DROP INDEX ".$db->quote_id($_GET['pk']);
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -1025,7 +1025,7 @@ else //user is authorized - display the main application
 				$str .= " END";
 				$query = $str;
 				$result = $db->query($query);
-				if(!$result)
+				if($result===false)
 					$error = true;
 				$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				break;
@@ -1050,12 +1050,12 @@ else //user is authorized - display the main application
 					for($i=1; $i<$num; $i++)
 					{
 						if($_POST[$i.'_field']!="")
-							$str .= ", ".$_POST[$i.'_field'].$_POST[$i.'_order'];
+							$str .= ", ".$db->quote_id($_POST[$i.'_field']).$_POST[$i.'_order'];
 					}
 					$str .= ")";
 					$query = $str;
 					$result = $db->query($query);
-					if(!$result)
+					if($result===false)
 						$error = true;
 					$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				}
@@ -3213,7 +3213,7 @@ else //user is authorized - display the main application
 						echo "<div class='confirm'>";
 						echo "<b>";
 						// 22 August 2011: gkf fixed bugs 46, 51 and 52.
-						if($result)
+						if($result!==false)
 						{
 							if($isSelect)
 							{
