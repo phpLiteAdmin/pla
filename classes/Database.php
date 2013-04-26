@@ -429,11 +429,7 @@ class Database
 		if($alterdefs != '')
 		{
 			$recreateQueries = array();
-			$tempQuery = "SELECT sql,name,type FROM sqlite_master WHERE tbl_name = ".$this->quote($table);
-			$result = $this->query($tempQuery);
-			$resultArr = $this->selectArray($tempQuery);
-			if($this->type=="PDO")
-				$result->closeCursor();
+			$resultArr = $this->selectArray("SELECT sql,name,type FROM sqlite_master WHERE tbl_name = ".$this->quote($table));
 			if(sizeof($resultArr)<1)
 			{
 				$this->alterError = $errormsg . sprintf($lang['tbl_inexistent'], htmlencode($table));
@@ -446,7 +442,7 @@ class Database
 				if($row['type'] != 'table')
 				{
 					// store the CREATE statements of triggers and indexes to recreate them later
-					$recreateQueries[] = $row['sql']."; ";
+					$recreateQueries[] = $row;
 					if($debug) echo "recreate=(".$row['sql'].";)<hr />";
 				}
 				else
@@ -669,31 +665,55 @@ class Database
 			$alter_transaction .= $copytonewsql.'; ';        //copy back to original table
 			$alter_transaction .= $droptempsql.'; ';         //drop temp table
 
-			$preg_index="/^\s*(CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*ON\s+)(".$this->sqlite_surroundings_preg($table).")(\s*\((?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*\)\s*;)\s*$/i";				
-			for($i=0; $i<sizeof($recreateQueries); $i++)
+			$preg_index="/^\s*(CREATE\s+(?:UNIQUE\s+)?INDEX\s+(?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*ON\s+)(".$this->sqlite_surroundings_preg($table).")(\s*\((?:".$this->sqlite_surroundings_preg("+",false," '\"\[`")."\s*)*\)\s*)\s*$/i";				
+			foreach($recreateQueries as $recreate_query)
 			{
+				if($recreate_query['type']=='index')
+				{
+					// this is an index. We need to make sure the index is not on a column that we drop. If it is, we drop the index as well.
+					$indexInfos = $this->selectArray('PRAGMA index_info('.$this->quote_id($recreate_query['name']).')');
+					foreach($indexInfos as $indexInfo)
+					{
+						if(!isset($newcols[$indexInfo['name']]))
+						{
+							if($debug) echo 'Not recreating the following index: <hr />'.htmlencode($recreate_query['sql']).'<hr />'; 
+							// Index on a column that was dropped. Skip recreation.
+							continue 2;
+						}
+					}
+				}
+				// TODO: In case we renamed a column on which there is an index, we need to recreate the index with the column name adjusted.
+				
 				// recreate triggers / indexes
 				if($table == $table_new)
 				{
 					// we had no RENAME TO, so we can recreate indexes/triggers just like the original ones
-				    $alter_transaction .= $recreateQueries[$i];
+					$alter_transaction .= $recreate_query['sql'].';';
 				} else
 				{
 					// we had a RENAME TO, so we need to exchange the table-name in the CREATE-SQL of triggers & indexes
-					// first let's try if it's an index...
-					$recreate_queryIndex = preg_replace($preg_index, '$1'.$this->quote_id(strtr($table_new, array('\\' => '\\\\', '$' => '\$'))).'$3 ', $recreateQueries[$i]);
-					if($recreate_queryIndex!=$recreateQueries[$i] && $recreate_queryIndex != NULL)
+					switch ($recreate_query['type'])
 					{
-						// the CREATE INDEX regex did match
-						$alter_transaction .= $recreate_queryIndex;
-					} else
-					{
-						// the CREATE INDEX regex did not match, so we try if it's a CREATE TRIGGER
-						
-					    $recreate_queryTrigger = $recreateQueries[$i];
-						// TODO: IMPLEMENT
-					    
-						$alter_transaction .= $recreate_queryTrigger;
+						case 'index':
+							$recreate_queryIndex = preg_replace($preg_index, '$1'.$this->quote_id(strtr($table_new, array('\\' => '\\\\', '$' => '\$'))).'$3 ', $recreate_query['sql']);
+							if($recreate_queryIndex!=$recreate_query['sql'] && $recreate_queryIndex != NULL)
+								$alter_transaction .= $recreate_queryIndex.';';
+							else
+							{
+								// the CREATE INDEX regex did not match. this normally should not happen
+								if($debug) echo  'ERROR: CREATE INDEX regex did not match!?<hr />';
+								// just try to recreate the index originally (will fail most likely)
+								$alter_transaction .= $recreate_query['sql'].';';
+							}
+							break;
+							
+						case 'trigger':
+							// TODO: IMPLEMENT
+							$alter_transaction .= $recreate_query['sql'].';';
+							break;
+						default:
+							if($debug) echo 'ERROR: Unknown type '.htmlencode($recreate_query['type']).'<hr />';
+							$alter_transaction .= $recreate_query['sql'].';';
 					}
 				}
 			}
