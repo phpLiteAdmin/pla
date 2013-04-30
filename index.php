@@ -92,13 +92,10 @@ if (get_magic_quotes_gpc()) {
 
 
 //data types array
-$types = array("INTEGER", "REAL", "TEXT", "BLOB");
-define("DATATYPES", serialize($types));
+$sqlite_datatypes = array("INTEGER", "REAL", "TEXT", "BLOB");
 
 //available SQLite functions array (don't add anything here or there will be problems)
-$functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
-define("FUNCTIONS", serialize($functions));
-define("CUSTOM_FUNCTIONS", serialize($custom_functions));
+$sqlite_functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
 
 //function that allows SQL delimiter to be ignored inside comments or strings
 function explode_sql($delimiter, $sql)
@@ -478,6 +475,7 @@ if ($auth->isAuthorized())
 	if(isset($_POST['import']))
 	{
 		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+		$db->registerUserFunction($custom_functions);
 		if($_POST['import_type']=="sql")
 		{
 			$data = file_get_contents($_FILES["file"]["tmp_name"]);
@@ -661,6 +659,7 @@ else //user is authorized - display the main application
 
 	//create the objects
 	$db = new Database($currentDB); //create the Database object
+	$db->registerUserFunction($custom_functions);
 
 	//switch board for various operations a user could have requested - these actions are invisible and produce no output
 	if(isset($_GET['action']) && isset($_GET['confirm']))
@@ -1323,9 +1322,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
-						$types = unserialize(DATATYPES);
-						for($z=0; $z<sizeof($types); $z++)
-							echo "<option value='".htmlencode($types[$z])."'>".htmlencode($types[$z])."</option>";
+						foreach ($sqlite_datatypes as $t) {
+							echo "<option value='".htmlencode($t)."'>".htmlencode($t)."</option>";
+						}
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
@@ -2237,10 +2236,8 @@ else //user is authorized - display the main application
 						echo $tdWithClassLeft;
 						echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"row_".$j."_field_".$i."_null\");'>";
 						echo "<option value=''>&nbsp;</option>";
-						$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
-						for($z=0; $z<sizeof($functions); $z++)
-						{
-							echo "<option value='".htmlencode($functions[$z])."'>".htmlencode($functions[$z])."</option>";
+						foreach (array_merge($sqlite_functions, $custom_functions) as $f) {
+							echo "<option value='".htmlencode($f)."'>".htmlencode($f)."</option>";
 						}
 						echo "</select>";
 						echo "</td>";
@@ -2342,10 +2339,8 @@ else //user is authorized - display the main application
 								echo $tdWithClassLeft;
 								echo "<select name='function_".htmlencode($pks[$j])."_".htmlencode($field)."' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
 								echo "<option value=''></option>";
-								$functions = array_merge(unserialize(FUNCTIONS), $db->getUserFunctions());
-								for($z=0; $z<sizeof($functions); $z++)
-								{
-									echo "<option value='".htmlencode($functions[$z])."'>".htmlencode($functions[$z])."</option>";
+								foreach (array_merge($sqlite_functions, $custom_functions) as $f) {
+									echo "<option value='".htmlencode($f)."'>".htmlencode($f)."</option>";
 								}
 								echo "</select>";
 								echo "</td>";
@@ -2641,9 +2636,9 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClass;
 						echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
-						$types = unserialize(DATATYPES);
-						for($z=0; $z<sizeof($types); $z++)
-							echo "<option value='".htmlencode($types[$z])."'>".htmlencode($types[$z])."</option>";
+						foreach ($sqlite_datatypes as $t) {
+							echo "<option value='".htmlencode($t)."'>".htmlencode($t)."</option>";
+						}
 						echo "</select>";
 						echo "</td>";
 						echo $tdWithClass;
@@ -2753,13 +2748,11 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
-					$types = unserialize(DATATYPES);
-					for($z=0; $z<sizeof($types); $z++)
-					{
-						if($types[$z]==$typeVal)
-							echo "<option value='".htmlencode($types[$z])."' selected='selected'>".htmlencode($types[$z])."</option>";
+					foreach ($sqlite_datatypes as $t) {
+						if($t==$typeVal)
+							echo "<option value='".htmlencode($t)."' selected='selected'>".htmlencode($t)."</option>";
 						else
-							echo "<option value='".htmlencode($types[$z])."'>".htmlencode($types[$z])."</option>";
+							echo "<option value='".htmlencode($t)."'>".htmlencode($t)."</option>";
 					}
 					echo "</select>";
 					echo "</td>";

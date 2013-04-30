@@ -8,14 +8,12 @@ class Database
 	protected $type; //the extension for PHP that handles SQLite
 	protected $data;
 	protected $lastResult;
-	protected $fns;
 	protected $alterError;
 
 	public function __construct($data)
 	{
 		global $lang;
 		$this->data = $data;
-		$this->fns = array();
 		try
 		{
 			if(!file_exists($this->data["path"]) && !is_writable(dirname($this->data["path"]))) //make sure the containing directory is writable if the database does not exist
@@ -38,24 +36,12 @@ class Database
 					if($this->db!=NULL)
 					{
 						$this->type = "PDO";
-						$cfns = unserialize(CUSTOM_FUNCTIONS);
-						for($i=0; $i<sizeof($cfns); $i++)
-						{
-							$this->db->sqliteCreateFunction($cfns[$i], $cfns[$i], 1);
-							$this->addUserFunction($cfns[$i]);	
-						}
 						break;
 					}
 				case (FORCETYPE=="SQLite3" || ((FORCETYPE==false || $ver!=-1) && class_exists("SQLite3") && ($ver==-1 || $ver==3))):
 					$this->db = new SQLite3($this->data['path']);
 					if($this->db!=NULL)
 					{
-						$cfns = unserialize(CUSTOM_FUNCTIONS);
-						for($i=0; $i<sizeof($cfns); $i++)
-						{
-							$this->db->createFunction($cfns[$i], $cfns[$i], 1);
-							$this->addUserFunction($cfns[$i]);	
-						}
 						$this->type = "SQLite3";
 						break;
 					}
@@ -63,12 +49,6 @@ class Database
 					$this->db = new SQLiteDatabase($this->data['path']);
 					if($this->db!=NULL)
 					{
-						$cfns = unserialize(CUSTOM_FUNCTIONS);
-						for($i=0; $i<sizeof($cfns); $i++)
-						{
-							$this->db->createFunction($cfns[$i], $cfns[$i], 1);
-							$this->addUserFunction($cfns[$i]);	
-						}
 						$this->type = "SQLiteDatabase";
 						break;
 					}
@@ -83,15 +63,22 @@ class Database
 			exit();
 		}
 	}
-	
-	public function getUserFunctions()
+
+	public function registerUserFunction($ids)
 	{
-		return $this->fns;	
-	}
-	
-	public function addUserFunction($name)
-	{
-		array_push($this->fns, $name);	
+		// in case a single function id was passed
+		if (is_string($ids))
+			$ids = array($ids);
+
+		if ($this->type == 'PDO') {
+			foreach ($ids as $id) {
+				$this->db->sqliteCreateFunction($id, $id, 1);
+			}
+		} else { // type is Sqlite3 or SQLiteDatabase
+			foreach ($ids as $id) {
+				$this->db->createFunction($id, $id, 1);
+			}
+		}
 	}
 	
 	public function getError()
