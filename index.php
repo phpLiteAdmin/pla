@@ -698,12 +698,14 @@ else //user is authorized - display the main application
 						}
 						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
-						if($_POST[$i.'_defaultvalue']!="")
+						if(isset($_POST[$i.'_defaultnull']) && $_POST[$i.'_defaultnull'])
+							$query .= "DEFAULT NULL ";
+						elseif(isset($_POST[$i.'_defaultvalue']))
 						{
 							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
-								$query .= "default ".$_POST[$i.'_defaultvalue']."  ";
+								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
 							else
-								$query .= "default ".$db->quote($_POST[$i.'_defaultvalue'])." ";
+								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
 						}
 						$query = substr($query, 0, sizeof($query)-2);
 						$query .= ", ";
@@ -955,7 +957,9 @@ else //user is authorized - display the main application
 							$query .= "PRIMARY KEY ";
 						if(isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
-						if($_POST[$i.'_defaultvalue']!="")
+						if(isset($_POST[$i.'_defaultnull']) && $_POST[$i.'_defaultnull'])
+							$query .= "DEFAULT NULL ";
+						elseif(isset($_POST[$i.'_defaultvalue']))
 						{
 							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
@@ -1340,7 +1344,8 @@ else //user is authorized - display the main application
 						echo "<label><input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;'/>";
+						echo "<label><input type='checkbox' name='".$i."_defaultnull' checked='checked' id='i".$i."_defaultnull'/> NULL</label>";
+						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;' onchange=\"document.getElementById('i".$i."_defaultnull').checked=false;\"/>";
 						echo "</td>";
 						echo "</tr>";
 					}
@@ -2654,7 +2659,8 @@ else //user is authorized - display the main application
 						echo "<label><input type='checkbox' name='".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;'/>";
+						echo "<label><input type='checkbox' name='".$i."_defaultnull' checked='checked' id='i".$i."_defaultnull'/> NULL</label>";
+						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;' onchange=\"document.getElementById('i".$i."_defaultnull').checked=false;\"/>";
 						echo "</td>";
 						echo "</tr>";
 					}
