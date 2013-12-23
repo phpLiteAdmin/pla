@@ -230,6 +230,8 @@ $lang = array(
 	"warn0" => "你已经受到警告.",
 	"warn_passwd" => "你正在使用默认的密码, 这比较危险的. 你可以很方便的在 %s 文件的中进行修改.",
 	"warn_dumbass" => "你没有改变值 笨蛋[dumbass] ;-)",
+	#todo: translate
+	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "选择语句",
 	"delimit" => "分隔符",
 	"back_top" => "回到上面",

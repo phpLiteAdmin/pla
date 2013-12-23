@@ -230,6 +230,8 @@ $lang = array(
 	"warn0" => "Vous avez été prévenu.",
 	"warn_passwd" => "Vous utilisez le mot de passe par défaut, cela est risqué. Vous pouvez le modifier facilement en haut du fichier %s.",
 	"warn_dumbass" => "Vous n'avez pas changé la valeur, idiot ;-)",
+	#todo: translate
+	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "Choisir une déclaration",
 	"delimit" => "Délimiteur",
 	"back_top" => "Retour au haut de la page",

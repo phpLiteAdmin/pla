@@ -2993,7 +2993,7 @@ else //user is authorized - display the main application
 
 			if ($auth->isPasswordDefault())
 			{
-				echo "<div class='confirm' style='margin:20px;'>";
+				echo "<div class='confirm' style='margin:20px 0px;'>";
 				echo sprintf($lang['warn_passwd'],(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':PAGE))."<br />".$lang['warn0'];
 				echo "</div>";
 			}
@@ -3061,9 +3061,12 @@ else //user is authorized - display the main application
 				$skippedTables = false;
 				for($i=0; $i<sizeof($result); $i++)
 				{
-					$records = $db->numRows($result[$i]['name'], true);
+					$records = $db->numRows($result[$i]['name'], (!isset($_GET['forceCount'])));
 					if($records == '?')
+					{
 						$skippedTables = true;
+						$records = "<a href='?forceCount=1'>?</a>";
+					}
 					else
 						$totalRecords += $records;
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
@@ -3160,11 +3163,13 @@ else //user is authorized - display the main application
 				}
 				echo "<tr>";
 				echo "<td class='tdheader' colspan='12'>".sizeof($result)." total</td>";
-				echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?' + ?':'')."</td>";
+				echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" <a href='?forceCount=1'>+ ?</a>":"")."</td>";
 				echo "</tr>";
 				echo "</table>";
 				echo "<br/>";
 			}
+			if($skippedTables)
+				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='?forceCount=1'>","</a>")."</div>";
 			echo "<fieldset>";
 			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='?action=table_create' method='post'>";

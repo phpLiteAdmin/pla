@@ -230,6 +230,8 @@ $lang = array(
 	"warn0" => "Вы были предупреждены.",
 	"warn_passwd" => "Вы используете пароль по умолчанию, что не безопасно. Вы можете поменять его вверху %s.",
 	"warn_dumbass" => "Вы не изменили значение",
+	#todo: translate
+	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "Выберите Определение",
 	"delimit" => "Разделитель",
 	"back_top" => "Вернуться Наверх",
