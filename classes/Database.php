@@ -512,7 +512,7 @@ class Database
 						  4. 'colX+1' ..., ..., 'colK')           $5     (with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,")."(?:\s+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
+						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,")."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
