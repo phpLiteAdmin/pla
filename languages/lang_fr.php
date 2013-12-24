@@ -54,9 +54,9 @@ $lang = array(
 	"attention" => "Attention",
 	
 	"sqlite_ext" => "Extension SQLite",
-	"sqlite_ext_support" => "Il semble qu'aucune des librairie d'extensions SQLite supportées n'est disponible dans votre installation de PHP. Vous ne pourrez pas utiliser %s tant que vous n'aurez pas installé l'une d'entre elles.",
+	"sqlite_ext_support" => "Il semble qu'aucune des extensions de la bibliothèque SQLite supportées n'est disponible dans votre installation de PHP. Vous ne pourrez pas utiliser %s tant que vous n'aurez pas installé l'une d'entre elles.",
 	"sqlite_v" => "Version de SQLite",
-	"sqlite_v_error" => "Il semble que votre base est en version %s de SQLite mais que votre installation de PHP ne contient pas l'extension nécessaire pour gérer cette version. Pour régler le problème, vous pouvez soit effacer la base et autoriser  %s à la créer automatiquement, soit la re-créer manuellement en version %s de SQLite.",
+	"sqlite_v_error" => "Il semble que votre base est en version %s de SQLite mais que votre installation de PHP ne contient pas l'extension nécessaire pour gérer cette version. Pour régler le problème, vous pouvez soit effacer la base et autoriser  %s à la créer automatiquement, soit la recréer manuellement en version %s de SQLite.",
 	"report_issue" => "Le problème ne peut être diagnostiqué correctement. Merci d'ouvrir une rapport d'incident à",
 	"sqlite_limit" => "Due à des limitations de SQLite, seules le nom du champ et le type de données peuvent être modifiées.",
 	
@@ -183,15 +183,15 @@ $lang = array(
 	"rows_records" => "ligne(s) à partir de l'Enregistrement # ",
 	"rows_aff" => "ligne(s) affectée(s). ",
 	
-	"as_a" => "as a",
-	"readonly_tbl" => "'%s' is a view, which means it is a SELECT statement treated as a read-only table. You may not edit or insert records.",
+	"as_a" => "comme un",
+	"readonly_tbl" => "'%s' est une Vue, cela veux dire que c'est une déclaration SELECT traitée comme une table en lecture seule. Vous ne pouvez pas l'éditer ou y insérer des enregistrements.",
 	"chk_all" => " Tout cocher",
 	"unchk_all" => "Tout décocher",
 	"with_sel" => "avec la sélection",
 	
 	"no_tbl" => "Pas de table dans la base.",
-	"no_chart" => "If you can read this, it means the chart could not be generated. The data you are trying to view may not be appropriate for a chart.",
-	"no_rows" => "There are no rows in the table for the range you selected.",
+	"no_chart" => "Si vous lisez cela, c'est que le graphique n'a pu être généré. Les données que vous essayez de visualiser ne sont peut être pas approprié pour un graphique.",
+	"no_rows" => "Il n'y a pas d'enregistrements dans la table pour la plage que vous avez sélectionné.",
 	"no_sel" => "Vous n'avez rien sélectionné.",
 	
 	"chart_type" => "Type de graphique",
@@ -211,7 +211,7 @@ $lang = array(
 	"prim_key" => "Clé primaire",
 	"tbl_end" => "champ(s) à la fin de la table",
 	"query_used_table" => "Requête utiliser pour créer cette table",
-	"query_used_view" => "Requête utiliser pour créer cette view",
+	"query_used_view" => "Requête utiliser pour créer cette Vue",
 	"create_index2" => "Créer un index sur",
 	"create_trigger2" => "Créer un nouveau déclencheur",
 	"new_fld" => "Ajout de nouveau champ(s) sur la table '%s'",
@@ -244,7 +244,7 @@ $lang = array(
 	"db_moved_outside" => "Vous avez soit essayé de déplacer la base dans un répertiure où elle ne peut plus être administrée, soit la vérification a échouée doit à un manque de droits.",
 	"extension_not_allowed" => "L'extension fournie ne fait pas partie de la liste des extensions autorisées. Merci d'utiliser une de celles-ci",
 	"add_allowed_extension" => "Vous pouvez ajouter des extensions à cette liste en ajoutant votre extension à \$allowed_extensions dans la configuration.",
-	"directory_not_writable" => "Le fichier de la base est bien inscriptible, mais pour le modifier, le répertoire parent doit être également inscriptible. Cela est dû au fait que SQLite place à l'intérieur de celui-ci des fichiers temporaire de verouillage.",
+	"directory_not_writable" => "Le fichier de la base est bien inscriptible, mais pour le modifier, le répertoire parent doit être également inscriptible. Cela est dû au fait que SQLite place à l'intérieur de celui-ci des fichiers temporaire de verrouillage.",
 	"tbl_inexistent" => "La table %s n'existe pas",
 
 	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
@@ -255,29 +255,29 @@ $lang = array(
 	"alter_action_not_recognized" => "L'action ALTER n'a pas été reconnue",
 	"alter_no_add_col" => "aucune colonne à ajouter n'a été détectée dans la déclaration ALTER ",
 	"alter_pattern_mismatch"=>"La structure ne correspond pas à votre déclaration initiale de CREATE TABLE",
-	"alter_col_not_recognized" => "impossible de reconnaitre le nouveaau ou ancien nom de la colonne",
-	"alter_unknown_operation" => "operation ALTER inconnue !",
+	"alter_col_not_recognized" => "impossible de reconnaitre le nouvel ou ancien nom de la colonne",
+	"alter_unknown_operation" => "opération ALTER inconnue !",
 	
 	/* Help documentation */
 	"help_doc" => "Aide",
-	"help1" => "Librarie d'extensions SQLite",
-	"help1_x" => "%s uses PHP library extensions that allow interaction with SQLite databases. Currently, %s supports PDO, SQLite3, and SQLiteDatabase. Both PDO and SQLite3 deal with version 3 of SQLite, while SQLiteDatabase deals with version 2. So, if your PHP installation includes more than one SQLite library extension, PDO and SQLite3 will take precedence to make use of the better technology. However, if you have existing databases that are of version 2 of SQLite, %s will be forced to use SQLiteDatabase for only those databases. Not all databases need to be of the same version. During the database creation, however, the most advanced extension will be used.",
+	"help1" => "Extensions de la bibliothèque SQLite",
+	"help1_x" => "%s utilise les extensions de la bibliothèque PHP permettant d'accéder à des bases de données SQLite. Actuellement, %s supporte PDO, SQLite3, et SQLiteDatabase. PDO et SQLite3 fonctionne avec la version 3 de SQLite, alors que SQLiteDatabase ne fonctionne qu'avec la version 2. Donc, si votre installation PHP inclus plus d'une extension de la bibliothèque SQLite, PDO et SQLite3 prendront le pas, permettant ainsi d'utiliser la meilleure technologie. Néanmoins, si vous avez des bases de données en version 2 de SQLite, %s forcera l'utilisation de SQLiteDatabase pour ces bases seules. Toutes les bases n'ont pas besoin d'être de même version. Au cours de la création de bases de données, l'extension la plus performante sera bien entendu utilisée.",
 	"help2" => "Création d'une nouvelle base",
-	"help2_x" => "When you create a new database, the name you entered will be appended with the appropriate file extension (.db, .db3, .sqlite, etc.) if you do not include it yourself. The database will be created in the directory you specified as the \$directory variable.",
+	"help2_x" => "À la création d'une nouvelle base de données, en cas d'oubli, l'extension appropriée (.db, .db3, .sqlite, etc.) sera automatiquement ajouté au nom saisie. La base sera créée dans le répertoire que vous avez spécifié comme variable \$directory.",
 	"help3" => "Tables comparées aux Vues",
-	"help3_x" => "On the main database page, there is a list of tables and views. Since views are read-only, certain operations will be disabled. These disabled operations will be apparent by their omission in the location where they should appear on the row for a view. If you want to change the data for a view, you need to drop that view and create a new view with the appropriate SELECT statement that queries other existing tables. For more information, see <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
-	"help4" => "Writing a Select Statement for a New View",
-	"help4_x" => "When you create a new view, you must write an SQL SELECT statement that it will use as its data. A view is simply a read-only table that can be accessed and queried like a regular table, except it cannot be modified through insertion, column editing, or row editing. It is only used for conveniently fetching data.",
+	"help3_x" => "Sur la page principale de la base est présente une liste de tables et de Vues. Les Vues étant en lecture seules, certaines opérations seront désactivées. Celles-ci n'apparaitront donc pas là où elles devraient être dans la ligne d'une Vue. Si vous souhaitez modifier les données d'une Vue, vous devrez supprimer cette Vue et en créer une nouvelle avec la déclaration SELECT appropriée pour interroger d'autres tables. Pour plus d'information, voir <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
+	"help4" => "Écrire une déclaration SELECT pour une nouvelle Vue",
+	"help4_x" => "À la création d'une nouvelle Vue, vous devez écrire une déclaration SQL SELECT qui permettra d'en utiliser ses données. Une Vue est tout simplement une table en lecture seul qui peut être accédée et lue comme une table standard, excepté qu'elle ne peur pas être modifiée via une insertion, une modification de colonne ou de ligne. Elle fournie juste un moyen pratique de lire des données.",
 	"help5" => "Export de la structure dans un fichier SQL",
-	"help5_x" => "During the process for exporting to an SQL file, you may choose to include the queries that create the table and columns.",
+	"help5_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure les requêtes responsables de la création de la table et ses colonnes.",
 	"help6" => "Export des données dans un fichier SQL",
-	"help6_x" => "During the process for exporting to an SQL file, you may choose to include the queries that populate the table(s) with the current records of the table(s).",
+	"help6_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure les requêtes qui rempliront la ou les tables avec les enregistrement actuels.",
 	"help7" => "Ajout d'un Drop Table au fichier d'export SQL",
-	"help7_x" => "During the process for exporting to an SQL file, you may choose to include queries to DROP the existing tables before adding them so that problems do not occur when trying to create tables that already exist.",
+	"help7_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure les requêtes qui supprimeraient des tables existantes avant leur ajout, ce qui éviterait les erreurs gérer par la tentative de créer un table déjà existante.",
 	"help8" => "Ajout de Transaction au fichier d'export SQL",
-	"help8_x" => "During the process for exporting to an SQL file, you may choose to wrap the queries around a TRANSACTION so that if an error occurs at any time during the importation process using the exported file, the database can be reverted to its previous state, preventing partially updated data from populating the database.",
+	"help8_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix de placer les requêtes dans des TRANSACTION, ainsi en cas d'erreur lors de l'import du fichier, la base pourra être rétablie dans son état précédent, empêchant des données partiellement à jour d'être inscrite dans la base.",
 	"help9" => "Ajout des commentaires au fichier d'export SQL",
-	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening."
+	"help9_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure des commentaires expliquant chaque étape de celui-ci, donnant ainsi une meilleur compréhension à un utilisateur de ce qui se passe."
 	
 	);
 ?>
