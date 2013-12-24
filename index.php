@@ -789,13 +789,9 @@ else //user is authorized - display the main application
 				{
 					if(!isset($_POST[$i.":ignore"]))
 					{
-						$query = "INSERT INTO ".$db->quote_id($_GET['table'])." (";
-						for($j=0; $j<sizeof($fields); $j++)
-						{
-							$query .= "".$db->quote_id($fields[$j]).",";
-						}
-						$query = substr($query, 0, sizeof($query)-2);
-						$query .= ") VALUES (";
+						$query_cols = "";
+						$query_vals = "";
+						$all_default = true;
 						for($j=0; $j<sizeof($fields); $j++)
 						{
 							// PHP replaces space with underscore
@@ -814,25 +810,40 @@ else //user is authorized - display the main application
 							}
 							else
 								$value = "";
+							if($value===$result[$j]['dflt_value'])
+							{
+								// if the value is the default value, skip it
+								continue;
+							} else
+								$all_default = false;
+							$query_cols .= $db->quote_id($fields[$j]).",";
+							
 							$type = $result[$j]['type'];
 							$function = $_POST["function_".$i."_".$fields[$j]];
 							if($function!="")
-								$query .= $function."(";
-								//di - messed around with this logic for null values
-							if(($type=="TEXT" || $type=="BLOB") && $null==false)
-								$query .= $db->quote($value);
-							else if(($type=="INTEGER" || $type=="REAL") && $null==false && $value=="")
-								$query .= "NULL";
-							else if($null==true)
-								$query .= "NULL";
+								$query_vals .= $function."(";
+							if(($type=="TEXT" || $type=="BLOB") && !$null)
+								$query_vals .= $db->quote($value);
+							elseif(($type=="INTEGER" || $type=="REAL") && $value=="")
+								$query_vals .= "NULL";
+							elseif($null)
+								$query_vals .= "NULL";
 							else
-								$query .= $db->quote($value);
+								$query_vals .= $db->quote($value);
 							if($function!="")
-								$query .= ")";
-							$query .= ",";
+								$query_vals .= ")";
+							$query_vals .= ",";
 						}
-						$query = substr($query, 0, sizeof($query)-2);
-						$query .= ")";
+						$query = "INSERT INTO ".$db->quote_id($_GET['table']);
+						if(!$all_default)
+						{
+							$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
+							$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
+						
+							$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
+						} else {
+							$query .= " DEFAULT VALUES";
+						}
 						$result1 = $db->query($query);
 						if($result1===false)
 							$error = true;
@@ -2255,7 +2266,7 @@ else //user is authorized - display the main application
 						echo $tdWithClassLeft;
 						if($result[$i]['notnull']==0)
 						{
-							if($result[$i]['dflt_value']===NULL)
+							if($result[$i]['dflt_value']==="NULL")
 								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' checked='checked' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 							else
 								echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
@@ -2263,10 +2274,15 @@ else //user is authorized - display the main application
 						echo "</td>";
 						echo $tdWithClassLeft;
 						$type = strtolower($type);
-						if($scalarField)
-							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".htmlencode(deQuoteSQL($result[$i]['dflt_value']))."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+						if($result[$i]['dflt_value'] === "NULL")
+							$dflt_value = "";
 						else
-							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".htmlencode(deQuoteSQL($result[$i]['dflt_value']))."</textarea>";
+							$dflt_value = htmlencode(deQuoteSQL($result[$i]['dflt_value']));
+						
+						if($scalarField)
+							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".$dflt_value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+						else
+							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$dflt_value."</textarea>";
 					echo "</td>";
 					echo "</tr>";
 					}
