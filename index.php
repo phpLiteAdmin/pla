@@ -3172,9 +3172,9 @@ else //user is authorized - display the main application
 				echo "</tr>";
 				echo "</table>";
 				echo "<br/>";
+				if($skippedTables)
+					echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='?forceCount=1'>","</a>")."</div>";
 			}
-			if($skippedTables)
-				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='?forceCount=1'>","</a>")."</div>";
 			echo "<fieldset>";
 			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
 			echo "<form action='?action=table_create' method='post'>";
