@@ -1431,7 +1431,12 @@ else //user is authorized - display the main application
 										for($z=0; $z<sizeof($headers); $z++)
 										{
 											echo $tdWithClass;
-											echo htmlencode($result[$j][$headers[$z]]);
+											if($result[$j][$headers[$z]]==="")
+												echo "&nbsp;";
+											elseif($result[$j][$headers[$z]]===NULL)
+												echo "<i class='null'>NULL</i>";
+											else
+												echo subString(htmlencode($result[$j][$headers[$z]]));
 											echo "</td>";
 										}
 										echo "</tr>";
@@ -1989,9 +1994,9 @@ else //user is authorized - display the main application
 									echo $tdWithClass;
 								else
 									echo $tdWithClassLeft;
-								// -g-> although the inputs do not interpret HTML on the way "in", when we print the contents of the database the interpretation cannot be avoided.
-								// di - i don't understand how SQLite returns null values. I played around with the conditional here and couldn't get empty strings to differeniate from actual null values...
-								if($arr[$i][$j]===NULL)
+								if($arr[$i][$j]==="")
+									echo "&nbsp;";
+								elseif($arr[$i][$j]===NULL)
 									echo "<i class='null'>NULL</i>";
 								else
 									echo subString(htmlencode($arr[$i][$j]));
@@ -3260,7 +3265,12 @@ else //user is authorized - display the main application
 									for($z=0; $z<sizeof($headers); $z++)
 									{
 										echo $tdWithClass;
-										echo htmlencode($result[$j][$headers[$z]]);
+										if($result[$j][$headers[$z]]==="")
+											echo "&nbsp;";
+										elseif($result[$j][$headers[$z]]===NULL)
+											echo "<i class='null'>NULL</i>";
+										else
+											echo subString(htmlencode($result[$j][$headers[$z]]));
 										echo "</td>";
 									}
 									echo "</tr>";
