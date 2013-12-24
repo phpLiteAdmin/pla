@@ -2389,8 +2389,9 @@ else //user is authorized - display the main application
 							}
 							echo "<tr>";
 							echo "<td class='tdheader' style='text-align:right;' colspan='5'>";
-							echo "<input type='submit' name='new_row' value='".$lang['new_insert']."' class='btn'/> ";
+							// Note: the 'Save changes' button must be first in the code so it is the one used when submitting the form with the Enter key (issue #215)
 							echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
+							echo "<input type='submit' name='new_row' value='".$lang['new_insert']."' class='btn'/> ";
 							echo "<a href='?table=".urlencode($_GET['table'])."&amp;action=row_view'>".$lang['cancel']."</a>";
 							echo "</td>";
 							echo "</tr>";
