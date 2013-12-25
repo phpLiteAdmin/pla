@@ -52,6 +52,9 @@ $lang = array(
 	"autoincrement" => "自动增量",
 	"not_null" => "非NULL",
 	"attention" => "Attention",
+	"none" => "None",   #todo: translate
+	"as_defined" => "As defined",  #todo: translate
+	"expression" => "Expression",  #todo: translate
 	
 	"sqlite_ext" => "SQLite扩展",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",

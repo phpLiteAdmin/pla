@@ -92,7 +92,7 @@ if (get_magic_quotes_gpc()) {
 
 
 //data types array
-$sqlite_datatypes = array("INTEGER", "REAL", "TEXT", "BLOB");
+$sqlite_datatypes = array("INTEGER", "REAL", "TEXT", "BLOB","NUMERIC","BOOLEAN","DATETIME");
 
 //available SQLite functions array (don't add anything here or there will be problems)
 $sqlite_functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
@@ -698,9 +698,11 @@ else //user is authorized - display the main application
 						}
 						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
-						if(isset($_POST[$i.'_defaultnull']) && $_POST[$i.'_defaultnull'])
-							$query .= "DEFAULT NULL ";
-						elseif(isset($_POST[$i.'_defaultvalue']))
+						if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
+							$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
+						elseif($_POST[$i.'_defaultoption']=='expr')
+							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
+						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
 						{
 							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
@@ -968,16 +970,20 @@ else //user is authorized - display the main application
 							$query .= "PRIMARY KEY ";
 						if(isset($_POST[$i.'_notnull']))
 							$query .= "NOT NULL ";
-						if(isset($_POST[$i.'_defaultnull']) && $_POST[$i.'_defaultnull'])
-							$query .= "DEFAULT NULL ";
-						elseif(isset($_POST[$i.'_defaultvalue']))
+						if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
+							$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
+						elseif($_POST[$i.'_defaultoption']=='expr')
+							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
+						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
 						{
 							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
 							else
 								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
 						}
-						if($db->getVersion()==3)
+						if($db->getVersion()==3 &&
+							($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL'))
+							// Sqlite3 cannot add columns with default values that are not constant, so use AlterTable-workaround
 							$result = $db->query($query, true);
 						else
 							$result = $db->query($query, false);
@@ -1320,10 +1326,10 @@ else //user is authorized - display the main application
 					echo "<input type='hidden' name='rows' value='".$num."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					$headings = array("Field", "Type", "Primary Key");
-					if($db->getType() != "SQLiteDatabase") $headings[] = "Autoincrement";
-					$headings[] = "Not NULL";
-					$headings[] = "Default Value";
+					$headings = array($lang['fld'], $lang['type'], $lang['prim_key']);
+					if($db->getType() != "SQLiteDatabase") $headings[] = $lang['autoincrement'];
+					$headings[] = $lang['not_null'];
+					$headings[] = $lang['def_val'];
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>" . $headings[$k] . "</td>";
 					echo "</tr>";
@@ -1355,8 +1361,10 @@ else //user is authorized - display the main application
 						echo "<label><input type='checkbox' name='".$i."_notnull' id='i".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<label><input type='checkbox' name='".$i."_defaultnull' checked='checked' id='i".$i."_defaultnull'/> NULL</label>";
-						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;' onchange=\"document.getElementById('i".$i."_defaultnull').checked=false;\"/>";
+						echo "<select name='".$i."_defaultoption' id='i".$i."_defaultoption' onchange=\"if(this.value!='defined' && this.value!='expr') document.getElementById('i".$i."_defaultvalue').value='';\">";
+						echo "<option value='none'>".$lang['none']."</option><option value='defined'>".$lang['as_defined'].":</option><option>NULL</option><option>CURRENT_TIME</option><option>CURRENT_DATE</option><option>CURRENT_TIMESTAMP</option><option value='expr'>".$lang['expression'].":</option>";
+						echo "</select>";
+						echo "<input type='text' name='".$i."_defaultvalue' id='i".$i."_defaultvalue' style='width:100px;' onchange=\"if(document.getElementById('i".$i."_defaultoption').value!='expr') document.getElementById('i".$i."_defaultoption').value='defined';\"/>";
 						echo "</td>";
 						echo "</tr>";
 					}
@@ -2478,7 +2486,7 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo $tdWithClassLeft;
 					if($defaultVal===NULL)
-						echo "<i class='null'>None</i>";
+						echo "<i class='null'>".$lang['none']."</i>";
 					elseif($defaultVal==="NULL")
 						echo "<i class='null'>NULL</i>";
 					else
@@ -2685,8 +2693,10 @@ else //user is authorized - display the main application
 						echo "<label><input type='checkbox' name='".$i."_notnull'/> ".$lang['yes']."</label>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<label><input type='checkbox' name='".$i."_defaultnull' checked='checked' id='i".$i."_defaultnull'/> NULL</label>";
-						echo "<input type='text' name='".$i."_defaultvalue' style='width:100px;' onchange=\"document.getElementById('i".$i."_defaultnull').checked=false;\"/>";
+						echo "<select name='".$i."_defaultoption' id='i".$i."_defaultoption' onchange=\"if(this.value!='defined' && this.value!='expr') document.getElementById('i".$i."_defaultvalue').value='';\">";
+						echo "<option value='none'>".$lang['none']."</option><option value='defined'>".$lang['as_defined'].":</option><option>NULL</option><option>CURRENT_TIME</option><option>CURRENT_DATE</option><option>CURRENT_TIMESTAMP</option><option value='expr'>".$lang['expression'].":</option>";
+						echo "</select>";
+						echo "<input type='text' name='".$i."_defaultvalue' id='i".$i."_defaultvalue' style='width:100px;' onchange=\"if(document.getElementById('i".$i."_defaultoption').value!='expr') document.getElementById('i".$i."_defaultoption').value='defined';\"/>";
 						echo "</td>";
 						echo "</tr>";
 					}

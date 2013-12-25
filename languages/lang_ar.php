@@ -52,6 +52,9 @@ $lang = array(
 	"chk_ext" => "تحقق إن كانت نسخة بي-أتش-بي لديك تعمل بها أس-كيو-لايت",
 	"autoincrement" => "ترتيب تسلسلى",
 	"not_null" => "غير فارغة",
+	"none" => "None",   #todo: translate
+	"as_defined" => "As defined",  #todo: translate
+	"expression" => "Expression",  #todo: translate
 	
 	"sqlite_ext" => "إضافة ل أس-كيو-لايت",
 	"sqlite_ext_support" => "يبدو أن نسخة بي-أتش-بي لديك ليست مهيئة لإضافات أس-كيو-لايت. لا تقدر إستخدام %s من قبل تركيب هذه الإضافات.",

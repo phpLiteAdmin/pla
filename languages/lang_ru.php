@@ -52,6 +52,9 @@ $lang = array(
 	"autoincrement" => "Autoincrement",
 	"not_null" => "Not NULL",
 	"attention" => "Внимание",
+	"none" => "None",   #todo: translate
+	"as_defined" => "As defined",  #todo: translate
+	"expression" => "Expression",  #todo: translate
 	
 	"sqlite_ext" => "расширение SQLite",
 	"sqlite_ext_support" => "Похоже, не установлено ни одной поддерживаемой библиотеки SQLite в вашей сборке PHP. Вы не можете использовать %s, пока не установите хотя бы одну из них.",
