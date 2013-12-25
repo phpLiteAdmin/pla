@@ -2776,6 +2776,8 @@ else //user is authorized - display the main application
 					echo "</td>";
 					echo $tdWithClass;
 					echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+					if(!in_array($typeVal, $sqlite_datatypes))
+						echo "<option value='".htmlencode($typeVal)."' selected='selected'>".htmlencode($typeVal)."</option>";
 					foreach ($sqlite_datatypes as $t) {
 						if($t==$typeVal)
 							echo "<option value='".htmlencode($t)."' selected='selected'>".htmlencode($t)."</option>";

@@ -449,7 +449,7 @@ class Database
 					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
-					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,')]|'[^']*')+)?/i",$alterdefs,$matches);
+					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,']|'[^']*')+)?/i",$alterdefs,$matches);
 					$defs = $matches[0];
 					
 					$get_oldcols_query = "PRAGMA table_info(".$this->quote_id($table).")";
@@ -481,7 +481,19 @@ class Database
 					foreach($defs as $def)
 					{
 						if($debug) echo "def=$def<hr />";
-						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')((?:\s+'((?:[^']|'')+)')?\s+(TEXT|INTEGER|BLOB|REAL).*)?\s*$/i",$def,$matches);
+						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+"   // $matches[1]: command
+							."(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"	// (first) column name, either in single or double quotes
+																			// in case of RENAME TO, it is the new a table name
+																			// $matches[2] will be the column/table name without the quotes if double quoted
+																			// $matches[3] will be the column/table name without the quotes if single quoted
+							."("                                            // $matches[4]: anything after the column name
+								."(?:\s+'((?:[^']|'')+)')?"					// $matches[5] (optional): a second column name surrounded with single quotes
+																			//		(the match does not contain the quotes) 
+								."\s+"
+								."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)\s*"	// $matches[6]: a type name
+								.".*".
+							")"
+							."?\s*$/i",$def,$matches);
 						if($parse_def===false)
 						{
 							$this->alterError = $errormsg . $lang['alter_parse_failed'];
