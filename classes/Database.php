@@ -110,24 +110,13 @@ class Database
 		$classPDO = class_exists("PDO");
 		$classSQLite3 = class_exists("SQLite3");
 		$classSQLiteDatabase = class_exists("SQLiteDatabase");
-		if($classPDO)
-			$strPDO = $lang['installed'];
-		else
-			$strPDO = $lang['not_installed'];
-		if($classSQLite3)
-			$strSQLite3 = $lang['installed'];
-		else
-			$strSQLite3 = $lang['not_installed'];
-		if($classSQLiteDatabase)
-			$strSQLiteDatabase = $lang['installed'];
-		else
-			$strSQLiteDatabase = $lang['not_installed'];
 		echo "<div class='confirm' style='margin:20px;'>";
 		printf($lang['db_setup'], $this->getPath());
 		echo ".<br/><br/><i>".$lang['chk_ext']."...<br/><br/>";
-		echo "<b>PDO</b>: ".$strPDO."<br/>";
-		echo "<b>SQLite3</b>: ".$strSQLite3."<br/>";
-		echo "<b>SQLiteDatabase</b>: ".$strSQLiteDatabase."<br/><br/>...".$lang['done'].".</i><br/><br/>";
+		echo "<b>PDO</b>: ".($classPDO ? $lang['installed'] : $lang['not_installed'])."<br/>";
+		echo "<b>SQLite3</b>: ".($classSQLite3 ? $lang['installed'] : $lang['not_installed'])."<br/>";
+		echo "<b>SQLiteDatabase</b>: ".($classSQLiteDatabase ? $lang['installed'] : $lang['not_installed'])."<br/>";
+		echo "<br/>...".$lang['done'].".</i><br/><br/>";
 		if(!$classPDO && !$classSQLite3 && !$classSQLiteDatabase)
 			printf($lang['sqlite_ext_support'], PROJECT);
 		else
