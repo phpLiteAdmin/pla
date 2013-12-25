@@ -110,10 +110,15 @@ class Database
 		$classPDO = class_exists("PDO");
 		$classSQLite3 = class_exists("SQLite3");
 		$classSQLiteDatabase = class_exists("SQLiteDatabase");
+		if($classPDO)	// PDO is there, check if the SQLite driver for PDO is missing
+			$PDOSqliteDriver = (in_array("sqlite", PDO::getAvailableDrivers() ));
+		else
+			$PDOSqliteDriver = false;
 		echo "<div class='confirm' style='margin:20px;'>";
 		printf($lang['db_setup'], $this->getPath());
 		echo ".<br/><br/><i>".$lang['chk_ext']."...<br/><br/>";
 		echo "<b>PDO</b>: ".($classPDO ? $lang['installed'] : $lang['not_installed'])."<br/>";
+		echo "<b>PDO SQLite Driver</b>: ".($PDOSqliteDriver ? $lang['installed'] : $lang['not_installed'])."<br/>";
 		echo "<b>SQLite3</b>: ".($classSQLite3 ? $lang['installed'] : $lang['not_installed'])."<br/>";
 		echo "<b>SQLiteDatabase</b>: ".($classSQLiteDatabase ? $lang['installed'] : $lang['not_installed'])."<br/>";
 		echo "<br/>...".$lang['done'].".</i><br/><br/>";
@@ -128,6 +133,7 @@ class Database
 			else
 				echo $lang['report_issue'].' '.PROJECT_BUGTRACKER_LINK.'.';
 		}
+		echo "<br />See <a href='https://code.google.com/p/phpliteadmin/wiki/Installation'>https://code.google.com/p/phpliteadmin/wiki/Installation</a> for help.";
 		echo "</div><br/>";
 	}
 
