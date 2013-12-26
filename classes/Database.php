@@ -86,7 +86,7 @@ class Database
 		if($this->alterError!='')
 		{
 			$error = $this->alterError;
-			$this->alterError = ""; 
+			$this->alterError = "";
 			return $error;
 		}
 		else if($this->type=="PDO")
@@ -369,16 +369,20 @@ class Database
 	// single-quotes, double-quotes, backticks, square brackets.
 	// As sqlite does not keep this strict, we also need to be flexible here.
 	// This function generates a regex that matches any of the possibilities.
-	private function sqlite_surroundings_preg($name,$preg_quote=true,$notAllowedIfNone="'\"")
+	private function sqlite_surroundings_preg($name,$preg_quote=true,$notAllowedIfNone="'\"",$notAllowedName=false)
 	{
 		if($name=="*" || $name=="+")
 		{
+			if($notAllowedName!==false)
+				$notAllowed = "(?!".preg_quote($notAllowedName,"/").")";
+			else 
+				$notAllowed = "";
 			// use possesive quantifiers to save memory
-			$nameSingle   = "(?:[^']$name+|'')$name+";
-			$nameDouble   = "(?:[^\"]$name+|\"\")$name+";
-			$nameBacktick = "(?:[^`]$name+|``)$name+";
-			$nameSquare   = "(?:[^\]]$name+|\]\])$name+";
-			$nameNo = "[^".$notAllowedIfNone."]$name";
+			$nameSingle   = $notAllowed."(?:[^']$name+|'')$name+";
+			$nameDouble   = $notAllowed."(?:[^\"]$name+|\"\")$name+";
+			$nameBacktick = $notAllowed."(?:[^`]$name+|``)$name+";
+			$nameSquare   = $notAllowed."(?:[^\]]$name+|\]\])$name+";
+			$nameNo = $notAllowed."[^".$notAllowedIfNone."]$name";
 		}
 		else
 		{
@@ -397,6 +401,22 @@ class Database
 				"`".$nameBacktick."`|".    // backtick surrounded (MySQL-Style)
 				"\[".$nameSquare."\])";    // square-bracket surrounded (MS Access/SQL server-Style)
 		return $preg;
+	}
+	
+	// Returns the last PREG error as a string, '' if no error occured
+	private function getPregError()
+	{
+		$error = preg_last_error();
+		switch ($error)
+		{
+			case PREG_NO_ERROR: return 'No error';
+			case PREG_INTERNAL_ERROR: return 'There is an internal error!';
+			case PREG_BACKTRACK_LIMIT_ERROR: return 'Backtrack limit was exhausted!';
+			case PREG_RECURSION_LIMIT_ERROR: return 'Recursion limit was exhausted!';
+			case PREG_BAD_UTF8_ERROR: return 'Bad UTF8 error!';
+			case PREG_BAD_UTF8_ERROR: return 'Bad UTF8 offset error!';
+			default: return 'Unknown Error';
+		} 
 	}
 	
 	// function that is called for an alter table statement in a query
@@ -519,8 +539,9 @@ class Database
 						  4. 'colX+1' ..., ..., 'colK')           $5     (with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,")."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
+						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,",$column)."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
+														// this definition does NOT match columns with the column name $column
 						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
@@ -552,6 +573,7 @@ class Database
 									"(.*)\\)\s*$/s"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
 								// append the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_add, '$1$2, '.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).' $3', $createtesttableSQL).')';
+								$preg_error = $this->getPregError();
 								if($debug)
 								{
 									echo $createtesttableSQL."<hr>";
@@ -560,7 +582,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL) // pattern did not match, so column adding did not succed
 									{
-									$this->alterError = $errormsg . ' (add) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+									$this->alterError = $errormsg . ' (add) - '.$lang['alter_pattern_mismatch'].'. PREG ERROR: '.$preg_error;
 									return false;
 									}
 								$createtesttableSQL = $newSQL;
@@ -581,6 +603,7 @@ class Database
 
 								// replace the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_change, '$1$2,'.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).'$3$4)', $createtesttableSQL);
+								$preg_error = $this->getPregError();
 								// remove comma at the beginning if the first column is changed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
 								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
@@ -591,11 +614,10 @@ class Database
 									echo $newSQL."<hr />";
 
 									echo $preg_pattern_change."<hr />";
-									
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError = $errormsg . ' (change) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+									$this->alterError = $errormsg . ' (change) - '.$lang['alter_pattern_mismatch'].'. PREG ERROR: '.$preg_error;
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
@@ -607,6 +629,7 @@ class Database
 
 								// remove the column out of the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_drop, '$1$2$3)', $createtesttableSQL);
+								$preg_error = $this->getPregError();
 								// remove comma at the beginning if the first column is removed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
 								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
@@ -618,7 +641,7 @@ class Database
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
-									$this->alterError = $errormsg . ' (drop) - '.$lang['alter_pattern_mismatch'].'. '.$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+									$this->alterError = $errormsg . ' (drop) - '.$lang['alter_pattern_mismatch'].'. PREG ERROR: '.$preg_error;
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
