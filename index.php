@@ -991,8 +991,9 @@ else //user is authorized - display the main application
 								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
 						}
 						if($db->getVersion()==3 &&
-							($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL'))
+							($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL')
 							// Sqlite3 cannot add columns with default values that are not constant, so use AlterTable-workaround
+							&& !isset($_POST[$i.'_primarykey'])) // sqlite3 cannot add primary key columns
 							$result = $db->query($query, true);
 						else
 							$result = $db->query($query, false);
@@ -1222,7 +1223,7 @@ else //user is authorized - display the main application
 		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
 			echo "<br/><br/><a href='?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['return']."</a>";
 		else
-			echo "<br/><br/><a href='".PAGE.(isset($backlinkParameters)?$backlinkParameters:'')."'>".$lang['return']."</a>";
+			echo "<br/><br/><a href='".PAGE.(isset($backlinkParameters)?"?".$backlinkParameters:'')."'>".$lang['return']."</a>";
 		echo "</div>";
 	}
 
