@@ -166,9 +166,11 @@ $lang = array(
 	"ques_drop_view" => "Sei sicuro di voler eliminare la view '%s'?",
 	"ques_del_rows" => "Sei sicuro di voler cancellare la(e) riga(e) %s dalla tabella '%s'?",
 	"ques_del_db" => "Sei sicuro di voler cancellare il database '%s'?",
-	"ques_del_col" => "Sei sicuro di voler cancellare la(e) coonna(e) \"%s\" dalla tabella '%s'?",
+	"ques_column_delete" => "Sei sicuro di voler cancellare la(e) coonna(e) \"%s\" dalla tabella '%s'?",
 	"ques_del_index" => "Sei sicuro di vole cancellare l'indice '%s'?",
 	"ques_del_trigger" => "Sei sicuro di voler cancellare il trigger '%s'?",
+	#todo: translate
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "Export with structure",
 	"export_data" => "Export with data",

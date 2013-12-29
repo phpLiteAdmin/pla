@@ -159,9 +159,11 @@ $lang = array(
 	"ques_drop_view" => "Êtes-vous sûr de vouloir supprimer la vue '%s' ?",
 	"ques_del_rows" => "Êtes-vous sûr de vouloir supprimer la ou les ligne(s) %s de la table '%s' ?",
 	"ques_del_db" => "Êtes-vous sûr de vouloir effacer la base '%s'?",
-	"ques_del_col" => "Êtes-vous sûr de vouloir effacer la ou les colonne(s) %s de la table '%s' ?",
+	"ques_column_delete" => "Êtes-vous sûr de vouloir effacer la ou les colonne(s) %s de la table '%s' ?",
 	"ques_del_index" => "Êtes-vous sûr de vouloir effacer l'index '%s' ?",
 	"ques_del_trigger" => "Êtes-vous sûr de vouloir effacer le déclencheur '%s' ?",
+	#todo: translate
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "Exporter avec la structure",
 	"export_data" => "Exporter avec les données",

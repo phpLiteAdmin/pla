@@ -163,9 +163,11 @@ $lang = array(
 	"ques_drop_view" => "هل أنت متأكد من محي عرض '%s' ؟",
 	"ques_del_rows" => "هل أنت متأكد من محي السطر/السطور %s من جدول '%s' ؟",
 	"ques_del_db" => "هل أنت متأكد من محي بنك المعلومات '%s' ؟",
-	"ques_del_col" => "هل أنت متأكد من محي العامود/العواميج %s من جدول '%s' ؟",
+	"ques_column_delete" => "هل أنت متأكد من محي العامود/العواميج %s من جدول '%s' ؟",
 	"ques_del_index" => "هل أنت متأكد من محي الفهرس '%s' ؟",
 	"ques_del_trigger" => "هل أنت متأكد من محي المؤثر '%s' ؟",
+	#todo: translate
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 
 	"export_struct" => "تصدير مع الهيكل",
 	"export_data" => "تصدير مع كافة المعلومات",

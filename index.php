@@ -728,6 +728,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($name);
 				break;
 			/////////////////////////////////////////////// empty table
 			case "table_empty":
@@ -740,6 +741,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($name);
 				break;
 			/////////////////////////////////////////////// create view
 			case "view_create":
@@ -748,6 +750,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_POST['viewname'])."&amp;view=1";
 				break;
 			/////////////////////////////////////////////// drop table
 			case "table_drop":
@@ -756,6 +759,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
+				$backlinkParameters = "";
 				break;
 			/////////////////////////////////////////////// drop view
 			case "view_drop":
@@ -764,6 +768,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
+				$backlinkParameters = "";
 				break;
 			/////////////////////////////////////////////// rename table
 			case "table_rename":
@@ -775,6 +780,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($_POST['newname']);
 				break;
 			//row actions
 			/////////////////////////////////////////////// create row
@@ -854,6 +860,7 @@ else //user is authorized - display the main application
 					}
 				}
 				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// delete row
 			case "row_delete":
@@ -867,6 +874,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// edit row
 			case "row_edit":
@@ -955,6 +963,7 @@ else //user is authorized - display the main application
 				}
 				if(isset($_POST['new_row']))
 					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
+				$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($_GET['table']);
 				break;
 			//column actions
 			/////////////////////////////////////////////// create column
@@ -992,6 +1001,7 @@ else //user is authorized - display the main application
 					}
 				}
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// delete column
 			case "column_delete":
@@ -1005,6 +1015,22 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
+				break;
+			/////////////////////////////////////////////// add a primary key
+			case "primarykey_add":
+				$pks = explode(":", $_GET['pk']);
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table']).' ADD PRIMARY KEY ('.$db->quote_id($pks[0]);
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$query .= ", ".$db->quote_id($pks[$i]);
+				}
+				$query .= ")";
+				$result = $db->query($query);
+				if($result===false)
+					$error = true;
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// edit column
 			case "column_edit":
@@ -1013,6 +1039,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['altered'].".";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// delete trigger
 			case "trigger_delete":
@@ -1021,6 +1048,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// delete index
 			case "index_delete":
@@ -1029,6 +1057,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// create trigger
 			case "trigger_create":
@@ -1048,6 +1077,7 @@ else //user is authorized - display the main application
 				if($result===false)
 					$error = true;
 				$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 			/////////////////////////////////////////////// create index
 			case "index_create":
@@ -1079,6 +1109,7 @@ else //user is authorized - display the main application
 						$error = true;
 					$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				}
+				$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_GET['table']);
 				break;
 		}
 	}
@@ -1191,7 +1222,7 @@ else //user is authorized - display the main application
 		else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
 			echo "<br/><br/><a href='?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['return']."</a>";
 		else
-			echo "<br/><br/><a href='".PAGE."'>".$lang['return']."</a>";
+			echo "<br/><br/><a href='".PAGE.(isset($backlinkParameters)?$backlinkParameters:'')."'>".$lang['return']."</a>";
 		echo "</div>";
 	}
 
@@ -2426,7 +2457,7 @@ else //user is authorized - display the main application
 				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 				$result = $db->selectArray($query);
 
-				echo "<form action='?table=".urlencode($_GET['table'])."&amp;action=column_delete' method='post' name='checkForm'>";
+				echo "<form action='?table=".urlencode($_GET['table'])."&amp;action=column_confirm' method='post' name='checkForm'>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
 				if(!isset($_GET['view']))
@@ -2439,6 +2470,8 @@ else //user is authorized - display the main application
 				echo "<td class='tdheader'>".$lang['prim_key']."</td>";
 				echo "</tr>";
 
+				$noPrimaryKey = true;
+				
 				for($i=0; $i<sizeof($result); $i++)
 				{
 					$colVal = $result[$i][0];
@@ -2453,7 +2486,10 @@ else //user is authorized - display the main application
 					else
 						$notnullVal = $lang['no'];
 					if(intval($primarykeyVal)!=0)
+					{
 						$primarykeyVal = $lang['yes'];
+						$noPrimaryKey = false;
+					}
 					else
 						$primarykeyVal = $lang['no'];
 
@@ -2469,7 +2505,7 @@ else //user is authorized - display the main application
 						echo "<a href='?table=".urlencode($_GET['table'])."&amp;action=column_edit&amp;pk=".urlencode($fieldVal)."' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a>";
 						echo "</td>";
 						echo $tdWithClass;
-						echo "<a href='?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;pk=".urlencode($fieldVal)."' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
+						echo "<a href='?table=".urlencode($_GET['table'])."&amp;action=column_confirm&amp;action2=column_delete&amp;pk=".urlencode($fieldVal)."' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a>";
 						echo "</td>";
 					}
 					echo $tdWithClass;
@@ -2502,11 +2538,12 @@ else //user is authorized - display the main application
 				if(!isset($_GET['view']))
 				{
 					echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
-					echo "<select name='massType'>";
+					echo "<select name='action2'>";
 					//echo "<option value='edit'>".$lang['edit']."</option>";
-					echo "<option value='delete'>".$lang['del']."</option>";
+					echo "<option value='column_delete'>".$lang['del']."</option>";
+					if($noPrimaryKey)
+						echo "<option value='primarykey_add'>".$lang['prim_key']."</option>";
 					echo "</select> ";
-					echo "<input type='hidden' name='structureDel' value='true'/>";
 					echo "<input type='submit' value='".$lang['go']."' name='massGo' class='btn'/>";
 				}
 				echo "</form>";
@@ -2711,7 +2748,7 @@ else //user is authorized - display the main application
 				}
 				break;
 			/////////////////////////////////////////////// delete column
-			case "column_delete":
+			case "column_confirm":
 				if(isset($_POST['check']))
 					$pks = $_POST['check'];
 				elseif(isset($_GET['pk']))
@@ -2734,9 +2771,9 @@ else //user is authorized - display the main application
 						$str .= ", ".$pks[$i];
 						$pkVal .= ":".$pks[$i];
 					}
-					echo "<form action='?table=".urlencode($_GET['table'])."&amp;action=column_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
+					echo "<form action='?table=".urlencode($_GET['table'])."&amp;action=".$_REQUEST['action2']."&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
 					echo "<div class='confirm'>";
-					printf($lang['ques_del_col'], htmlencode($str), htmlencode($_GET['table']));
+					printf($lang['ques_'.$_REQUEST['action2']], htmlencode($str), htmlencode($_GET['table']));
 					echo "<br/><br/>";
 					echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 					echo "<a href='?table=".urlencode($_GET['table'])."&amp;action=column_view'>".$lang['cancel']."</a>";

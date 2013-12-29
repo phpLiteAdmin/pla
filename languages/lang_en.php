@@ -164,9 +164,10 @@ $lang = array(
 	"ques_drop_view" => "Are you sure you want to drop the view '%s'?",
 	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table '%s'?",
 	"ques_del_db" => "Are you sure you want to delete the database '%s'?",
-	"ques_del_col" => "Are you sure you want to delete column(s) %s from table '%s'?",
+	"ques_column_delete" => "Are you sure you want to delete column(s) %s from table '%s'?",
 	"ques_del_index" => "Are you sure you want to delete index '%s'?",
 	"ques_del_trigger" => "Are you sure you want to delete trigger '%s'?",
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "Export with structure",
 	"export_data" => "Export with data",

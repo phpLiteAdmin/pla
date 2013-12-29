@@ -158,9 +158,11 @@ $lang = array(
 	"ques_drop_view" => "Tem certeza de que quer eliminar a vista (View) '%s'?",
 	"ques_del_rows" => "Tem certeza de que quer eliminar a(s) linha(s) %s da tabela '%s'?",
 	"ques_del_db" => "Tem certeza de que quer eliminar o banco de dados '%s'?",
-	"ques_del_col" => "Tem certeza de que quer eliminar a(s) coluna(s) %s da tabela '%s'?",
+	"ques_column_delete" => "Tem certeza de que quer eliminar a(s) coluna(s) %s da tabela '%s'?",
 	"ques_del_index" => "Tem certeza de que quer eliminar o índice '%s'?",
 	"ques_del_trigger" => "Tem certeza de que quer eliminar o gatilho (trigger) '%s'?",
+	#todo: translate
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "Exportar com estrutura",
 	"export_data" => "Exportar com dados",

@@ -208,7 +208,11 @@ class Database
 	public function getAffectedRows()
 	{
 		if($this->type=="PDO")
-			return $this->lastResult->rowCount();
+			if(!is_object($this->lastResult))
+				// in case it was an alter table statement, there is no lastResult object
+				return 0;
+			else
+				return $this->lastResult->rowCount();
 		else if($this->type=="SQLite3")
 			return $this->db->changes();
 		else if($this->type=="SQLiteDatabase")
@@ -369,12 +373,14 @@ class Database
 	// single-quotes, double-quotes, backticks, square brackets.
 	// As sqlite does not keep this strict, we also need to be flexible here.
 	// This function generates a regex that matches any of the possibilities.
-	private function sqlite_surroundings_preg($name,$preg_quote=true,$notAllowedIfNone="'\"",$notAllowedName=false)
+	private function sqlite_surroundings_preg($name,$preg_quote=true,$notAllowedCharsIfNone="'\"",$notAllowedName=false)
 	{
 		if($name=="*" || $name=="+")
 		{
-			if($notAllowedName!==false)
+			if($notAllowedName!==false && $preg_quote)
 				$notAllowed = "(?!".preg_quote($notAllowedName,"/").")";
+			elseif($notAllowedName!==false)
+				$notAllowed = "(?!".$notAllowedName.")";
 			else 
 				$notAllowed = "";
 			// use possesive quantifiers to save memory
@@ -382,7 +388,7 @@ class Database
 			$nameDouble   = $notAllowed."(?:[^\"]$name+|\"\")$name+";
 			$nameBacktick = $notAllowed."(?:[^`]$name+|``)$name+";
 			$nameSquare   = $notAllowed."(?:[^\]]$name+|\]\])$name+";
-			$nameNo = $notAllowed."[^".$notAllowedIfNone."]$name";
+			$nameNo = $notAllowed."[^".$notAllowedCharsIfNone."]$name";
 		}
 		else
 		{
@@ -464,7 +470,15 @@ class Database
 					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
-					preg_match_all("/(?:DROP|ADD|CHANGE|RENAME TO)\s+(?:\"(?:[^\"]|\"\")+\"|'(?:[^']|'')+')((?:[^,']|'[^']*')+)?/i",$alterdefs,$matches);
+					$preg_alter_part = "/(?:DROP|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY)\s+" // the ALTER command
+						."(?:"
+							."\(".$this->sqlite_surroundings_preg("+",false,"\"'\[`)")."+\)"	// stuff in brackets (in case of ADD PRIMARY KEY)
+						."|"																	// or
+							.$this->sqlite_surroundings_preg("+",false,",'\"\[`")				// column names and stuff like this
+						.")*/i";
+					if($debug)
+						echo "preg_alter_part=(".$preg_alter_part.")<hr />";
+					preg_match_all($preg_alter_part,$alterdefs,$matches);
 					$defs = $matches[0];
 					
 					$get_oldcols_query = "PRAGMA table_info(".$this->quote_id($table).")";
@@ -496,19 +510,24 @@ class Database
 					foreach($defs as $def)
 					{
 						if($debug) echo "def=$def<hr />";
-						$parse_def = preg_match("/^(DROP|ADD|CHANGE|RENAME TO)\s+"   // $matches[1]: command
-							."(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"	// (first) column name, either in single or double quotes
-																			// in case of RENAME TO, it is the new a table name
-																			// $matches[2] will be the column/table name without the quotes if double quoted
-																			// $matches[3] will be the column/table name without the quotes if single quoted
-							."("                                            // $matches[4]: anything after the column name
-								."(?:\s+'((?:[^']|'')+)')?"					// $matches[5] (optional): a second column name surrounded with single quotes
-																			//		(the match does not contain the quotes) 
-								."\s+"
-								."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)\s*"	// $matches[6]: a type name
-								.".*".
-							")"
-							."?\s*$/i",$def,$matches);
+						$parse_def = preg_match("/^(DROP|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY)\s+"   // $matches[1]: command
+							."(?:"												// this is either
+								."(?:\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
+																				// then $matches[2] is what there is in brackets
+							."|"												// OR: 
+								."(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"	// (first) column name, either in single or double quotes
+																				// in case of RENAME TO, it is the new a table name
+																				// $matches[3] will be the column/table name without the quotes if double quoted
+																				// $matches[4] will be the column/table name without the quotes if single quoted
+								."("											// $matches[5]: anything after the column name
+									."(?:\s+'((?:[^']|'')+)')?"					// $matches[6] (optional): a second column name surrounded with single quotes
+																				//		(the match does not contain the quotes) 
+									."\s+"
+									."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)\s*"	// $matches[7]: a type name
+									.".*".
+								")"
+								."?\s*$"
+							.")/i",$def,$matches);
 						if($parse_def===false)
 						{
 							$this->alterError = $errormsg . $lang['alter_parse_failed'];
@@ -523,10 +542,12 @@ class Database
 						}
 						$action = strtolower($matches[1]);
 						if($action == 'add' || $action == 'rename to')	
-							$column = str_replace("''","'",$matches[3]);		// enclosed in ''
+							$column = str_replace("''","'",$matches[4]);		// enclosed in ''
+						elseif($action == 'add primary key')
+							$column = $matches[2];	
 						else
-							$column = str_replace('""','"',$matches[2]);		// enclosed in ""
-							
+							$column = str_replace('""','"',$matches[3]);		// enclosed in ""
+
 						$column_escaped = str_replace("'","''",$column);
 
 						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<hr />";
@@ -539,7 +560,7 @@ class Database
 						  4. 'colX+1' ..., ..., 'colK')           $5     (with colX+1-colK being columns after the column to change/drop)
 						*/
 						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
-						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",false," '\"\[`,",$column)."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
+						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",true," '\"\[`,",$column)."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 														// this definition does NOT match columns with the column name $column
 						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<hr />";
@@ -562,12 +583,12 @@ class Database
 						switch($action)
 						{
 							case 'add':
-								if(!isset($matches[4]))
+								if(!isset($matches[5]))
 								{
 									$this->alterError = $errormsg . ' (add) - '. $lang['alter_no_add_col'];
 									return false;
 								}
-								$new_col_definition = "'$column_escaped' ".$matches[4];
+								$new_col_definition = "'$column_escaped' ".$matches[5];
 								$preg_pattern_add = "/^".$preg_create_table.   // the CREATE TABLE statement ($1)
 									"((?:(?!,\s*(?:PRIMARY\s+KEY\s*\(|CONSTRAINT\s|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()).)*)". // column definitions ($2)
 									"(.*)\\)\s*$/s"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
@@ -588,13 +609,13 @@ class Database
 								$createtesttableSQL = $newSQL;
 								break;
 							case 'change':
-								if(!isset($matches[5]) || !isset($matches[6]))
+								if(!isset($matches[6]) || !isset($matches[7]))
 								{
 									$this->alterError = $errormsg . ' (change) - '.$lang['alter_col_not_recognized'];
 									return false;
 								}
-								$new_col_name = $matches[5];
-								$new_col_type = $matches[6];
+								$new_col_name = $matches[6];
+								$new_col_type = $matches[7];
 								$new_col_definition = "'$new_col_name' $new_col_type";
 								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")+)?";
 												// replace this part (we want to change this column)
@@ -652,6 +673,11 @@ class Database
 								$newSQL = $createtesttableSQL;
 								// only change the name of the table
 								$table_new = $column;
+								break;
+							case 'add primary key':
+								// we want to add a primary key for the column(s) stored in $column
+								$newSQL = preg_replace("/\)\s*$/", ", PRIMARY KEY (".$column.") )", $createtesttableSQL);
+								$createtesttableSQL = $newSQL;
 								break;
 							default:
 								if($debug) echo 'ERROR: unknown alter operation!<hr />';

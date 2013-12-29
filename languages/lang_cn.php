@@ -162,9 +162,11 @@ $lang = array(
 	"ques_drop_view" => "你确定要删除视图 '%s'?",
 	"ques_del_rows" => "你确定要删除行 %s 从表 '%s'?",
 	"ques_del_db" => "你确定要删除数据库 '%s'?",
-	"ques_del_col" => "你确定要删除列 %s 从表 '%s'?",
+	"ques_column_delete" => "你确定要删除列 %s 从表 '%s'?",
 	"ques_del_index" => "你确定要删除索引 '%s'?",
 	"ques_del_trigger" => "你确定要删除触发器 '%s'?",
+	#todo: translate
+	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "导出结构",
 	"export_data" => "导出数据",

@@ -163,9 +163,10 @@ $lang = array(
 	"ques_drop_view" => "Sind Sie sicher, dass Sie die Sicht '%s' löschen möchten?",
 	"ques_del_rows" => "Sind Sie sicher, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
 	"ques_del_db" => "Sind Sie sicher, dass Sie die Datenbank '%s' löschen möchten?",
-	"ques_del_col" => "Sie Sie sicher, dass Sie die Spalten %s aus der Tabelle '%s' löschen möchten?",
+	"ques_column_delete" => "Sie Sie sicher, dass Sie die Spalten %s aus der Tabelle '%s' löschen möchten?",
 	"ques_del_index" => "Sind Sie sicher, dass Sie den Index '%s' löschen möchten?",
 	"ques_del_trigger" => "Sind Sie sicher, dass Sie den Trigger '%s' löschen möchten?",
+ 	"ques_primarykey_add" => "Sind Sie sicher, dass Sie einen Primärschlüssel für die Spalte(n) %s in der Tabelle '%s' anlegen möchten?",
 
 	"export_struct" => "Mit Struktur exportieren",
 	"export_data" => "Mit Daten exportieren",
