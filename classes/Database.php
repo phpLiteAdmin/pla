@@ -378,17 +378,13 @@ class Database
 		if($name=="*" || $name=="+")
 		{
 			if($notAllowedName!==false && $preg_quote)
-				$notAllowed = "(?!".preg_quote($notAllowedName,"/").")";
-			elseif($notAllowedName!==false)
-				$notAllowed = "(?!".$notAllowedName.")";
-			else 
-				$notAllowed = "";
+				$notAllowedName = preg_quote($notAllowedName,"/");
 			// use possesive quantifiers to save memory
-			$nameSingle   = $notAllowed."(?:[^']$name+|'')$name+";
-			$nameDouble   = $notAllowed."(?:[^\"]$name+|\"\")$name+";
-			$nameBacktick = $notAllowed."(?:[^`]$name+|``)$name+";
-			$nameSquare   = $notAllowed."(?:[^\]]$name+|\]\])$name+";
-			$nameNo = $notAllowed."[^".$notAllowedCharsIfNone."]$name";
+			$nameSingle   = ($notAllowedName!==false?"(?!".$notAllowedName."')":"")."(?:[^']$name+|'')$name+";
+			$nameDouble   = ($notAllowedName!==false?"(?!".$notAllowedName."\")":"")."(?:[^\"]$name+|\"\")$name+";
+			$nameBacktick = ($notAllowedName!==false?"(?!".$notAllowedName."`)":"")."(?:[^`]$name+|``)$name+";
+			$nameSquare   = ($notAllowedName!==false?"(?!".$notAllowedName."\])":"")."(?:[^\]]$name+|\]\])$name+";
+			$nameNo = ($notAllowedName!==false?"(?!".$notAllowedName."\s)":"")."[^".$notAllowedCharsIfNone."]$name";
 		}
 		else
 		{
