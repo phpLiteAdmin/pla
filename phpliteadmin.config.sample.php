@@ -3,8 +3,8 @@
 // This is sample configuration file
 //
 // You can configure phpliteadmin in one of 2 ways:
-// 1. Rename current configuration file to phpliteadmin.config.php and change parameters here.
-//    You can leave here only your custom settings. All other settings will be set to defaults.
+// 1. Rename phpliteadmin.config.sample.php to phpliteadmin.config.php and change parameters in there.
+//    You can set only your custom settings in phpliteadmin.config.php. All other settings will be set to defaults.
 // 2. Change parameters directly in main phpliteadmin.php file
 //
 // Please see http://code.google.com/p/phpliteadmin/wiki/Configuration for more details
