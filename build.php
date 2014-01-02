@@ -41,6 +41,7 @@ $build_data = array(
 	'resourcesize' => 0,
 	// custom variables
 	'build_date' => date('Y-m-d'),
+	'build_year' => date('Y'),
 );
 
 ?>
