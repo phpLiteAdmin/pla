@@ -256,6 +256,22 @@ function isManagedDB($path)
 	return false;
 }
 
+// from a typename of a colun, get the type of the column's affinty
+// see http://www.sqlite.org/datatype3.html section 2.1 for rules
+function get_type_affinity($type)
+{
+	if (preg_match("/INT/i", $type))
+		return "INTEGER";
+	else if (preg_match("/(?:CHAR|CLOB|TEXT)/i", $type))
+		return "TEXT";
+	else if (preg_match("/BLOB/i", $type) || $type=="")
+		return "NONE";
+	else if (preg_match("/(?:REAL|FLOA|DOUB)/i", $type))
+		return "REAL";
+	else
+		return "NUMERIC";
+}
+
 
 $auth = new Authorization(); //create authorization object
 
@@ -704,7 +720,8 @@ else //user is authorized - display the main application
 							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
 						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
 						{
-							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
+							$typeAffinity = get_type_affinity($_POST[$i.'_type']);
+							if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
 							else
 								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
@@ -827,12 +844,13 @@ else //user is authorized - display the main application
 							$query_cols .= $db->quote_id($fields[$j]).",";
 							
 							$type = $result[$j]['type'];
+							$typeAffinity = get_type_affinity($type);
 							$function = $_POST["function_".$i."_".$fields[$j]];
 							if($function!="")
 								$query_vals .= $function."(";
-							if(($type=="TEXT" || $type=="BLOB") && !$null)
+							if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 								$query_vals .= $db->quote($value);
-							elseif(($type=="INTEGER" || $type=="REAL") && $value=="")
+							elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
 								$query_vals .= "NULL";
 							elseif($null)
 								$query_vals .= "NULL";
@@ -908,13 +926,14 @@ else //user is authorized - display the main application
 							$value = $_POST[$pks[$i].":".$field_index];
 							$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
 							$type = $result[$j][2];
+							$typeAffinity = get_type_affinity($type);
 							$function = $_POST["function_".$pks[$i]."_".$field_index];
 							if($function!="")
 								$query .= $function."(";
 								//di - messed around with this logic for null values
-							if(($type=="TEXT" || $type=="BLOB") && $null==false)
+							if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && $null==false)
 								$query .= $db->quote($value);
-							else if(($type=="INTEGER" || $type=="REAL") && $null==false && $value=="")
+							else if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && $null==false && $value=="")
 								$query .= "NULL";
 							else if($null==true)
 								$query .= "NULL";
@@ -985,7 +1004,8 @@ else //user is authorized - display the main application
 							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
 						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
 						{
-							if($_POST[$i.'_type']=="INTEGER" && is_numeric($_POST[$i.'_defaultvalue']))
+							$typeAffinity = get_type_affinity($_POST[$i.'_type']);
+							if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
 								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
 							else
 								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
@@ -1791,33 +1811,34 @@ else //user is authorized - display the main application
 					for($i=0; $i<sizeof($result); $i++)
 					{
 					  $field = $result[$i][1];
-					  $type = $result[$i][2];
+					  $type = $result[$i]['type'];
+					  $typeAffinity = get_type_affinity($type);
 					  $tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					  $tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					  echo "<tr>";
 					  echo $tdWithClassLeft;
-					  echo $field;
+					  echo htmlencode($field);
 					  echo "</td>";
 					  echo $tdWithClassLeft;
-					  echo $type;
+					  echo htmlencode($type);
 					  echo "</td>";
 					  echo $tdWithClassLeft;
 					  echo "<select name='".htmlencode($field).":operator' onchange='checkLike(\"".htmlencode($field)."_search\", this.options[this.selectedIndex].value); '>";
 					  echo "<option value='='>=</option>";
-					  if($type=="INTEGER" || $type=="REAL")
+					  if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 					  {
 						  echo "<option value='&gt;'>&gt;</option>";
 						  echo "<option value='&gt;='>&gt;=</option>";
 						  echo "<option value='&lt;'>&lt;</option>";
 						  echo "<option value='&lt;='>&lt;=</option>";
 					  }
-					  else if($type=="TEXT" || $type=="BLOB")
+					  else if($typeAffinity=="TEXT" || $typeAffinity=="NONE")
 					  {
 						  echo "<option value='= '''>= ''</option>";
 						  echo "<option value='!= '''>!= ''</option>";
 					  }
 					  echo "<option value='!='>!=</option>";
-					  if($type=="TEXT" || $type=="BLOB")
+					  if($typeAffinity=="TEXT" || $typeAffinity=="NONE")
 						  echo "<option value='LIKE' selected='selected'>LIKE</option>";
 					  else
 						  echo "<option value='LIKE'>LIKE</option>";
@@ -1826,7 +1847,7 @@ else //user is authorized - display the main application
 					  echo "</select>";
 					  echo "</td>";
 					  echo $tdWithClassLeft;
-					  if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
+					  if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 						  echo "<input type='text' id='".htmlencode($field)."_search' name='".htmlencode($field)."'/>";
 					  else
 						  echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' rows='1' cols='60'></textarea>";
@@ -2012,7 +2033,7 @@ else //user is authorized - display the main application
 							else
 								$orderTag = "ASC";
 							echo "&amp;order=".$orderTag;
-							echo "'>".$result[$i]['name']."</a>";
+							echo "'>".htmlencode($result[$i]['name'])."</a>";
 							if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'])
 								echo (($_SESSION[COOKIENAME.'orderRows']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 							echo "</td>";
@@ -2041,7 +2062,8 @@ else //user is authorized - display the main application
 							}
 							for($j=0; $j<sizeof($result); $j++)
 							{
-								if(strtolower($result[$j]['type'])=="integer" || strtolower($result[$j]['type'])=="float" || strtolower($result[$j]['type'])=="real")
+								$typeAffinity = get_type_affinity($result[$j]['type']);
+								if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 									echo $tdWithClass;
 								else
 									echo $tdWithClassLeft;
@@ -2074,8 +2096,7 @@ else //user is authorized - display the main application
 							// No label-column set. Try to pick a text-column as label-column.
 							for($i=0; $i<sizeof($result); $i++)
 							{
-								$col_type = strtolower($result[$i]['type']);
-								if(strpos($col_type, 'text')!==false || strpos($col_type, 'char')!==false || strpos($col_type, 'clob')!==false)
+								if(get_type_affinity($result[$i]['type'])=='TEXT')
 								{
 									$_SESSION[COOKIENAME.$_GET['table'].'chartlabels'] = $i;
 									break;
@@ -2098,8 +2119,8 @@ else //user is authorized - display the main application
 									// the first column (of any type) that is not the label-column
 									$potential_value_column = $i;
 								// check if the col is numeric
-								$col_type = strtolower($result[$i]['type']);  
-								if(strpos($col_type, 'int')!==false || strpos($col_type, 'real')!==false || strpos($col_type, 'floa')!==false || strpos($col_type, 'doub')!==false)
+								$typeAffinity = get_type_affinity($result[$i]['type']);  
+								if($typeAffinity=='INTEGER' || $typeAffinity=='REAL' || $typeAffinity=='NUMERIC')
 								{
 									// this is defined as a numeric column, so prefer this as a value column over $potential_value_column
 									$_SESSION[COOKIENAME.$_GET['table'].'chartvalues'] = $i;
@@ -2284,7 +2305,7 @@ else //user is authorized - display the main application
 						if($j==0)
 							$fieldStr .= ":".$field;
 						$type = strtolower($result[$i]['type']);
-						$scalarField = $type=="integer" || $type=="real" || $type=="null";
+						$typeAffinity = get_type_affinity($type);
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 						echo "<tr>";
@@ -2292,7 +2313,7 @@ else //user is authorized - display the main application
 						echo $field_html;
 						echo "</td>";
 						echo $tdWithClassLeft;
-						echo $type;
+						echo htmlencode($type);
 						echo "</td>";
 						echo $tdWithClassLeft;
 						echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"row_".$j."_field_".$i."_null\");'>";
@@ -2313,13 +2334,12 @@ else //user is authorized - display the main application
 						}
 						echo "</td>";
 						echo $tdWithClassLeft;
-						$type = strtolower($type);
 						if($result[$i]['dflt_value'] === "NULL")
 							$dflt_value = "";
 						else
 							$dflt_value = htmlencode(deQuoteSQL($result[$i]['dflt_value']));
 						
-						if($scalarField)
+						if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 							echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".$dflt_value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 						else
 							echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$dflt_value."</textarea>";
@@ -2391,16 +2411,17 @@ else //user is authorized - display the main application
 							for($i=0; $i<sizeof($result); $i++)
 							{
 								$field = $result[$i][1];
-								$type = $result[$i][2];
+								$type = $result[$i]['type'];
+								$typeAffinity = get_type_affinity($type);
 								$value = $result1[$i];
 								$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 								$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 								echo "<tr>";
 								echo $tdWithClass;
-								echo $field;
+								echo htmlencode($field);
 								echo "</td>";
 								echo $tdWithClass;
-								echo $type;
+								echo htmlencode($type);
 								echo "</td>";
 								echo $tdWithClassLeft;
 								echo "<select name='function_".htmlencode($pks[$j])."_".htmlencode($field)."' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
@@ -2420,7 +2441,7 @@ else //user is authorized - display the main application
 								}
 								echo "</td>";
 								echo $tdWithClassLeft;
-								if($type=="INTEGER" || $type=="REAL" || $type=="NULL")
+								if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 									echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 								else
 									echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
@@ -2477,7 +2498,7 @@ else //user is authorized - display the main application
 				{
 					$colVal = $result[$i][0];
 					$fieldVal = $result[$i][1];
-					$typeVal = $result[$i][2];
+					$typeVal = $result[$i]['type'];
 					$notnullVal = $result[$i][3];
 					$defaultVal = $result[$i][4];
 					$primarykeyVal = $result[$i][5];
@@ -2800,7 +2821,7 @@ else //user is authorized - display the main application
 						{
 							$colVal = $result[$i][0];
 							$fieldVal = $result[$i][1];
-							$typeVal = $result[$i][2];
+							$typeVal = $result[$i]['type'];
 							$notnullVal = $result[$i][3];
 							$defaultVal = $result[$i][4];
 							$primarykeyVal = $result[$i][5];
