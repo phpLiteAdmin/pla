@@ -219,6 +219,12 @@ class Database
 			return $this->db->changes();
 	}
 
+	public function getTypeOfTable($table)
+	{
+		$result = $this->select("SELECT `type` FROM `sqlite_master` WHERE `name`=" . $this->quote($table), 'assoc');
+		return $result['type'];
+	}
+
 	public function close()
 	{
 		if($this->type=="PDO")
