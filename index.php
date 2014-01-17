@@ -22,6 +22,8 @@ function pla_autoload($classname)
 spl_autoload_register('pla_autoload');
 # END REMOVE_FROM_BUILD
 
+//- Initialization
+
 // load optional configuration file
 $config_filename = './phpliteadmin.config.php';
 if (is_readable($config_filename)) {
@@ -96,6 +98,8 @@ $sqlite_datatypes = array("INTEGER", "REAL", "TEXT", "BLOB","NUMERIC","BOOLEAN",
 
 //available SQLite functions array (don't add anything here or there will be problems)
 $sqlite_functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
+
+//- Support functions
 
 //function that allows SQL delimiter to be ignored inside comments or strings
 function explode_sql($delimiter, $sql)
@@ -273,6 +277,7 @@ function get_type_affinity($type)
 }
 
 
+//- Check user authentication, login and logout
 $auth = new Authorization(); //create authorization object
 
 // check if user has attempted to log out
@@ -282,10 +287,11 @@ if (isset($_POST['logout']))
 else if (isset($_POST['login']) && isset($_POST['password']))
 	$auth->attemptGrant($_POST['password'], isset($_POST['remember']));
 
+//- Actions on database files and bulk data
 if ($auth->isAuthorized())
 {
 
-	//user is creating a new Database
+	//- Create a new database
 	if(isset($_POST['new_dbname']))
 	{
 		if($_POST['new_dbname']=='')
@@ -312,7 +318,7 @@ if ($auth->isAuthorized())
 		}
 	}
 	
-	//if the user wants to scan a directory for databases, do so
+	//- Scan a directory for databases
 	if($directory!==false)
 	{
 		if($directory[strlen($directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
@@ -382,7 +388,7 @@ if ($auth->isAuthorized())
 	if(isset($_SESSION[COOKIENAME.'currentDB']) && isManagedDB($_SESSION[COOKIENAME.'currentDB']['path']) === false)
 		unset($_SESSION[COOKIENAME.'currentDB']);
 	
-	//user is deleting a database
+	//- Delete an existing database
 	if(isset($_GET['database_delete']))
 	{
 		$dbpath = $_POST['database_delete'];
@@ -396,7 +402,7 @@ if ($auth->isAuthorized())
 		} else die($lang['err'].': '.$lang['delete_only_managed']);
 	}
 	
-	//user is renaming a database
+	//- Rename an existing database
 	if(isset($_GET['database_rename']))
 	{
 		$oldpath = $_POST['oldname'];
@@ -440,7 +446,7 @@ if ($auth->isAuthorized())
 	}
 
 	
-	//user is downloading the exported database file
+	//- Export (download) an existing database
 	if(isset($_POST['export']))
 	{
 		if($_POST['export_type']=="sql")
@@ -487,7 +493,7 @@ if ($auth->isAuthorized())
 		exit();
 	}
 	
-	//user is importing a file
+	//- Import a file into an existing database
 	if(isset($_POST['import']))
 	{
 		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
@@ -509,9 +515,8 @@ if ($auth->isAuthorized())
 	}
 }
 
+//- HTML: output starts here
 header('Content-Type: text/html; charset=utf-8');
-
-// here begins the HTML.
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -522,6 +527,7 @@ header('Content-Type: text/html; charset=utf-8');
 <title><?php echo PROJECT ?></title>
 
 <?php
+//- HTML: css/theme include
 if(isset($_GET['theme'])) $theme = basename($_GET['theme']);
 
 // allow themes to be dropped in subfolder "themes"
@@ -534,7 +540,8 @@ else
 	// only use the default stylesheet if an external one does not exist
 	echo "<link href='?resource=css' rel='stylesheet' type='text/css' />", PHP_EOL;
 
-if(isset($_GET['help'])) //this page is used as the popup help section
+// HTML: output help text, then exit
+if(isset($_GET['help']))
 {
 	//help section array
 	$help = array
@@ -573,6 +580,8 @@ if(isset($_GET['help'])) //this page is used as the popup help section
 	<?php
 	exit();		
 }
+
+//- Javascript include
 ?>
 <!-- JavaScript Support -->
 <script type='text/javascript' src='?resource=javascript'></script>
@@ -586,7 +595,8 @@ if(ini_get("register_globals") == "on" || ini_get("register_globals")=="1") //ch
 	exit();
 }
 
-if(!$auth->isAuthorized()) //user is not authorized - display the login screen
+//- HTML: login screen if not authorized, exit
+if(!$auth->isAuthorized())
 {
 	echo "<div id='loginBox'>";
 	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
@@ -610,7 +620,9 @@ if(!$auth->isAuthorized()) //user is not authorized - display the login screen
 	exit();
 }
 
-// user is authorized - display the main application
+//- User is authorized, display the main application
+
+//- Select database (from session or first available)
 if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
 {
 	//set the current database to the first existing one in the array (default)
@@ -618,8 +630,9 @@ if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
 }
 if(sizeof($databases)>0)
 	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
-else //the database array is empty - show error and halt execution
+else // the database array is empty, offer to create a new database
 {
+	//- HTML: form to create a new database, exit
 	if($directory!==false && is_writable($directory))
 	{
 		echo "<div class='confirm' style='margin:20px;'>";
@@ -648,7 +661,8 @@ else //the database array is empty - show error and halt execution
 	exit();
 }
 
-if(isset($_POST['database_switch'])) //user is switching database with drop-down menu
+//- Switch to a different database with drop-down menu
+if(isset($_POST['database_switch']))
 {
 	foreach($databases as $db_id => $database)
 	{
@@ -675,20 +689,21 @@ else if(isset($_GET['switchdb']))
 if(isset($_SESSION[COOKIENAME.'currentDB']) && in_array($_SESSION[COOKIENAME.'currentDB'], $databases))
 	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 
-//create the objects
+//- Open database (creates a Database object)
 $db = new Database($currentDB); //create the Database object
 $db->registerUserFunction($custom_functions);
 
 // collect parameters early, just once
 $target_table = isset($_GET['table']) ? $_GET['table'] : null;
 
-//switch board for various operations a user could have requested - these actions are invisible and produce no output
+//- Switch on $_GET['action'] for operations without output
 if(isset($_GET['action']) && isset($_GET['confirm']))
 {
 	switch($_GET['action'])
 	{
-		//table actions
-		/////////////////////////////////////////////// create table
+	//- Table actions
+
+		//- Create table (=table_create)
 		case "table_create":
 			$num = intval($_POST['rows']);
 			$name = $_POST['tablename'];
@@ -752,7 +767,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($name);
 			break;
-		/////////////////////////////////////////////// empty table
+
+		//- Empty table (=table_empty)
 		case "table_empty":
 			$query = "DELETE FROM ".$db->quote_id($_POST['tablename']);
 			$result = $db->query($query);
@@ -765,7 +781,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($name);
 			break;
-		/////////////////////////////////////////////// create view
+
+		//- Create view (=view_create)
 		case "view_create":
 			$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".$_POST['select'];
 			$result = $db->query($query);
@@ -774,7 +791,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($_POST['viewname']);
 			break;
-		/////////////////////////////////////////////// drop table
+
+		//- Drop table (=table_drop)
 		case "table_drop":
 			$query = "DROP TABLE ".$db->quote_id($_POST['tablename']);
 			$result=$db->query($query);
@@ -783,7 +801,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
 			$backlinkParameters = "";
 			break;
-		/////////////////////////////////////////////// drop view
+
+		//- Drop view (=view_drop)
 		case "view_drop":
 			$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
 			$result=$db->query($query);
@@ -792,7 +811,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
 			$backlinkParameters = "";
 			break;
-		/////////////////////////////////////////////// rename table
+
+		//- Rename table (=table_rename)
 		case "table_rename":
 			$query = "ALTER TABLE ".$db->quote_id($_POST['oldname'])." RENAME TO ".$db->quote($_POST['newname']);
 			if($db->getVersion()==3)
@@ -804,8 +824,10 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($_POST['newname']);
 			break;
-		//row actions
-		/////////////////////////////////////////////// create row
+
+	//- Row actions
+
+		//- Create row (=row_create)
 		case "row_create":
 			$completed = "";
 			$num = $_POST['numRows'];
@@ -885,7 +907,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// delete row
+
+		//- Delete row (=row_delete)
 		case "row_delete":
 			$pks = explode(":", $_GET['pk']);
 			$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE ROWID = ".$pks[0];
@@ -899,7 +922,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// edit row
+
+		//- Edit row (=row_edit)
 		case "row_edit":
 			$pks = explode(":", $_GET['pk']);
 			$fields = explode(":", $_POST['fieldArray']);
@@ -989,8 +1013,10 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 			$backlinkParameters = "&amp;action=row_view&amp;table=".urlencode($target_table);
 			break;
-		//column actions
-		/////////////////////////////////////////////// create column
+
+	//- Column actions
+
+		//- Create column (=column_create)
 		case "column_create":
 			$num = intval($_POST['rows']);
 			for($i=0; $i<$num; $i++)
@@ -1029,7 +1055,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// delete column
+
+		//- Delete column (=column_delete)
 		case "column_delete":
 			$pks = explode(":", $_GET['pk']);
 			$query = "ALTER TABLE ".$db->quote_id($target_table).' DROP '.$db->quote_id($pks[0]);
@@ -1043,7 +1070,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// add a primary key
+
+		//- Add a primary key (=primarykey_add)
 		case "primarykey_add":
 			$pks = explode(":", $_GET['pk']);
 			$query = "ALTER TABLE ".$db->quote_id($target_table).' ADD PRIMARY KEY ('.$db->quote_id($pks[0]);
@@ -1058,7 +1086,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// edit column
+
+		//- Edit column (=column_edit)
 		case "column_edit":
 			$query = "ALTER TABLE ".$db->quote_id($target_table).' CHANGE '.$db->quote_id($_POST['oldvalue'])." ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
 			$result = $db->query($query);
@@ -1067,7 +1096,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// delete trigger
+
+		//- Delete trigger (=trigger_delete)
 		case "trigger_delete":
 			$query = "DROP TRIGGER ".$db->quote_id($_GET['pk']);
 			$result = $db->query($query);
@@ -1076,7 +1106,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// delete index
+
+		//- Delete index (=index_delete)
 		case "index_delete":
 			$query = "DROP INDEX ".$db->quote_id($_GET['pk']);
 			$result = $db->query($query);
@@ -1085,7 +1116,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// create trigger
+
+		//- Create trigger (=trigger_create)
 		case "trigger_create":
 			$str = "CREATE TRIGGER ".$db->quote($_POST['trigger_name']);
 			if($_POST['beforeafter']!="")
@@ -1105,7 +1137,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = "&amp;action=column_view&amp;table=".urlencode($target_table);
 			break;
-		/////////////////////////////////////////////// create index
+
+		//- Create index (=index_create)
 		case "index_create":
 			$num = $_POST['num'];
 			if($_POST['name']=="")
@@ -1143,6 +1176,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 // are we working on a view? let's check once here
 $target_table_type = $target_table ? $db->getTypeOfTable($target_table) : null;
 
+//- HTML: sidebar
 echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
 echo "<div id='leftNav'>";
 echo "<h1><a href='".PAGE."'>";
@@ -1153,6 +1187,8 @@ echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</
 echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
 echo "<a href='".PROJECT_URL."' target='_blank'>".$lang['proj_site']."</a>";
 echo "</div>";
+
+//- HTML: database list
 echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_ch']."</b></legend>";
 if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 {
@@ -1193,7 +1229,8 @@ if (!$target_table)
 	echo " class='active_table'";
 echo ">".htmlencode($currentDB['name'])."</a>";
 echo "</legend>";
-//Display list of tables
+
+//- HTML: table list
 $query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
 $result = $db->selectArray($query);
 $j=0;
@@ -1213,6 +1250,7 @@ if($j==0)
 	echo $lang['no_tbl'];
 echo "</fieldset>";
 
+//- HTML: form to create a new database
 if($directory!==false && is_writable($directory))
 {
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink($lang['help2'])."</legend>"; 
@@ -1230,13 +1268,14 @@ echo "</div>";
 echo "</div>";
 echo '</td><td valign="top" id="main_column" class="right_td" style="padding:9px 2px 9px 9px;">';
 
-//breadcrumb navigation
+//- HTML: breadcrumb navigation
 echo "<a href='".PAGE."'>".htmlencode($currentDB['name'])."</a>";
 if ($target_table)
 	echo " &rarr; <a href='?table=".urlencode($target_table)."&amp;action=row_view'>".htmlencode($target_table)."</a>";
 echo "<br/><br/>";
 
-//user has performed some action so show the resulting message
+//- HTML: confirmation panel
+//if the user has performed some action, show the resulting message
 if(isset($_GET['confirm']))
 {
 	echo "<div id='main'>";
@@ -1255,9 +1294,10 @@ if(isset($_GET['confirm']))
 	echo "</div>";
 }
 
-//show the various tab views for a table
+//- Show the various tab views for a table
 if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search" || $_GET['action']=="table_triggers"))
 {
+	//- HTML: tabs for tables
 	if($target_table_type == 'table')
 	{
 		echo "<a href='?table=".urlencode($target_table)."&amp;action=row_view' ";
@@ -1317,6 +1357,7 @@ if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET
 		echo "<div style='clear:both;'></div>";
 	}
 	else
+	//- HTML: tabs for views
 	{
 		echo "<a href='?table=".urlencode($target_table)."&amp;action=row_view' ";
 		if($_GET['action']=="row_view")
@@ -1355,14 +1396,15 @@ if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET
 	}
 }
 
-//switch board for the page display
+//- Switch on $_GET['action'] for operations with output
 if(isset($_GET['action']) && !isset($_GET['confirm']))
 {
 	echo "<div id='main'>";
 	switch($_GET['action'])
 	{
-		//table actions
-		/////////////////////////////////////////////// create table
+	//- Table actions
+
+		//- Create table (=table_create)
 		case "table_create":
 			$query = "SELECT name FROM sqlite_master WHERE type='table' AND name=".$db->quote($_POST['tablename']);
 			$results = $db->selectArray($query);
@@ -1439,7 +1481,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				if($db->getType() != "SQLiteDatabase") echo "<script type='text/javascript'>window.onload=initAutoincrement;</script>";
 			}
 			break;
-		/////////////////////////////////////////////// perform SQL query on table
+
+		//- Perform SQL query on table (=table_sql)
 		case "table_sql":
 			$isSelect = false;
 			if(isset($_POST['query']) && $_POST['query']!="")
@@ -1556,7 +1599,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</form>";
 			echo "</fieldset>";
 			break;
-		/////////////////////////////////////////////// empty table
+
+		//- Empty table (=table_empty)
 		case "table_empty":
 			echo "<form action='?action=table_empty&amp;confirm=1' method='post'>";
 			echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
@@ -1566,7 +1610,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 			echo "</div>";
 			break;
-		/////////////////////////////////////////////// drop table
+
+		//- Drop table (=table_drop)
 		case "table_drop":
 			echo "<form action='?action=table_drop&amp;confirm=1' method='post'>";
 			echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
@@ -1576,7 +1621,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 			echo "</div>";
 			break;
-		/////////////////////////////////////////////// drop view
+
+		//- Drop view (=view_drop)
 		case "view_drop":
 			echo "<form action='?action=view_drop&amp;confirm=1' method='post'>";
 			echo "<input type='hidden' name='viewname' value='".htmlencode($target_table)."'/>";
@@ -1586,7 +1632,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
 			echo "</div>";
 			break;
-		/////////////////////////////////////////////// export table
+
+		//- Export table (=table_export)
 		case "table_export":
 			echo "<form method='post' action='".PAGE."'>";
 			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
@@ -1630,7 +1677,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</form>";
 			echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode(str_replace(DIRECTORY_SEPARATOR,'/',$currentDB['path']))."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
 			break;
-		/////////////////////////////////////////////// import table
+
+		//- Import table (=table_import)
 		case "table_import":
 			if(isset($_POST['import']))
 			{
@@ -1675,7 +1723,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 			echo "</fieldset>";
 			break;
-		/////////////////////////////////////////////// rename table
+
+		//- Rename table (=table_rename)
 		case "table_rename":
 			echo "<form action='?action=table_rename&amp;confirm=1' method='post'>";
 			echo "<input type='hidden' name='oldname' value='".htmlencode($target_table)."'/>";
@@ -1683,7 +1732,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo " <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 			echo "</form>";
 			break;
-		/////////////////////////////////////////////// search table
+
+		//- Search table (=table_search)
 		case "table_search":
 			$foundVal = array();
 			$fieldArr = array();
@@ -1861,8 +1911,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 			break;
-		//row actions
-		/////////////////////////////////////////////// view row
+
+	//- Row actions
+
+		//- View row (=row_view)
 		case "row_view":
 			if(!isset($_POST['startRow']))
 				$_POST['startRow'] = 0;
@@ -1889,6 +1941,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if($remainder==0)
 				$remainder = $_SESSION[COOKIENAME.'numRows'];
 			
+			//- HTML: pagination buttons
 			echo "<div style=''>";
 			//previous button
 			if($_POST['startRow']>0)
@@ -1956,7 +2009,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			echo "<div style='clear:both;'></div>";
 			echo "</div>";
-			
+
+			//- Query execution
 			if(!isset($_GET['sort']))
 				$_GET['sort'] = NULL;
 			if(!isset($_GET['order']))
@@ -1989,6 +2043,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$arr = $db->selectArray($query);
 			$queryTimer->stop();
 
+			//- Show results
 			if(sizeof($arr)>0)
 			{
 				echo "<br/><div class='confirm'>";
@@ -2007,7 +2062,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
 				$rowidColumn = sizeof($result);
-				
+
+				//- Table view				
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
 					echo "<form action='?action=row_editordelete&amp;table=".urlencode($target_table)."' method='post' name='checkForm'>";
@@ -2082,6 +2138,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</form>";
 				}
 				else
+				//- Chart view
 				{
 					if(!isset($_SESSION[COOKIENAME.$target_table.'chartlabels']))
 					{
@@ -2140,7 +2197,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$_SESSION[COOKIENAME.$target_table.'chartlabels'] = $_POST['chartlabels'];
 						$_SESSION[COOKIENAME.$target_table.'chartvalues'] = $_POST['chartvalues'];
 					}
-					//begin chart view
+					//- Chart javascript code
 					?>
 					<script type='text/javascript' src='https://www.google.com/jsapi'></script>
 					<script type='text/javascript'>
@@ -2251,7 +2308,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 
 			break;
-		/////////////////////////////////////////////// create row
+
+		//- Create new row (=row_create)
 		case "row_create":
 			$fieldStr = "";
 			echo "<form action='?table=".urlencode($target_table)."&amp;action=row_create' method='post'>";
@@ -2349,7 +2407,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<input type='hidden' name='fields' value='".htmlencode($fieldStr)."'/>";
 			echo "</form>";
 			break;
-		/////////////////////////////////////////////// edit or delete row
+
+		//- Edit or delete row (=row_editordelete)
 		case "row_editordelete":
 			if(isset($_POST['check']))
 				$pks = $_POST['check'];
@@ -2465,8 +2524,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				}
 			}
 			break;
-		//column actions
-		/////////////////////////////////////////////// view column
+
+	//- Column actions
+
+		//- View table structure (=column_view)
 		case "column_view":
 			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 			$result = $db->selectArray($query);
@@ -2688,7 +2749,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 			break;
-		/////////////////////////////////////////////// create column
+
+		//- Create column (=column_create)
 		case "column_create":
 			echo "<h2>".sprintf($lang['new_fld'],htmlencode($_POST['tablename']))."</h2>";
 			if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
@@ -2757,7 +2819,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 			break;
-		/////////////////////////////////////////////// delete column
+
+		//- Delete column (=column_confirm)
 		case "column_confirm":
 			if(isset($_POST['check']))
 				$pks = $_POST['check'];
@@ -2790,7 +2853,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</div>";
 			}
 			break;
-		/////////////////////////////////////////////// edit column
+
+		//- Edit column (=column_edit)
 		case "column_edit":
 			echo "<h2>".sprintf($lang['edit_col'], htmlencode($_GET['pk']))." ".$lang['on_tbl']." '".htmlencode($target_table)."'</h2>";
 			echo $lang['sqlite_limit']."<br/><br/>";
@@ -2882,7 +2946,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 			break;
-		/////////////////////////////////////////////// delete index
+
+		//- Delete index (=index_delete)
 		case "index_delete":
 			echo "<form action='?table=".urlencode($target_table)."&amp;action=index_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 			echo "<div class='confirm'>";
@@ -2892,7 +2957,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</div>";
 			echo "</form>";
 			break;
-		/////////////////////////////////////////////// delete trigger
+
+		//- Delete trigger (=trigger_delete)
 		case "trigger_delete":
 			echo "<form action='?table=".urlencode($target_table)."&amp;action=trigger_delete&amp;pk=".urlencode($_GET['pk'])."&amp;confirm=1' method='post'>";
 			echo "<div class='confirm'>";
@@ -2902,7 +2968,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</div>";
 			echo "</form>";
 			break;
-		/////////////////////////////////////////////// create trigger
+
+		//- Create trigger (=trigger_create)
 		case "trigger_create":
 			echo "<h2>".$lang['create_trigger']." '".htmlencode($_POST['tablename'])."'</h2>";
 			if($_POST['tablename']=="")
@@ -2940,7 +3007,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 			break;
-		/////////////////////////////////////////////// create index
+
+		//- Create index (=index_create)
 		case "index_create":
 			echo "<h2>".$lang['create_index']." '".htmlencode($_POST['tablename'])."'</h2>";
 			if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
@@ -2990,7 +3058,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 }
 
 $view = "structure";
-	
+
+//- HMTL: tabs for databases	
 if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create"))) //the absence of these fields means we are viewing the database homepage
 {
 	$view = isset($_GET['view']) ? $_GET['view'] : 'structure';
@@ -3044,8 +3113,11 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	echo "<div style='clear:both;'></div>";
 	echo "<div id='main'>";
 
-	if($view=="structure") //database structure - view of all the tables
+  //- Switch on $view (actually a series of if-else)
+
+	if($view=="structure")
 	{
+		//- Database structure, shows all the tables (=structure)
 		$query = "SELECT sqlite_version() AS sqlite_version";
 		$queryVersion = $db->select($query);
 		$realVersion = $queryVersion['sqlite_version'];
@@ -3270,8 +3342,9 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "</form>";
 		echo "</fieldset>";
 	}
-	else if($view=="sql") //database SQL editor
+	else if($view=="sql")
 	{
+		//- Database SQL editor (=sql)
 		$isSelect = false;
 		if(isset($_POST['query']) && $_POST['query']!="")
 		{
@@ -3375,6 +3448,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	else if($view=="vacuum")
 	{
+		//- Vacuum database confirmation (=vacuum)
 		if(isset($_POST['vacuum']))
 		{
 			$query = "VACUUM";
@@ -3391,6 +3465,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	else if($view=="export")
 	{
+		//- Export view (=export)
 		echo "<form method='post' action='?view=export'>";
 		echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
 		echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
@@ -3443,6 +3518,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	else if($view=="import")
 	{
+		//- Import view (=import)
 		if(isset($_POST['import']))
 		{
 			echo "<div class='confirm'>";
@@ -3499,6 +3575,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	else if($view=="rename")
 	{
+		//- Rename database confirmation (=rename)
 		if(isset($extension_not_allowed))
 		{
 			echo "<div class='confirm'>";
@@ -3532,6 +3609,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	else if($view=="delete")
 	{
+		//- Delete database confirmation (=delete)
 		echo "<form action='?database_delete=1' method='post'>";
 		echo "<div class='confirm'>";
 		echo sprintf($lang['ques_del_db'],htmlencode($db->getPath()))."<br/><br/>";
@@ -3545,6 +3623,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	echo "</div>";
 }
 
+//- HTML: page footer
 echo "<br/>";
 echo "<span style='font-size:11px;'>".$lang['powered']." <a href='".PROJECT_URL."' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
 printf($lang['page_gen'], $pageTimer);
@@ -3554,4 +3633,4 @@ $db->close(); //close the database
 echo "</body>";
 echo "</html>";
 
-// end of main code
+//- End of main code
