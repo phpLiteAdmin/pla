@@ -869,7 +869,11 @@ class Database
 			if($csv_data[0] != NULL || count($csv_data)>1)
 			{
 				$csv_number_of_rows++;
-				if($fields_in_first_row && $csv_number_of_rows==1) continue; 
+				if($fields_in_first_row && $csv_number_of_rows==1)
+				{
+					$fields_in_first_row = false;
+					continue; 
+				}
 				$csv_col_number = count($csv_data);
 				$csv_insert .= "INSERT INTO ".$this->quote_id($table)." VALUES (";
 				foreach($csv_data as $csv_col => $csv_cell)
