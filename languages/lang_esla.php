@@ -1,9 +1,19 @@
 <?php
 // Español LatinoAmericano.
 // Traducido por Leandro G. Ortega - SuperBalgas - leandro@g-ortega.com.ar
+// Idioma: Español Latino Americano - Argentina
+
 $lang = array(
+	// Agregado para la version 1.9.5
+	"no" => "No",
+	"none" => "ninguno",
+	"as_defined" => "Personalizado",
+	"expression" => "Expresi&oacute;n",
+	"ques_primarykey_add" => "&iquest;Est&aacute; seguro de querer agregar una PRIMARY KEY para la columna (s) %s en la tabla '%s'?",
+	"ques_column_delete" => "&iquest;Est&aacute; seguro de que desea eliminar la columna (s) %s de la tabla '%s'?",
+
 	"direction" => "LTR",
-	"date_format" => 'd-m-Y \a \l\a\s g:ia (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
+	"date_format" => 'd-m-Y \a \l\a\s g:ia (T)',  // Formato Argentino, 19-01-1992 a las 8:00AM
 	"ver" => "versi&oacute;n",
 	"for" => "para",
 	"to" => "a",
@@ -160,7 +170,6 @@ $lang = array(
 	"ques_drop_view" => "&iquest;Est&aacute; seguro de querer borrar la vista '%s'?",
 	"ques_del_rows" => "&iquest;Est&aacute; seguro de querer borrar la(s) fila(s) %s de la tabla '%s'?",
 	"ques_del_db" => "&iquest;Est&aacute; seguro de querer borrar la base de datos '%s'?",
-	"ques_del_col" => "&iquest;Est&aacute; seguro de querer borrar la(s) columna(s) %s de la tabla '%s'?",
 	"ques_del_index" => "&iquest;Est&aacute; seguro de querer borrar el &iacute;ndice '%s'?",
 	"ques_del_trigger" => "&iquest;Est&aacute; seguro de querer borrar el trigger '%s'?",
 	
