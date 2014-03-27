@@ -32,7 +32,7 @@ if (is_readable($config_filename)) {
 
 //constants 1
 define("PROJECT", "phpLiteAdmin");
-define("VERSION", "1.9.5");
+define("VERSION", "1.9.6-dev");
 define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
@@ -3316,7 +3316,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				}
 			}
 			echo "<tr>";
-			echo "<td class='tdheader' colspan='12'>".sizeof($result)." total</td>";
+			echo "<td class='tdheader' colspan='12'>".sizeof($result)." ".$lang['total']."</td>";
 			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" <a href='?forceCount=1'>+ ?</a>":"")."</td>";
 			echo "</tr>";
 			echo "</table>";
