@@ -2540,7 +2540,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<td class='tdheader'>".$lang['col']." #</td>";
 			echo "<td class='tdheader'>".$lang['fld']."</td>";
 			echo "<td class='tdheader'>".$lang['type']."</td>";
-			echo "<td class='tdheader'>Not Null</td>";
+			echo "<td class='tdheader'>".$lang['not_null']."</td>";
 			echo "<td class='tdheader'>".$lang['def_val']."</td>";
 			echo "<td class='tdheader'>".$lang['prim_key']."</td>";
 			echo "</tr>";
