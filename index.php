@@ -287,6 +287,9 @@ if (isset($_POST['logout']))
 else if (isset($_POST['login']) && isset($_POST['password']))
 	$auth->attemptGrant($_POST['password'], isset($_POST['remember']));
 
+// initialize MessageQueue
+$msgs = new MessageQueue();
+
 //- Actions on database files and bulk data
 if ($auth->isAuthorized())
 {
@@ -296,7 +299,7 @@ if ($auth->isAuthorized())
 	{
 		if($_POST['new_dbname']=='')
 		{
-			// TODO: Display an error message (do NOT echo here. echo below in the html-body!)
+			$msgs->push('New DB name empty','error', true);  # todo: translate
 		}
 		else
 		{
@@ -312,8 +315,11 @@ if ($auth->isAuthorized())
 				$td->query("VACUUM");
 			} else
 			{
-				if(is_file($dbname) || is_dir($dbname)) $dbexists = true;
-				else $extension_not_allowed=true;
+				if(is_file($dbname) || is_dir($dbname))
+					$msgs->push(sprintf($lang['db_exists'], htmlencode($dbname)),'error', true);
+				else $msgs->push($lang['extension_not_allowed'].'<br />'.
+					implode(', ', array_map('htmlencode', $allowed_extensions)).
+					'<br />'.$lang['add_allowed_extension'],'error', true);
 			}
 		}
 	}
@@ -368,7 +374,7 @@ if ($auth->isAuthorized())
 		}
 		else //the directory is not valid - display error and exit
 		{
-			echo "<div class='confirm' style='margin:20px;'>".$lang['not_dir']."</div>";
+			$msgs->push($lang['not_dir'],'error',false,true);
 			exit();
 		}
 	}
@@ -440,8 +446,11 @@ if ($auth->isAuthorized())
 		}
 		else
 		{
-			if(is_file($newpath) || is_dir($newpath)) $dbexists = true;
-			else $extension_not_allowed = true;	
+			if(is_file($newpath) || is_dir($newpath))
+				$msgs->push(sprintf($lang['db_exists'], htmlencode($newpath)),'error', true);
+			else $msgs->push($lang['extension_not_allowed'].
+				implode(', ', array_map('htmlencode', $allowed_extensions)).
+				'<br />'.$lang['add_allowed_extension'],'error', true);
 		}
 	}
 
@@ -449,7 +458,11 @@ if ($auth->isAuthorized())
 	//- Export (download) an existing database
 	if(isset($_POST['export']))
 	{
-		if($_POST['export_type']=="sql")
+		if(preg_match("/^[\w\._-]+$/", $_POST['filename'])!==1)
+		{
+			$msgs->push('Unallowed Character','error');
+		}
+		elseif($_POST['export_type']=="sql")
 		{
 			header('Content-Type: text/sql');
 			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
@@ -467,8 +480,9 @@ if ($auth->isAuthorized())
 			$comments = isset($_POST['comments']);
 			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
 			echo $db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
+			exit();
 		}
-		else if($_POST['export_type']=="csv")
+		elseif($_POST['export_type']=="csv")
 		{
 			header("Content-type: application/csv");
 			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
@@ -489,8 +503,8 @@ if ($auth->isAuthorized())
 			$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
 			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
 			echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
+			exit();
 		}
-		exit();
 	}
 	
 	//- Import a file into an existing database
@@ -590,8 +604,7 @@ if(isset($_GET['help']))
 <?php
 if(ini_get("register_globals") == "on" || ini_get("register_globals")=="1") //check whether register_globals is turned on - if it is, we need to not continue
 {
-	echo "<div class='confirm' style='margin:20px;'>".$lang['bad_php_directive']."</div>";
-	echo "</body></html>";
+	$msgs->push($lang['bad_php_directive'],'error',false,true);
 	exit();
 }
 
@@ -635,17 +648,8 @@ else // the database array is empty, offer to create a new database
 	//- HTML: form to create a new database, exit
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<div class='confirm' style='margin:20px;'>";
-		printf($lang['no_db'], PROJECT, PROJECT);
-		echo "</div>";	
-		if(isset($extension_not_allowed))
-		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['err'].': '.$lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}			
+		$msgs->push(sprintf($lang['no_db'], PROJECT, PROJECT));
+		echo $msgs;
 		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
 		echo "<form name='create_database' method='post' action='".PAGE."'>";
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
@@ -654,9 +658,8 @@ else // the database array is empty, offer to create a new database
 	}
 	else
 	{
-		echo "<div class='confirm' style='margin:20px;'>";
-		echo $lang['err'].": ".sprintf($lang['no_db2'], PROJECT);
-		echo "</div><br/>";	
+		$msgs->push(sprintf($lang['no_db2'], PROJECT),'error');
+		echo $msgs;
 	}
 	exit();
 }
@@ -1279,12 +1282,11 @@ echo "<br/><br/>";
 if(isset($_GET['confirm']))
 {
 	echo "<div id='main'>";
-	echo "<div class='confirm'>";
 	if(isset($error) && $error) //an error occured during the action, so show an error message
-		echo $lang['err'].": ".$db->getError()."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+		$msgs->push($db->getError()."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK,'error',true);
 	else //action was performed successfully - show success message
-		echo $completed;
-	echo "</div>";
+		$msgs->push($completed,'message',true);
+	echo $msgs;
 	if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
 		echo "<br/><br/><a href='?table=".urlencode($target_table)."&amp;action=row_view'>".$lang['return']."</a>";
 	else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
@@ -1295,7 +1297,7 @@ if(isset($_GET['confirm']))
 }
 
 //- Show the various tab views for a table
-if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search" || $_GET['action']=="table_triggers"))
+if($target_table && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search" || $_GET['action']=="table_triggers"))
 {
 	//- HTML: tabs for tables
 	if($target_table_type == 'table')
@@ -1400,6 +1402,8 @@ if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET
 if(isset($_GET['action']) && !isset($_GET['confirm']))
 {
 	echo "<div id='main'>";
+	echo $msgs;
+
 	switch($_GET['action'])
 	{
 	//- Table actions
@@ -1602,13 +1606,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Empty table (=table_empty)
 		case "table_empty":
-			echo "<form action='?action=table_empty&amp;confirm=1' method='post'>";
-			echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
-			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
-			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
-			echo "</div>";
+			$msg = "<form action='?action=table_empty&amp;confirm=1' method='post'>".
+				"<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>".
+				sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>".
+				"<input type='submit' value='".$lang['confirm']."' class='btn'/> ".
+				"<a href='".PAGE."'>".$lang['cancel']."</a>";
+			$msgs->push($msg,'message',true);
 			break;
 
 		//- Drop table (=table_drop)
@@ -3054,6 +3057,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			break;
 	}
+	echo $msgs;
 	echo "</div>";
 }
 
@@ -3112,6 +3116,8 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	}
 	echo "<div style='clear:both;'></div>";
 	echo "<div id='main'>";
+	echo $msgs;
+
 
   //- Switch on $view (actually a series of if-else)
 
@@ -3122,13 +3128,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		$queryVersion = $db->select($query);
 		$realVersion = $queryVersion['sqlite_version'];
 		
-		if(isset($dbexists))
-		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname));
-			echo "</div><br/>";
-		}
-		
 		if($db->isWritable() && !$db->isDirWritable())
 		{
 			echo "<div class='confirm' style='margin:10px 20px;'>";
@@ -3136,21 +3135,14 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "</div><br/>";
 		}
 		
-		if(isset($extension_not_allowed))
-		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}
-
 		if ($auth->isPasswordDefault())
 		{
-			echo "<div class='confirm' style='margin:20px 0px;'>";
-			echo sprintf($lang['warn_passwd'],(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':PAGE))."<br />".$lang['warn0'];
-			echo "</div>";
+			$msgs->push(sprintf($lang['warn_passwd'],
+				(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':PAGE)).
+				"<br />".$lang['warn0'],
+				'attention',true);
 		}
+		echo $msgs;
 		
 		echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
 		echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
@@ -3576,25 +3568,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="rename")
 	{
 		//- Rename database confirmation (=rename)
-		if(isset($extension_not_allowed))
-		{
-			echo "<div class='confirm'>";
-			echo $lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}
-		if(isset($dbexists))
-		{
-			echo "<div class='confirm'>";
-			if($oldpath==$newpath)
-				echo $lang['err'].": ".$lang['warn_dumbass'];
-			else{
-				echo $lang['err'].": "; 
-				printf($lang['db_exists'], htmlencode($newpath));
-			}
-			echo "</div><br/>";
-		}
 		if(isset($justrenamed))
 		{
 			echo "<div class='confirm'>";
@@ -3630,6 +3603,7 @@ printf($lang['page_gen'], $pageTimer);
 echo "</span>";
 echo "</td></tr></table>";
 $db->close(); //close the database
+echo $msgs; // just in case there are still messages not printed yet
 echo "</body>";
 echo "</html>";
 
