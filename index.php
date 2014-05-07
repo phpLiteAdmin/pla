@@ -1489,6 +1489,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$delimiter = $_POST['delimiter'];
 				$queryStr = $_POST['queryval'];
+            //save the queries in history if necessary
+            if($maxSavedQueries!=0 && $maxSavedQueries!=false)
+            {
+               if(!isset($_SESSION['query_history']))
+                  $_SESSION['query_history'] = array();
+               if(array_search(strtolower($queryStr), array_map('strtolower', $_SESSION['query_history'])) == false)
+                  $_SESSION['query_history'][] = $queryStr;
+               if(sizeof($_SESSION['query_history']) > $maxSavedQueries)
+                  array_shift($_SESSION['query_history']);
+            }
 				$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
 				for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
@@ -1578,6 +1588,17 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<fieldset>";
 			echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 			echo "<form action='?table=".urlencode($target_table)."&amp;action=table_sql' method='post'>";
+         if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
+         {
+            echo "<b>Recent Queries</b><ul>";
+            $i=0;
+            foreach($_SESSION['query_history'] as $key => $value)
+            {
+               echo "<li><a onclick='document.getElementById(\"queryval\").value = this.innerHTML' style='cursor:pointer;'>".$value."</a></li>";
+               $i++;
+            }
+            echo "</ul><br/><br/>";
+         }
 			echo "<div style='float:left; width:70%;'>";
 			echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 			echo "</div>";
@@ -3350,6 +3371,16 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		{
 			$delimiter = $_POST['delimiter'];
 			$queryStr = $_POST['queryval'];
+         //save the queries in history if necessary
+         if($maxSavedQueries!=0 && $maxSavedQueries!=false)
+         {
+            if(!isset($_SESSION['query_history']))
+               $_SESSION['query_history'] = array();
+            if(array_search(strtolower($queryStr), array_map('strtolower', $_SESSION['query_history'])) == false)
+               $_SESSION['query_history'][] = $queryStr;
+            if(sizeof($_SESSION['query_history']) > $maxSavedQueries)
+               array_shift($_SESSION['query_history']);
+         }
 			$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
 			for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
@@ -3440,7 +3471,18 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<fieldset>";
 		echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 		echo "<form action='?view=sql' method='post'>";
-		echo "<textarea style='width:100%; height:300px;' name='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
+      if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
+      {
+         echo "<b>Recent Queries</b><ul>";
+         $i=0;
+         foreach($_SESSION['query_history'] as $key => $value)
+         {
+            echo "<li><a onclick='document.getElementById(\"queryval\").value = this.innerHTML' style='cursor:pointer;'>".$value."</a></li>";
+            $i++;
+         }
+         echo "</ul><br/><br/>";
+      }
+		echo "<textarea style='width:100%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 		echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 		echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 		echo "</form>";

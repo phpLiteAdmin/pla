@@ -47,6 +47,8 @@ $rowsNum = 30;
 // reduce string characters by a number bigger than 10
 $charsNum = 300;
 
+// maximum number of SQL queries to save in the history
+$maxSavedQueries = 10;
 
 /* ---- Custom functions ---- */
 
