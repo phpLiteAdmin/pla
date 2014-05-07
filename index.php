@@ -1587,13 +1587,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<fieldset>";
 			echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 			echo "<form action='?table=".urlencode($target_table)."&amp;action=table_sql' method='post'>";
-         if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
-         {
-            echo "<b>Recent Queries</b><ul>";
-            foreach($_SESSION['query_history'] as $key => $value)
-               echo "<li><a onclick='document.getElementById(\"queryval\").value = this.innerHTML' style='cursor:pointer;'>".htmlentities($value)."</a></li>";
-            echo "</ul><br/><br/>";
-         }
+			if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
+			{
+				echo "<b>".$lang['recent_queries']."</b><ul>";
+				foreach($_SESSION['query_history'] as $key => $value)
+					echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent' href='#'>".htmlencode($value)."</a></li>";
+				echo "</ul><br/><br/>";
+			}
 			echo "<div style='float:left; width:70%;'>";
 			echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
 			echo "</div>";
@@ -3366,7 +3366,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		{
 			$delimiter = $_POST['delimiter'];
 			$queryStr = $_POST['queryval'];
-         //save the queries in history if necessary
+			//save the queries in history if necessary
 			if($maxSavedQueries!=0 && $maxSavedQueries!=false)
 			{
 				if(!isset($_SESSION['query_history']))
@@ -3468,11 +3468,9 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
 		{
 			echo "<b>".$lang['recent_queries']."</b><ul>";
-			$i=0;
 			foreach($_SESSION['query_history'] as $key => $value)
 			{
-				echo "<li><a onclick='document.getElementById(\"queryval\").value = decodeEntities(this.innerHTML);' style='cursor:pointer;'>".htmlentities($value)."</a></li>";
-				$i++;
+				echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent;' href='#'>".htmlencode($value)."</a></li>";
 			}
 			echo "</ul><br/><br/>";
 		}
