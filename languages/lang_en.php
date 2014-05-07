@@ -160,6 +160,7 @@ $lang = array(
 	"query_time" => "(Query took %s sec)",
 	"syntax_err" => "There is a problem with the syntax of your query (Query was not executed)",
 	"run_sql" => "Run SQL query/queries on database '%s'",
+	"recent_queries" => "Recent Queries",
 	
 	"ques_empty" => "Are you sure you want to empty the table '%s'?",
 	"ques_drop" => "Are you sure you want to drop the table '%s'?",
