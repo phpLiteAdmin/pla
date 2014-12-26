@@ -449,10 +449,11 @@ if ($auth->isAuthorized())
 	//- Export (download) an existing database
 	if(isset($_POST['export']))
 	{
+		$export_filename = str_replace(array("\r", "\n"), '',$_POST['filename']); // against http header injection (php < 5.1.2 only)
 		if($_POST['export_type']=="sql")
 		{
 			header('Content-Type: text/sql');
-			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
+			header('Content-Disposition: attachment; filename="'.$export_filename.'.'.$_POST['export_type'].'";');
 			if(isset($_POST['tables']))
 				$tables = $_POST['tables'];
 			else
@@ -471,7 +472,7 @@ if ($auth->isAuthorized())
 		else if($_POST['export_type']=="csv")
 		{
 			header("Content-type: application/csv");
-			header('Content-Disposition: attachment; filename="'.$_POST['filename'].'.'.$_POST['export_type'].'";');
+			header('Content-Disposition: attachment; filename="'.$export_filename.'.'.$_POST['export_type'].'";');
 			header("Pragma: no-cache");
 			header("Expires: 0");
 			if(isset($_POST['tables']))
