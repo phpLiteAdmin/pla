@@ -1505,7 +1505,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$queryTimer = new MicroTimer();
-						if(preg_match('/^\s*(?:select|pragma|explain)\s/i', $query[$i])===1)   // pragma and explain often return rows just like select
+						if(preg_match('/^\s*(?:select|pragma|explain|with)\s/i', $query[$i])===1)   // pragma, explain, with often return rows just like select
 						{
 							$isSelect = true;
 							$result = $db->selectArray($query[$i], "assoc");
@@ -3382,7 +3382,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 				{
 					$queryTimer = new MicroTimer();
-					if(preg_match('/^\s*(?:select|pragma|explain)\s/i', $query[$i])===1)   // pragma and explain often return rows just like select
+					if(preg_match('/^\s*(?:select|pragma|explain|with)\s/i', $query[$i])===1)   // pragma, explain, with often return rows just like select
 					{
 						$isSelect = true;
 						$result = $db->selectArray($query[$i], "assoc");
