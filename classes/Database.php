@@ -833,7 +833,13 @@ class Database
 		{
 			if($where!="")
 				$where .= " AND ";
-			$where .= $this->quote_id($column).' = '. $this->quote($pk[$pk_index]);
+			$where .= $this->quote_id($column);
+			if(is_int($pk[$pk_index]) || is_float($pk[$pk_index]))
+				$where .= ' = '. $pk[$pk_index];
+			elseif(is_null($pk[$pk_index]))
+				$where .= ' IS NULL';   // SQLite even allows Primary Keys NULL :(
+			else
+				$where .= ' = ' . $this->quote($pk[$pk_index]);
 		}
 		return $where;
 	}

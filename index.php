@@ -2054,7 +2054,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			// this will be used to identify rows, e.g. when editing/deleting rows
 			$primary_key = $db->getPrimaryKey($target_table, true);
 			foreach($primary_key as $pk)
+			{
 				$query.= ', '.$db->quote_id($pk);
+				$query.= ', typeof('.$db->quote_id($pk).')';
+			}
 			$query .= " FROM ".$db->quote_id($target_table);
 			$queryDisp = "SELECT * FROM ".$db->quote_id($target_table);
 			$queryAdd = "";
@@ -2088,9 +2091,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
 				$pkFirstCol = sizeof($result)+1;
-				$pkNumCols = sizeof($primary_key);
-				$pkLastCol = $pkFirstCol + $pkNumCols -1;
-				
 				//- Table view
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
@@ -2118,10 +2118,21 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 					for($i=0; $i<sizeof($arr); $i++)
 					{
-						// -g-> $pk will always be the last columns in each row of the array because we are doing a "SELECT *, PK_1, PK2, ... FROM ..."
+						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
 						$pk_arr = array();
-						for($col = $pkFirstCol; $col<=$pkLastCol; $col++)
-							$pk_arr[] = $arr[$i][$col-1];
+						for($col = $pkFirstCol; array_key_exists($col, $arr[$i]); $col=$col+2)
+						{
+							// in $col we have the type and in $col-1 the value
+							if($arr[$i][$col]=='integer' || $arr[$i][$col]=='real')
+								// json encode as int or float, not string
+								$pk_arr[] = $arr[$i][$col-1]+0;
+							elseif($arr[$i][$col]=='null')
+								// yes SQLite allows NULL in primary keys :(. encode as NULL
+								$pk_arr[] = NULL;
+							else
+								// encode as json string
+								$pk_arr[] = $arr[$i][$col-1]; 
+						}
 						$pk = json_encode($pk_arr);
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
