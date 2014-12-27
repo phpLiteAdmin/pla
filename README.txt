@@ -1,6 +1,6 @@
 REQUIREMENTS:
 
-	- a server with PHP >= 5.1.0 installed
+	- a server with PHP >= 5.2.0 installed
 
 	- at least one PHP SQLite library extension installed and enabled: PDO, SQLite3, or SQLiteDatabase
 	  See https://code.google.com/p/phpliteadmin/wiki/Installation

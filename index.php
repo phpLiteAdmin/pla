@@ -219,13 +219,6 @@ function subString($str)
 	return $str;
 }
 
-function getRowId($table, $where=''){
-	global $db;
-	$query = "SELECT ROWID FROM ".$db->quote_id($table).$where;
-	$result = $db->selectArray($query);
-	return $result;
-}
-
 // checks the (new) name of a database file  
 function checkDbName($name)
 {
@@ -911,11 +904,12 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Delete row (=row_delete)
 		case "row_delete":
-			$pks = explode(":", $_GET['pk']);
-			$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE ROWID = ".$pks[0];
+			$pks = json_decode($_GET['pk']);
+			
+			$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE (".$db->wherePK($target_table,json_decode($pks[0])).")";
 			for($i=1; $i<sizeof($pks); $i++)
 			{
-				$query .= " OR ROWID = ".$pks[$i];
+				$query .= " OR (".$db->wherePK($target_table,json_decode($pks[$i])).")";
 			}
 			$result = $db->query($query);
 			if($result===false)
@@ -926,7 +920,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Edit row (=row_edit)
 		case "row_edit":
-			$pks = explode(":", $_GET['pk']);
+			$pks = json_decode($_GET['pk']);
 			$fields = explode(":", $_POST['fieldArray']);
 			
 			$z = 0;
@@ -954,10 +948,10 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					{
 						$field_index = str_replace(" ","_",$fields[$j]);
 						$value = $_POST[$pks[$i].":".$field_index];
-						$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
+						$null = isset($_POST[$field_index."_null"][$i]);
 						$type = $result[$j][2];
 						$typeAffinity = get_type_affinity($type);
-						$function = $_POST["function_".$pks[$i]."_".$field_index];
+						$function = $_POST["function_".$field_index][$i];
 						if($function!="")
 							$query .= $function."(";
 							//di - messed around with this logic for null values
@@ -985,23 +979,22 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$query = "UPDATE ".$db->quote_id($target_table)." SET ";
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						if(!is_numeric($pks[$i])) continue;
 						$field_index = str_replace(" ","_",$fields[$j]);
-						$function = $_POST["function_".$pks[$i]."_".$field_index];
-						$null = isset($_POST[$pks[$i].":".$field_index."_null"]);
+						$function = $_POST["function_".$field_index][$i];
+						$null = isset($_POST[$field_index."_null"][$i]);
 						$query .= $db->quote_id($fields[$j])."=";
 						if($function!="")
 							$query .= $function."(";
 						if($null)
 							$query .= "NULL";
 						else
-							$query .= $db->quote($_POST[$pks[$i].":".$field_index]);
+							$query .= $db->quote($_POST[$field_index][$i]);
 						if($function!="")
 							$query .= ")";
 						$query .= ", ";
 					}
 					$query = substr($query, 0, sizeof($query)-3);
-					$query .= " WHERE ROWID = ".$pks[$i];
+					$query .= " WHERE ".$db->wherePK($target_table, json_decode($pks[$i]));
 					$result1 = $db->query($query);
 					if($result1===false)
 					{
@@ -1758,6 +1751,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
+				$primary_key = $db->getPrimaryKey($target_table, true);
 				$j = 0;
 				$arr = array();
 				for($i=0; $i<sizeof($result); $i++)
@@ -1783,7 +1777,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$j++;
 					}
 				}
-				$query = "SELECT * FROM ".$db->quote_id($target_table);
+				$query = "SELECT *";
+				if(sizeof($primary_key==0))
+					$query.=', rowid';
+				$query.= " FROM ".$db->quote_id($target_table);
 				$whereTo = '';
 				if(sizeof($arr)>0)
 				{
@@ -1794,6 +1791,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					}
 				}
 				$query .= $whereTo;
+				$query_disp = "SELECT * FROM " . $db->quote_id($target_table) . $whereTo;
 				$queryTimer = new MicroTimer();
 				$result = $db->selectArray($query,"assoc");
 				$queryTimer->stop();
@@ -1811,7 +1809,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				{
 					echo $lang['err'].": ".$db->getError().".</b><br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK.'<br/>';
 				}
-				echo "<span style='font-size:11px;'>".htmlencode($query)."</span>";
+				echo "<span style='font-size:11px;'>".htmlencode($query_disp)."</span>";
 				echo "</div><br/>";
 
 				if(sizeof($result)>0)
@@ -1823,17 +1821,20 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "<td>&nbsp;</td><td>&nbsp;</td>"; 
 					for($j=0; $j<sizeof($headers); $j++)
 					{
+						if($headers[$j]=='rowid')
+							continue;
 						echo "<td class='tdheader'>";
 						echo htmlencode($headers[$j]);
 						echo "</td>";
 					}
 					echo "</tr>";
-
-					$pkid = getRowId($target_table, $whereTo);
-
+					
 					for($j=0; $j<sizeof($result); $j++)
 					{
-						$pk = $pkid[$j][0];
+						$pk = array();
+						foreach($primary_key as $col)
+							$pk[] = $result[$j][$col];
+						$pk = json_encode($pk);
 						$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 						$cVal = 0;
 						echo "<tr>";
@@ -1841,6 +1842,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						echo $tdWithClass."<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
 						for($z=0; $z<sizeof($headers); $z++)
 						{
+							if($headers[$z]=='rowid')
+								continue;
 							echo $tdWithClass;
 							$fldResult = $result[$j][$headers[$z]];
 							if(!empty($foundVal) and in_array($headers[$z], $fieldArr)){
@@ -2046,7 +2049,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$_SESSION[COOKIENAME.'currentTable'] = $target_table;
 			}
 			$_SESSION[COOKIENAME.'numRows'] = $numRows;
-			$query = "SELECT *, ROWID FROM ".$db->quote_id($target_table);
+			$query = "SELECT * ";
+			// select the primary key column(s) last (ROWID if there is no PK).
+			// this will be used to identify rows, e.g. when editing/deleting rows
+			$primary_key = $db->getPrimaryKey($target_table, true);
+			foreach($primary_key as $pk)
+				$query.= ', '.$db->quote_id($pk);
+			$query .= " FROM ".$db->quote_id($target_table);
 			$queryDisp = "SELECT * FROM ".$db->quote_id($target_table);
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sortRows']))
@@ -2078,9 +2087,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
-				$rowidColumn = sizeof($result);
-
-				//- Table view				
+				$pkFirstCol = sizeof($result)+1;
+				$pkNumCols = sizeof($primary_key);
+				$pkLastCol = $pkFirstCol + $pkNumCols -1;
+				
+				//- Table view
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
 					echo "<form action='?action=row_editordelete&amp;table=".urlencode($target_table)."' method='post' name='checkForm'>";
@@ -2107,8 +2118,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 					for($i=0; $i<sizeof($arr); $i++)
 					{
-						// -g-> $pk will always be the last column in each row of the array because we are doing a "SELECT *, ROWID FROM ..."
-						$pk = $arr[$i][$rowidColumn];
+						// -g-> $pk will always be the last columns in each row of the array because we are doing a "SELECT *, PK_1, PK2, ... FROM ..."
+						$pk_arr = array();
+						for($col = $pkFirstCol; $col<=$pkLastCol; $col++)
+							$pk_arr[] = $arr[$i][$col-1];
+						$pk = json_encode($pk_arr);
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 						echo "<tr>";
@@ -2118,7 +2132,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo "<input type='checkbox' name='check[]' value='".htmlencode($pk)."' id='check_".htmlencode($i)."'/>";
 							echo "</td>";
 							echo $tdWithClass;
-							// -g-> Here, we need to put the ROWID in as the link for both the edit and delete.
+							// -g-> Here, we need to put the PK in as the link for both the edit and delete.
 							echo "<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a>";
 							echo "</td>";
 							echo $tdWithClass;
@@ -2433,11 +2447,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$pks = array($_GET['pk']);
 			else $pks[0] = "";
 			$str = $pks[0];
-			$pkVal = $pks[0];
 			for($i=1; $i<sizeof($pks); $i++)
 			{
 				$str .= ", ".$pks[$i];
-				$pkVal .= ":".$pks[$i];
 			}
 			if($str=="") //nothing was selected so show an error
 			{
@@ -2450,7 +2462,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 				{
-					echo "<form action='?table=".urlencode($target_table)."&amp;action=row_edit&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
+					echo "<form action='?table=".urlencode($target_table)."&amp;action=row_edit&amp;confirm=1&amp;pk=".urlencode(json_encode($pks))."' method='post'>";
 					$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 					$result = $db->selectArray($query);
 
@@ -2458,13 +2470,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$fieldStr = $result[0][1];
 					for($j=1; $j<sizeof($result); $j++)
 						$fieldStr .= ":".$result[$j][1];
-
+						
+					$primary_key = $db->getPrimaryKey($target_table, true);
+					
 					echo "<input type='hidden' name='fieldArray' value='".htmlencode($fieldStr)."'/>";
 
 					for($j=0; $j<sizeof($pks); $j++)
 					{
-						if(!is_numeric($pks[$j])) continue;
-						$query = "SELECT * FROM ".$db->quote_id($target_table)." WHERE ROWID = ".$pks[$j];
+						$query = "SELECT * FROM ".$db->quote_id($target_table)." WHERE " . $db->wherePK($target_table, json_decode($pks[$j]));
 						$result1 = $db->select($query);
 
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -2492,7 +2505,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo htmlencode($type);
 							echo "</td>";
 							echo $tdWithClassLeft;
-							echo "<select name='function_".htmlencode($pks[$j])."_".htmlencode($field)."' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
+							echo "<select name='function_".htmlencode($field)."[]' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
 							echo "<option value=''></option>";
 							foreach (array_merge($sqlite_functions, $custom_functions) as $f) {
 								echo "<option value='".htmlencode($f)."'>".htmlencode($f)."</option>";
@@ -2503,16 +2516,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							if($result[$i][3]==0)
 							{
 								if($value===NULL)
-									echo "<input type='checkbox' name='".htmlencode($pks[$j]).":".htmlencode($field)."_null' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null' checked='checked'/>";
+									echo "<input type='checkbox' name='".htmlencode($field)."_null[]' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null' checked='checked'/>";
 								else
-									echo "<input type='checkbox' name='".htmlencode($pks[$j]).":".htmlencode($field)."_null' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null'/>";
+									echo "<input type='checkbox' name='".htmlencode($field)."_null[]' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null'/>";
 							}
 							echo "</td>";
 							echo $tdWithClassLeft;
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
-								echo "<input type='text' name='".htmlencode($pks[$j]).":".htmlencode($field)."' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
+								echo "<input type='text' name='".htmlencode($field)."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
 							else
-								echo "<textarea name='".htmlencode($pks[$j]).":".htmlencode($field)."' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+								echo "<textarea name='".htmlencode($field)."[]' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
 							echo "</td>";
 							echo "</tr>";
 						}
@@ -2531,7 +2544,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				}
 				else //delete
 				{
-					echo "<form action='?table=".urlencode($target_table)."&amp;action=row_delete&amp;confirm=1&amp;pk=".urlencode($pkVal)."' method='post'>";
+					echo "<form action='?table=".urlencode($target_table)."&amp;action=row_delete&amp;confirm=1&amp;pk=".urlencode(json_encode($pks))."' method='post'>";
 					echo "<div class='confirm'>";
 					printf($lang['ques_del_rows'], htmlencode($str), htmlencode($target_table));
 					echo "<br/><br/>";

@@ -9,6 +9,7 @@ class Database
 	protected $data;
 	protected $lastResult;
 	protected $alterError;
+	protected $primaryKeys; // cache of the primary key columns
 
 	public function __construct($data)
 	{
@@ -798,6 +799,45 @@ class Database
 		return false;
 	}
 	
+	// returns the column(s) of the PK (if any) as an array. If $rowID is true
+	// and there is no primary key, the array will only include ROWID.
+	public function getPrimaryKey($table, $rowID=false)
+	{
+		$primary_key = array();
+		if(isset($this->primaryKeys[$table]))
+			$primary_key = $this->primaryKeys[$table];
+		else
+		{
+			$query = "PRAGMA table_info(".$this->quote_id($table).")";
+			$table_info = $this->selectArray($query);
+			foreach($table_info as $row_id => $row_data)
+			{
+				if($row_data['pk'])
+					$primary_key[] = $row_data['name'];
+			}
+			$this->primaryKeys[$table] = $primary_key;
+		}
+		if($rowID && sizeof($primary_key)==0)
+			return array('rowid');
+		else
+			return $primary_key;
+	}
+	
+	// selects a row by a given primary key $pk, which is an array of values
+	// for the columns that make the primary key
+	public function wherePK($table, $pk)
+	{
+		$where = "";
+		$primary_keys = $this->getPrimaryKey($table, true);
+		foreach($primary_keys as $pk_index => $column)
+		{
+			if($where!="")
+				$where .= " AND ";
+			$where .= $this->quote_id($column).' = '. $this->quote($pk[$pk_index]);
+		}
+		return $where;
+	}
+
 	//get number of rows in table
 	public function numRows($table, $dontTakeLong = false)
 	{
