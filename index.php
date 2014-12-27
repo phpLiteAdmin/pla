@@ -1751,7 +1751,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
-				$primary_key = $db->getPrimaryKey($target_table, true);
+				$primary_key = $db->getPrimaryKey($target_table);
 				$j = 0;
 				$arr = array();
 				for($i=0; $i<sizeof($result); $i++)
@@ -2052,7 +2052,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$query = "SELECT * ";
 			// select the primary key column(s) last (ROWID if there is no PK).
 			// this will be used to identify rows, e.g. when editing/deleting rows
-			$primary_key = $db->getPrimaryKey($target_table, true);
+			$primary_key = $db->getPrimaryKey($target_table);
 			foreach($primary_key as $pk)
 			{
 				$query.= ', '.$db->quote_id($pk);
@@ -2482,7 +2482,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					for($j=1; $j<sizeof($result); $j++)
 						$fieldStr .= ":".$result[$j][1];
 						
-					$primary_key = $db->getPrimaryKey($target_table, true);
+					$primary_key = $db->getPrimaryKey($target_table);
 					
 					echo "<input type='hidden' name='fieldArray' value='".htmlencode($fieldStr)."'/>";
 

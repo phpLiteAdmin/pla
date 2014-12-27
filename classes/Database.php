@@ -9,7 +9,6 @@ class Database
 	protected $data;
 	protected $lastResult;
 	protected $alterError;
-	protected $primaryKeys; // cache of the primary key columns
 
 	public function __construct($data)
 	{
@@ -799,15 +798,20 @@ class Database
 		return false;
 	}
 	
-	// returns the column(s) of the PK (if any) as an array. If $rowID is true
-	// and there is no primary key, the array will only include ROWID.
-	public function getPrimaryKey($table, $rowID=false)
+	// Returns an array of columns by which rows can be uniquely adressed.
+	// For tables with a rowid column, this is always array('rowid')
+	// for tables without rowid, this is an array of the primary key columns. 
+	public function getPrimaryKey($table)
 	{
 		$primary_key = array();
-		if(isset($this->primaryKeys[$table]))
-			$primary_key = $this->primaryKeys[$table];
+		// check if this table has a rowid
+		$getRowID = $this->select('SELECT ROWID FROM '.$this->quote_id($table).' LIMIT 0,1');
+		if(isset($getRowID[0]))
+			// it has, so we prefer addressing rows by rowid			
+			return array('rowid');
 		else
 		{
+			// the table is without rowid, so use the primary key
 			$query = "PRAGMA table_info(".$this->quote_id($table).")";
 			$table_info = $this->selectArray($query);
 			foreach($table_info as $row_id => $row_data)
@@ -815,31 +819,25 @@ class Database
 				if($row_data['pk'])
 					$primary_key[] = $row_data['name'];
 			}
-			$this->primaryKeys[$table] = $primary_key;
 		}
-		if($rowID && sizeof($primary_key)==0)
-			return array('rowid');
-		else
-			return $primary_key;
+		return $primary_key;
 	}
 	
-	// selects a row by a given primary key $pk, which is an array of values
-	// for the columns that make the primary key
+	// selects a row by a given key $pk, which is an array of values
+	// for the columns by which a row can be adressed (rowid or primary key)
 	public function wherePK($table, $pk)
 	{
 		$where = "";
-		$primary_keys = $this->getPrimaryKey($table, true);
-		foreach($primary_keys as $pk_index => $column)
+		$primary_key = $this->getPrimaryKey($table);
+		foreach($primary_key as $pk_index => $column)
 		{
 			if($where!="")
 				$where .= " AND ";
-			$where .= $this->quote_id($column);
+			$where .= $this->quote_id($column) . ' = ';
 			if(is_int($pk[$pk_index]) || is_float($pk[$pk_index]))
-				$where .= ' = '. $pk[$pk_index];
-			elseif(is_null($pk[$pk_index]))
-				$where .= ' IS NULL';   // SQLite even allows Primary Keys NULL :(
+				$where .= $pk[$pk_index];
 			else
-				$where .= ' = ' . $this->quote($pk[$pk_index]);
+				$where .= $this->quote($pk[$pk_index]);
 		}
 		return $where;
 	}
