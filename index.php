@@ -947,7 +947,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					for($j=0; $j<sizeof($fields); $j++)
 					{
 						$field_index = str_replace(" ","_",$fields[$j]);
-						$value = $_POST[$pks[$i].":".$field_index];
+						$value = $_POST[$field_index][$i];
 						$null = isset($_POST[$field_index."_null"][$i]);
 						$type = $result[$j][2];
 						$typeAffinity = get_type_affinity($type);
