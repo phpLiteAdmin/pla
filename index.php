@@ -439,7 +439,7 @@ if ($auth->isAuthorized())
 	}
 
 	
-	//- Export (download) an existing database
+	//- Export (download a dump) an existing database
 	if(isset($_POST['export']))
 	{
 		$export_filename = str_replace(array("\r", "\n"), '',$_POST['filename']); // against http header injection (php < 5.1.2 only)
@@ -506,6 +506,16 @@ if ($auth->isAuthorized())
 			$fields_in_first_row = isset($_POST['import_csv_fieldnames']);
 			$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
 		}
+	}
+	//- Download (backup) a database file (as SQLite file, not as dump)
+	if(isset($_GET['download']) && isManagedDB($_GET['download'])!==false)
+	{
+		header("Content-type: application/octet-stream");
+		header('Content-Disposition: attachment; filename="'.basename($_GET['download']).'";');
+		header("Pragma: no-cache");
+		header("Expires: 0");
+		readfile($_GET['download']);
+		exit;
 	}
 }
 
@@ -1209,11 +1219,10 @@ if(sizeof($databases)<10) //if there aren't a lot of databases, just show them a
 	{
 		$i++;
 		echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ';
-		$url_path = str_replace(DIRECTORY_SEPARATOR,'/',$database['path']);
 		if($database == $_SESSION[COOKIENAME.'currentDB'])
-			echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
+			echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 		else
-			echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='".htmlencode($url_path)."' title='".$lang['backup']."'>&darr;</a>)";
+			echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
 		if($i<sizeof($databases))
 			echo "<br/>";
 	}
@@ -1692,7 +1701,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<input type='text' name='filename' value='".htmlencode($name)."_".htmlencode($target_table)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 			echo "</fieldset>";
 			echo "</form>";
-			echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='".htmlencode(str_replace(DIRECTORY_SEPARATOR,'/',$currentDB['path']))."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
+			echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='?download=".urlencode($currentDB['path'])."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
 			break;
 
 		//- Import table (=table_import)
@@ -3568,6 +3577,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<input type='text' name='filename' value='".htmlencode($name)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 		echo "</fieldset>";
 		echo "</form>";
+		echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='?download=".urlencode($currentDB['path'])."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
 	}
 	else if($view=="import")
 	{
