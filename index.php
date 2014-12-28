@@ -1992,7 +1992,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</div>";
 				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
 				echo "<form action='?action=row_view&amp;table=".urlencode($target_table)."' method='post'>";
-				echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']-$_SESSION[COOKIENAME.'numRows'])."'/>";
+				echo "<input type='hidden' name='startRow' value='".max(0,intval($_POST['startRow']-$_SESSION[COOKIENAME.'numRows']))."'/>";
 				echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 				echo "<input type='submit' value='&larr;' name='previous_full' class='btn'/> ";
 				echo "</form>";
