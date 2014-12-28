@@ -1499,75 +1499,64 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$queryTimer = new MicroTimer();
-						if(preg_match('/^\s*(?:select|pragma|explain|with)\s/i', $query[$i])===1)   // pragma, explain, with often return rows just like select
-						{
-							$isSelect = true;
-							$result = $db->selectArray($query[$i], "assoc");
-						}
-						else
-						{
-							$isSelect = false;
-							$result = $db->query($query[$i]);
-						}
+						$result = $db->selectArray($query[$i], "assoc");
 						$queryTimer->stop();
 
 						echo "<div class='confirm'>";
 						echo "<b>";
-						if($result!==false)
+						
+						if($result !== NULL)
 						{
-							if($isSelect)
+						
+							if(sizeof($result)>0 || $db->getAffectedRows()==0)
 							{
-								$affected = sizeof($result);
-								echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
+								printf($lang['show_rows'], sizeof($result));
 							}
-							else
+							if($db->getAffectedRows()>0 || sizeof($result)==0)
 							{
-								$affected = $db->getAffectedRows();
-								echo $affected." ".$lang['rows']." ".$lang['affected'].". ";
+								echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
 							}
 							printf($lang['query_time'], $queryTimer);
 							echo "</b><br/>";
 						}
 						else
 						{
-							echo $lang['err'].": ".$db->getError().".</b><br/>";
+							echo $lang['err'].": ".$db->getError()."</b><br/>";
 						}
+						
 						echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 						echo "</div><br/>";
-						if($isSelect)
+						if(sizeof($result)>0)
 						{
-							if(sizeof($result)>0)
-							{
-								$headers = array_keys($result[0]);
+							$headers = array_keys($result[0]);
 
-								echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+							echo "<tr>";
+							for($j=0; $j<sizeof($headers); $j++)
+							{
+								echo "<td class='tdheader'>";
+								echo htmlencode($headers[$j]);
+								echo "</td>";
+							}
+							echo "</tr>";
+							for($j=0; $j<sizeof($result); $j++)
+							{
+								$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 								echo "<tr>";
-								for($j=0; $j<sizeof($headers); $j++)
+								for($z=0; $z<sizeof($headers); $z++)
 								{
-									echo "<td class='tdheader'>";
-									echo htmlencode($headers[$j]);
+									echo $tdWithClass;
+									if($result[$j][$headers[$z]]==="")
+										echo "&nbsp;";
+									elseif($result[$j][$headers[$z]]===NULL)
+										echo "<i class='null'>NULL</i>";
+									else
+										echo subString(htmlencode($result[$j][$headers[$z]]));
 									echo "</td>";
 								}
 								echo "</tr>";
-								for($j=0; $j<sizeof($result); $j++)
-								{
-									$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
-									echo "<tr>";
-									for($z=0; $z<sizeof($headers); $z++)
-									{
-										echo $tdWithClass;
-										if($result[$j][$headers[$z]]==="")
-											echo "&nbsp;";
-										elseif($result[$j][$headers[$z]]===NULL)
-											echo "<i class='null'>NULL</i>";
-										else
-											echo subString(htmlencode($result[$j][$headers[$z]]));
-										echo "</td>";
-									}
-									echo "</tr>";
-								}
-								echo "</table><br/><br/>";
 							}
+							echo "</table><br/><br/>";
 						}
 					}
 				}
@@ -3407,32 +3396,22 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 				{
 					$queryTimer = new MicroTimer();
-					if(preg_match('/^\s*(?:select|pragma|explain|with)\s/i', $query[$i])===1)   // pragma, explain, with often return rows just like select
-					{
-						$isSelect = true;
-						$result = $db->selectArray($query[$i], "assoc");
-					}
-					else
-					{
-						$isSelect = false;
-						$result = $db->query($query[$i]);
-					}
+					$result = $db->selectArray($query[$i], "assoc");
 					$queryTimer->stop();
 
 					echo "<div class='confirm'>";
 					echo "<b>";
-					// 22 August 2011: gkf fixed bugs 46, 51 and 52.
-					if($result!==false)
+					
+					if($result !== NULL)
 					{
-						if($isSelect)
+					
+						if(sizeof($result)>0 || $db->getAffectedRows()==0)
 						{
-							$affected = sizeof($result);
-							printf($lang['show_rows'], $affected);
+							printf($lang['show_rows'], sizeof($result));
 						}
-						else
+						if($db->getAffectedRows()>0 || sizeof($result)==0)
 						{
-							$affected = $db->getAffectedRows();
-							echo $affected." ".$lang['rows_aff']." ";
+							echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
 						}
 						printf($lang['query_time'], $queryTimer);
 						echo "</b><br/>";
@@ -3443,42 +3422,39 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 					}
 					echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 					echo "</div><br/>";
-					if($isSelect)
+					if(sizeof($result)>0)
 					{
-						if(sizeof($result)>0)
-						{
-							$headers = array_keys($result[0]);
+						$headers = array_keys($result[0]);
 
-							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+						echo "<tr>";
+						for($j=0; $j<sizeof($headers); $j++)
+						{
+							echo "<td class='tdheader'>";
+							echo htmlencode($headers[$j]);
+							echo "</td>";
+						}
+						echo "</tr>";
+						for($j=0; $j<sizeof($result); $j++)
+						{
+							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
 							echo "<tr>";
-							for($j=0; $j<sizeof($headers); $j++)
+							for($z=0; $z<sizeof($headers); $z++)
 							{
-								echo "<td class='tdheader'>";
-								echo htmlencode($headers[$j]);
+								echo $tdWithClass;
+								if($result[$j][$headers[$z]]==="")
+									echo "&nbsp;";
+								elseif($result[$j][$headers[$z]]===NULL)
+									echo "<i class='null'>NULL</i>";
+								else
+									echo subString(htmlencode($result[$j][$headers[$z]]));
 								echo "</td>";
 							}
 							echo "</tr>";
-							for($j=0; $j<sizeof($result); $j++)
-							{
-								$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
-								echo "<tr>";
-								for($z=0; $z<sizeof($headers); $z++)
-								{
-									echo $tdWithClass;
-									if($result[$j][$headers[$z]]==="")
-										echo "&nbsp;";
-									elseif($result[$j][$headers[$z]]===NULL)
-										echo "<i class='null'>NULL</i>";
-									else
-										echo subString(htmlencode($result[$j][$headers[$z]]));
-									echo "</td>";
-								}
-								echo "</tr>";
-							}
-							echo "</table><br/><br/>";
 						}
+						echo "</table><br/><br/>";
 					}
-				}
+			}
 			}
 		}
 		else
