@@ -214,8 +214,9 @@ function deQuoteSQL($s)
 function subString($str)
 {
 	global $charsNum;
-	if($charsNum > 10){
-		if(strlen($str)>$charsNum) $str = substr($str, 0, $charsNum).'...';
+	if($charsNum > 10 && !$_SESSION[COOKIENAME.'fulltexts'] && strlen($str)>$charsNum)
+	{
+		$str = substr($str, 0, $charsNum).'...';
 	}
 	return $str;
 }
@@ -1579,7 +1580,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 									elseif($result[$j][$headers[$z]]===NULL)
 										echo "<i class='null'>NULL</i>";
 									else
-										echo subString(htmlencode($result[$j][$headers[$z]]));
+										echo htmlencode(subString($result[$j][$headers[$z]]));
 									echo "</td>";
 								}
 								echo "</tr>";
@@ -1962,6 +1963,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if(!isset($_SESSION[COOKIENAME.'numRows']))
 				$_SESSION[COOKIENAME.'numRows'] = $rowsNum;
 			
+			if(isset($_GET['fulltexts']))
+				$_SESSION[COOKIENAME.'fulltexts'] = $_GET['fulltexts'];
+
+			if(!isset($_SESSION[COOKIENAME.'fulltexts']))
+				$_SESSION[COOKIENAME.'fulltexts'] = false;
+
 			if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$target_table)
 			{
 				unset($_SESSION[COOKIENAME.'sortRows']);
@@ -2115,7 +2122,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					if($target_table_type == 'table')
-						echo "<td colspan='3'></td>";
+					{
+						echo "<td colspan='3' class='tdheader' style='text-align:center'>";
+						echo "<a href='?action=row_view&amp;table=".$target_table."&amp;fulltexts=".($_SESSION[COOKIENAME.'fulltexts']?0:1)."' title='".$lang[($_SESSION[COOKIENAME.'fulltexts']?'no_full_texts':'full_texts')]."'>";
+						echo "<b>&larr;</b> T <b>&rarr;</b></a>";
+						echo "</td>";
+					}
 
 					for($i=0; $i<sizeof($result); $i++)
 					{
@@ -2179,7 +2191,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							elseif($arr[$i][$j]===NULL)
 								echo "<i class='null'>NULL</i>";
 							else
-								echo subString(htmlencode($arr[$i][$j]));
+								echo htmlencode(subString($arr[$i][$j]));
 							echo "</td>";
 						}
 						echo "</tr>";
@@ -3475,7 +3487,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 								elseif($result[$j][$headers[$z]]===NULL)
 									echo "<i class='null'>NULL</i>";
 								else
-									echo subString(htmlencode($result[$j][$headers[$z]]));
+									echo htmlencode(subString($result[$j][$headers[$z]]));
 								echo "</td>";
 							}
 							echo "</tr>";
