@@ -37,6 +37,7 @@ define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define('PROJECT_URL','http://phpliteadmin.googlecode.com');
+define('DONATE_URL','http://phpliteadmin.christosoft.de/donate.php');
 define('PROJECT_BUGTRACKER_LINK','<a href="http://code.google.com/p/phpliteadmin/issues/list" target="_blank">http://code.google.com/p/phpliteadmin/issues/list</a>');
 
 // Resource output (css and javascript files)
@@ -3689,6 +3690,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 //- HTML: page footer
 echo "<br/>";
 echo "<span style='font-size:11px;'>".$lang['powered']." <a href='".PROJECT_URL."' target='_blank' style='font-size:11px;'>".PROJECT."</a> | ";
+echo $lang['free_software']." <a href='".DONATE_URL."' target='_blank' style='font-size:11px;'>".$lang['please_donate']."</a> | ";
 printf($lang['page_gen'], $pageTimer);
 echo "</span>";
 echo "</td></tr></table>";
