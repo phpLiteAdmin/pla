@@ -937,38 +937,56 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			{
 				if(isset($_POST['new_row']))
 				{
-					$query = "INSERT INTO ".$db->quote_id($target_table)." (";
+					$query_cols = "";
+					$query_vals = "";
+					$all_default = true;
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						$query .= $db->quote_id($fields[$j]).",";
-					}
-					$query = substr($query, 0, sizeof($query)-2);
-					$query .= ") VALUES (";
-					for($j=0; $j<sizeof($fields); $j++)
-					{
-						$field_index = str_replace(" ","_",$fields[$j]);
-						$value = $_POST[$field_index][$i];
-						$null = isset($_POST[$field_index."_null"][$i]);
-						$type = $result[$j][2];
-						$typeAffinity = get_type_affinity($type);
-						$function = $_POST["function_".$field_index][$i];
-						if($function!="")
-							$query .= $function."(";
-							//di - messed around with this logic for null values
-						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && $null==false)
-							$query .= $db->quote($value);
-						else if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && $null==false && $value=="")
-							$query .= "NULL";
-						else if($null==true)
-							$query .= "NULL";
+						// PHP replaces space with underscore
+						$fields[$j] = str_replace(" ","_",$fields[$j]);
+						
+						$null = isset($_POST[$fields[$j]."_null"][$i]);
+						if(!$null)
+						{
+							$value = $_POST[$fields[$j]][$i];
+						}
 						else
-							$query .= $db->quote($value);
+							$value = "";
+						if($value===$result[$j]['dflt_value'])
+						{
+							// if the value is the default value, skip it
+							continue;
+						} else
+							$all_default = false;
+						$query_cols .= $db->quote_id($fields[$j]).",";
+						
+						$type = $result[$j]['type'];
+						$typeAffinity = get_type_affinity($type);
+						$function = $_POST["function_".$fields[$j]][$i];
 						if($function!="")
-							$query .= ")";
-						$query .= ",";
+							$query_vals .= $function."(";
+						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
+							$query_vals .= $db->quote($value);
+						elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
+							$query_vals .= "NULL";
+						elseif($null)
+							$query_vals .= "NULL";
+						else
+							$query_vals .= $db->quote($value);
+						if($function!="")
+							$query_vals .= ")";
+						$query_vals .= ",";
 					}
-					$query = substr($query, 0, sizeof($query)-2);
-					$query .= ")";
+					$query = "INSERT INTO ".$db->quote_id($target_table);
+					if(!$all_default)
+					{
+						$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
+						$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
+					
+						$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
+					} else {
+						$query .= " DEFAULT VALUES";
+					}
 					$result1 = $db->query($query);
 					if($result1===false)
 						$error = true;
