@@ -38,6 +38,7 @@ define("FORCETYPE", false); //force the extension that will be used (set to fals
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define('PROJECT_URL','http://phpliteadmin.googlecode.com');
 define('DONATE_URL','http://phpliteadmin.christosoft.de/donate.php');
+define('VERSION_CHECK_URL','https://phpliteadmin.christosoft.de/current_version.php');
 define('PROJECT_BUGTRACKER_LINK','<a href="http://code.google.com/p/phpliteadmin/issues/list" target="_blank">http://code.google.com/p/phpliteadmin/issues/list</a>');
 
 // Resource output (css and javascript files)
@@ -3228,7 +3229,10 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 		echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
 		echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 
-		echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/><br/>";
+		echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/>";
+		echo "<b>".PROJECT." ".$lang["ver"]."</b>: ".VERSION;
+		echo " <a href='".PROJECT_URL."' target='_blank' id='oldVersion' style='display: none;' class='warning'>".$lang['new_version']."</a><br/><br/>";
+		echo "<script type='text/javascript'>checkVersion('".VERSION."','".VERSION_CHECK_URL."');</script>";
 		
 		if(isset($_GET['sort']) && ($_GET['sort']=='type' || $_GET['sort']=='name'))
 			$_SESSION[COOKIENAME.'sortTables'] = $_GET['sort'];

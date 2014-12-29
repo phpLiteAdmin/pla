@@ -161,9 +161,47 @@ function PopupCenter(pageURL, title)
 {
 	helpsec = window.open(pageURL, title, "toolbar=0,scrollbars=1,location=0,statusbar=0,menubar=0,resizable=0,width=400,height=300");
 } 
-function checkLike(srchField, selOpt){
+function checkLike(srchField, selOpt)
+{
 	if(selOpt=="LIKE%"){
 		var textArea = document.getElementById(srchField);
 		textArea.value = "%" + textArea.value + "%";
 	}
+}
+
+// Cross Origin Request
+function createCORSRequest(method, url)
+{
+	var xhr = new XMLHttpRequest();
+	if ("withCredentials" in xhr)
+	{
+		xhr.open(method, url, true);
+	}
+	else if (typeof XDomainRequest != "undefined")
+	{
+		xhr = new XDomainRequest();
+		xhr.open(method, url);
+	}
+	else
+	{
+		xhr = null;
+	}
+	return xhr;
+}
+
+//check for updates
+function checkVersion(installed, url)
+{
+	var xhr = createCORSRequest('GET', url);
+	if (!xhr)
+		return false;
+
+	xhr.onload = function()
+	{
+		if(xhr.responseText.split("\n").indexOf(installed)==-1)
+		{
+			document.getElementById('oldVersion').style.display='inline';
+		}
+	};
+	xhr.send();
 }

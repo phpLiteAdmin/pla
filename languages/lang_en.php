@@ -68,6 +68,7 @@ $lang = array(
 	"sqlite_limit" => "Due to the limitations of SQLite, only the field name and data type can be modified.",
 	
 	"php_v" => "PHP version",
+	"new_version" => "There is a new version!",
 	
 	"db_dump" => "database dump",
 	"db_f" => "database file",
