@@ -333,8 +333,11 @@ class Database
 	public function selectArray($query, $mode="both")
 	{
 		$result = $this->query($query);
-		if(!$result) //make sure the result is valid
-			return NULL;
+		//make sure the result is valid
+		if($result=== false || $result===NULL) 
+			return NULL;		// error
+		if(!is_object($result)) // no rows returned
+			return array();
 		if($this->type=="PDO")
 		{
 			if($mode=="assoc")
