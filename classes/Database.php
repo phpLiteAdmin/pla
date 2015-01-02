@@ -603,7 +603,7 @@ class Database
 								$new_col_definition = "'$column_escaped' ".$matches[5];
 								$preg_pattern_add = "/^".$preg_create_table.   // the CREATE TABLE statement ($1)
 									"((?:(?!,\s*(?:PRIMARY\s+KEY\s*\(|CONSTRAINT\s|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()).)*)". // column definitions ($2)
-									"(.*)\\)\s*$/s"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
+									"(.*)\\)\s*$/si"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
 								// append the column definiton in the CREATE TABLE statement
 								$newSQL = preg_replace($preg_pattern_add, '$1$2, '.strtr($new_col_definition, array('\\' => '\\\\', '$' => '\$')).' $3', $createtesttableSQL).')';
 								$preg_error = $this->getPregError();
@@ -699,15 +699,16 @@ class Database
 									// if not compound primary key, might be a column constraint -> try removal
 									$column = $primarykey[0];
 									if($debug) echo "<br>Trying to drop column constraint for column $column <br>";
+									// TODO: CONSTRAINT name PRIMARY KEY -> CONSTRAINT name not removed yet
 									$preg_column_to_change = "(\s*".$this->sqlite_surroundings_preg($column).")". // column ($3)
 										"(?:".		// opt. type and column constraints
 											"(\s+(?:".$this->sqlite_surroundings_preg("(?:[^P,'\"`\[]|P(?!RIMARY\s+KEY))",false,",'\"`\[").")*)". // column constraints before PRIMARY KEY ($3)
-											"PRIMARY\s+KEY". // primary key constraint
+											"PRIMARY\s+KEY(?:\s+(?:ASC|DESC))?(?:\s+ON\s+CONFLICT\s+(?:ROLLBACK|ABORT|FAIL|IGNORE|REPLACE))?(?:\s+AUTOINCREMENT)?". // primary key constraint
 											"((?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")*)". // column constraints after PRIMARY KEY ($4)
 										")";
 													// replace this part (we want to change this column)
 													// group $3 (column) $4  (constraints before) and $5 (constraints after) contain the part to keep
-									$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/s";
+									$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/si";
 		
 									// replace the column definiton in the CREATE TABLE statement
 									$newSQL = preg_replace($preg_pattern_change, '$1$2,$3$4$5$6)', $createtesttableSQL);
@@ -730,10 +731,13 @@ class Database
 									else
 									{
 										if($debug) echo "NO LUCK";
+										// TODO: try removing table constraint
 										return false;
 									}
 									$createtesttableSQL = $newSQL;
-								} else return false;
+								} else
+									// TODO: Try removing table constraint
+									return false;
 								
 								break;
 							default:
