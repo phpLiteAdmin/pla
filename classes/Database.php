@@ -451,9 +451,12 @@ class Database
 				$row = $resultArr[$i];
 				if($row['type'] != 'table')
 				{
-					// store the CREATE statements of triggers and indexes to recreate them later
-					$recreateQueries[] = $row;
-					if($debug) echo "recreate=(".$row['sql'].";)<hr />";
+					if($row['sql']!='')
+					{
+						// store the CREATE statements of triggers and indexes to recreate them later
+						$recreateQueries[] = $row;
+						if($debug) echo "recreate=(".$row['sql'].";)<hr />";
+					}
 				}
 				else
 				{
@@ -472,11 +475,11 @@ class Database
 					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
-					$preg_alter_part = "/(?:DROP|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY)\s+" // the ALTER command
+					$preg_alter_part = "/(?:DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // the ALTER command
 						."(?:"
-							."\(".$this->sqlite_surroundings_preg("+",false,"\"'\[`)")."+\)"	// stuff in brackets (in case of ADD PRIMARY KEY)
+							."\s+\(".$this->sqlite_surroundings_preg("+",false,"\"'\[`)")."+\)"	// stuff in brackets (in case of ADD PRIMARY KEY)
 						."|"																	// or
-							.$this->sqlite_surroundings_preg("+",false,",'\"\[`")				// column names and stuff like this
+							."\s+".$this->sqlite_surroundings_preg("+",false,",'\"\[`")			// column names and stuff like this
 						.")*/i";
 					if($debug)
 						echo "preg_alter_part=(".$preg_alter_part.")<hr />";
@@ -487,10 +490,13 @@ class Database
 					$result_oldcols = $this->selectArray($get_oldcols_query);
 					$newcols = array();
 					$coltypes = array();
+					$primarykey = array();
 					foreach($result_oldcols as $column_info)
 					{
 						$newcols[$column_info['name']] = $column_info['name'];
 						$coltypes[$column_info['name']] = $column_info['type'];
+						if($column_info['pk'])
+							$primarykey[] = $column_info['name'];
 					}
 					$newcolumns = '';
 					$oldcolumns = '';
@@ -512,12 +518,13 @@ class Database
 					foreach($defs as $def)
 					{
 						if($debug) echo "def=$def<hr />";
-						$parse_def = preg_match("/^(DROP|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY)\s+"   // $matches[1]: command
+						$parse_def = preg_match(
+							"/^(DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // $matches[1]: command
 							."(?:"												// this is either
-								."(?:\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
+								."(?:\s+\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
 																				// then $matches[2] is what there is in brackets
 							."|"												// OR: 
-								."(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"	// (first) column name, either in single or double quotes
+								."(?:\s+\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"// (first) column name, either in single or double quotes
 																				// in case of RENAME TO, it is the new a table name
 																				// $matches[3] will be the column/table name without the quotes if double quoted
 																				// $matches[4] will be the column/table name without the quotes if single quoted
@@ -529,7 +536,8 @@ class Database
 									.".*".
 								")"
 								."?\s*$"
-							.")/i",$def,$matches);
+							.")?/i", // in case of DROP PRIMARY KEY, there is nothing after the command
+							$def,$matches);
 						if($parse_def===false)
 						{
 							$this->alterError = $errormsg . $lang['alter_parse_failed'];
@@ -547,6 +555,8 @@ class Database
 							$column = str_replace("''","'",$matches[4]);		// enclosed in ''
 						elseif($action == 'add primary key')
 							$column = $matches[2];	
+						elseif($action == 'drop primary key')
+							$column = '';	// DROP PRIMARY KEY has no column definition
 						else
 							$column = str_replace('""','"',$matches[3]);		// enclosed in ""
 
@@ -680,6 +690,51 @@ class Database
 								// we want to add a primary key for the column(s) stored in $column
 								$newSQL = preg_replace("/\)\s*$/", ", PRIMARY KEY (".$column.") )", $createtesttableSQL);
 								$createtesttableSQL = $newSQL;
+								break;
+							case 'drop primary key':
+								// we want to drop the primary key
+								if($debug) echo "DROP";
+								if(sizeof($primarykey)==1)
+								{
+									// if not compound primary key, might be a column constraint -> try removal
+									$column = $primarykey[0];
+									if($debug) echo "<br>Trying to drop column constraint for column $column <br>";
+									$preg_column_to_change = "(\s*".$this->sqlite_surroundings_preg($column).")". // column ($3)
+										"(?:".		// opt. type and column constraints
+											"(\s+(?:".$this->sqlite_surroundings_preg("(?:[^P,'\"`\[]|P(?!RIMARY\s+KEY))",false,",'\"`\[").")*)". // column constraints before PRIMARY KEY ($3)
+											"PRIMARY\s+KEY". // primary key constraint
+											"((?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")*)". // column constraints after PRIMARY KEY ($4)
+										")";
+													// replace this part (we want to change this column)
+													// group $3 (column) $4  (constraints before) and $5 (constraints after) contain the part to keep
+									$preg_pattern_change = "/^".$preg_create_table.$preg_columns_before.$preg_column_to_change.$preg_columns_after."\s*\\)\s*$/s";
+		
+									// replace the column definiton in the CREATE TABLE statement
+									$newSQL = preg_replace($preg_pattern_change, '$1$2,$3$4$5$6)', $createtesttableSQL);
+									// remove comma at the beginning if the first column is changed
+									// probably somebody is able to put this into the first regex (using lookahead probably).
+									$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
+									if($debug)
+									{
+										echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
+										echo $createtesttableSQL."<hr />";
+										echo $newSQL."<hr />";
+	
+										echo $preg_pattern_change."<hr />";
+									}
+									if($newSQL!=$createtesttableSQL && $newSQL!="") // pattern did match, so PRIMARY KEY constraint removed :)
+									{
+										$createtesttableSQL = $newSQL;
+										if($debug) echo "<br>SUCCEEDED<br>";
+									}
+									else
+									{
+										if($debug) echo "NO LUCK";
+										return false;
+									}
+									$createtesttableSQL = $newSQL;
+								} else return false;
+								
 								break;
 							default:
 								if($debug) echo 'ERROR: unknown alter operation!<hr />';
