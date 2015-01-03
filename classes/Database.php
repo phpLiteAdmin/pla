@@ -702,11 +702,22 @@ class Database
 									// if not compound primary key, might be a column constraint -> try removal
 									$column = $primarykey[0];
 									if($debug) echo "<br>Trying to drop column constraint for column $column <br>";
-									// TODO: CONSTRAINT name PRIMARY KEY -> CONSTRAINT name not removed yet
+									/*
+									TODO: This does not work yet:
+									CREATE TABLE 't12' ('t1' INTEGER CONSTRAINT "bla" NOT NULL CONSTRAINT 'pk' PRIMARY KEY ); ALTER TABLE "t12" DROP PRIMARY KEY
+									This does:                                  !   !
+									CREATE TABLE 't12' ('t1' INTEGER CONSTRAINT  bla  NOT NULL CONSTRAINT 'pk' PRIMARY KEY ); ALTER TABLE "t12" DROP PRIMARY KEY
+									*/
 									$preg_column_to_change = "(\s*".$this->sqlite_surroundings_preg($column).")". // column ($3)
 										"(?:".		// opt. type and column constraints
-											"(\s+(?:".$this->sqlite_surroundings_preg("(?:[^P,'\"`\[]|P(?!RIMARY\s+KEY))",false,",'\"`\[").")*)". // column constraints before PRIMARY KEY ($3)
-											"PRIMARY\s+KEY(?:\s+(?:ASC|DESC))?(?:\s+ON\s+CONFLICT\s+(?:ROLLBACK|ABORT|FAIL|IGNORE|REPLACE))?(?:\s+AUTOINCREMENT)?". // primary key constraint
+											"(\s+(?:".$this->sqlite_surroundings_preg("(?:[^PC,'\"`\[]|P(?!RIMARY\s+KEY)|".
+											"C(?!ONSTRAINT\s+".$this->sqlite_surroundings_preg("+",false," ,'\"\[`")."\s+PRIMARY\s+KEY))",false,",'\"`\[").")*)". // column constraints before PRIMARY KEY ($3)
+												// primary key constraint (remove this!):
+												"(?:CONSTRAINT\s+".$this->sqlite_surroundings_preg("+",false," ,'\"\[`")."\s+)?".
+												"PRIMARY\s+KEY".
+												"(?:\s+(?:ASC|DESC))?".
+												"(?:\s+ON\s+CONFLICT\s+(?:ROLLBACK|ABORT|FAIL|IGNORE|REPLACE))?".
+												"(?:\s+AUTOINCREMENT)?".
 											"((?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")*)". // column constraints after PRIMARY KEY ($4)
 										")";
 													// replace this part (we want to change this column)
