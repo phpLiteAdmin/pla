@@ -1764,8 +1764,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Search table (=table_search)
 		case "table_search":
-			$foundVal = array();
-			$fieldArr = array();
+			$searchValues = array();
 			if(isset($_GET['done']))
 			{
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
@@ -1789,17 +1788,22 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								$operator = "LIKE";
 								if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
 							}
-							$fieldArr[] = $field;
-							$foundVal[] = $value;
+							$searchValues[$field] = $value;
 							$arr[$j] = $db->quote_id($field)." ".$operator." ".$db->quote($value);
 						}
 						$j++;
 					}
 				}
 				$query = "SELECT *";
-				if(sizeof($primary_key==0))
-					$query.=', rowid';
-				$query.= " FROM ".$db->quote_id($target_table);
+				// select the primary key column(s) last (ROWID if there is no PK).
+				// this will be used to identify rows, e.g. when editing/deleting rows
+				$primary_key = $db->getPrimaryKey($target_table);
+				foreach($primary_key as $pk)
+				{
+					$query.= ', '.$db->quote_id($pk);
+					$query.= ', typeof('.$db->quote_id($pk).')';
+				}
+				$query .= " FROM ".$db->quote_id($target_table);
 				$whereTo = '';
 				if(sizeof($arr)>0)
 				{
@@ -1812,14 +1816,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$query .= $whereTo;
 				$query_disp = "SELECT * FROM " . $db->quote_id($target_table) . $whereTo;
 				$queryTimer = new MicroTimer();
-				$result = $db->selectArray($query,"assoc");
+				$arr = $db->selectArray($query);
 				$queryTimer->stop();
 
 				echo "<div class='confirm'>";
 				echo "<b>";
-				if($result!==false)
+				if($arr!==false)
 				{
-					$affected = sizeof($result);
+					$affected = sizeof($arr);
 					echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
 					printf($lang['query_time'], $queryTimer);
 					echo "</b><br/>";
@@ -1831,44 +1835,68 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<span style='font-size:11px;'>".htmlencode($query_disp)."</span>";
 				echo "</div><br/>";
 
-				if(sizeof($result)>0)
+				if(sizeof($arr)>0)
 				{
-					$headers = array_keys($result[0]);
+					if($target_table_type == 'view')
+					{
+						echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo "<br/><br/>";	
+					}
 
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					echo "<td>&nbsp;</td><td>&nbsp;</td>"; 
-					for($j=0; $j<sizeof($headers); $j++)
+					if($target_table_type == 'table')
 					{
-						if($headers[$j]=='rowid')
-							continue;
+						echo "<td colspan='2' class='tdheader' style='text-align:center'>";
+						#todo: make sure the search keywords are kept
+						#echo "<a href='?action=table_search&amp;done=1&amp;table=".$target_table."&amp;fulltexts=".($_SESSION[COOKIENAME.'fulltexts']?0:1)."' title='".$lang[($_SESSION[COOKIENAME.'fulltexts']?'no_full_texts':'full_texts')]."'>";
+						#echo "<b>&".($_SESSION[COOKIENAME.'fulltexts']?'r':'l')."arr;</b> T <b>&".($_SESSION[COOKIENAME.'fulltexts']?'l':'r')."arr;</b></a>";
+						echo "</td>";
+					}
+					
+					$header = array();
+					for($j=0; $j<sizeof($result); $j++)
+					{
+						$headers[$j]=$result[$j]['name'];
 						echo "<td class='tdheader'>";
 						echo htmlencode($headers[$j]);
 						echo "</td>";
 					}
 					echo "</tr>";
 					
-					for($j=0; $j<sizeof($result); $j++)
+					$pkFirstCol = sizeof($result)+1;
+					for($j=0; $j<sizeof($arr); $j++)
 					{
-						$pk = array();
-						foreach($primary_key as $col)
-							$pk[] = $result[$j][$col];
-						$pk = json_encode($pk);
-						$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
-						$cVal = 0;
-						echo "<tr>";
-						echo $tdWithClass."<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
-						echo $tdWithClass."<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
-						for($z=0; $z<sizeof($headers); $z++)
+						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
+						$pk_arr = array();
+						for($col = $pkFirstCol; array_key_exists($col, $arr[$j]); $col=$col+2)
 						{
-							if($headers[$z]=='rowid')
-								continue;
+							// in $col we have the type and in $col-1 the value
+							if($arr[$j][$col]=='integer' || $arr[$j][$col]=='real')
+								// json encode as int or float, not string
+								$pk_arr[] = $arr[$j][$col-1]+0;
+							else
+								// encode as json string
+								$pk_arr[] = $arr[$j][$col-1]; 
+						}
+						$pk = json_encode($pk_arr);
+						$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+						echo "<tr>";
+						if($target_table_type == 'table')
+						{
+							echo $tdWithClass."<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=edit' title='".$lang['edit']."' class='edit'><span>".$lang['edit']."</span></a></td>"; 
+							echo $tdWithClass."<a href='?table=".urlencode($target_table)."&amp;action=row_editordelete&amp;pk=".urlencode($pk)."&amp;type=delete' title='".$lang['del']."' class='delete'><span>".$lang['del']."</span></a></td>";
+						}
+						for($z=0; $z<sizeof($result); $z++)
+						{
 							echo $tdWithClass;
-							$fldResult = $result[$j][$headers[$z]];
-							if(!empty($foundVal) and in_array($headers[$z], $fieldArr)){
-								$foundVal = str_replace('%', '', $foundVal);
-								$fldResult = str_ireplace($foundVal[$cVal], '[fnd]'.$foundVal[$cVal].'[/fnd]', $fldResult);
-								$cVal++;
+							$fldResult = $arr[$j][$headers[$z]];
+							if(isset($searchValues[$headers[$z]]))
+							{
+								$foundVal = str_replace('%', '', $searchValues[$headers[$z]]);
+								$fldResult = str_ireplace($foundVal, '[fnd]'.$foundVal.'[/fnd]', $fldResult);
+								// we replace with [fnd] first because we need to htmlencode _afterwards_ without breaking the found-markers
+								// htmlencoing _before_ would mean we might highlight stuff inside of htmlcode thus breaking it
 							}
 							echo str_replace(array('[fnd]', '[/fnd]'), array('<u class="found">', '</u>'), htmlencode($fldResult));
 							echo "</td>";
@@ -2156,9 +2184,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							if($arr[$i][$col]=='integer' || $arr[$i][$col]=='real')
 								// json encode as int or float, not string
 								$pk_arr[] = $arr[$i][$col-1]+0;
-							elseif($arr[$i][$col]=='null')
-								// yes SQLite allows NULL in primary keys :(. encode as NULL
-								$pk_arr[] = NULL;
 							else
 								// encode as json string
 								$pk_arr[] = $arr[$i][$col-1]; 
