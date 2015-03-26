@@ -521,13 +521,13 @@ class Database
 					foreach($defs as $def)
 					{
 						if($debug) echo "def=$def<hr />";
-						$parse_def = preg_match(
+						$preg_parse_def =
 							"/^(DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // $matches[1]: command
 							."(?:"												// this is either
 								."(?:\s+\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
 																				// then $matches[2] is what there is in brackets
 							."|"												// OR: 
-								."(?:\s+\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')"// (first) column name, either in single or double quotes
+								."(?:\s+\"((?:[^\"]|\"\")+)\"|\s+'((?:[^']|'')+)')"// (first) column name, either in single or double quotes
 																				// in case of RENAME TO, it is the new a table name
 																				// $matches[3] will be the column/table name without the quotes if double quoted
 																				// $matches[4] will be the column/table name without the quotes if single quoted
@@ -539,8 +539,9 @@ class Database
 									.".*".
 								")"
 								."?\s*$"
-							.")?/i", // in case of DROP PRIMARY KEY, there is nothing after the command
-							$def,$matches);
+							.")?\s*$/i"; // in case of DROP PRIMARY KEY, there is nothing after the command
+						if($debug) echo "preg_parse_def=$preg_parse_def<hr />";
+						$parse_def = preg_match($preg_parse_def,$def,$matches);
 						if($parse_def===false)
 						{
 							$this->alterError = $errormsg . $lang['alter_parse_failed'];
@@ -554,14 +555,16 @@ class Database
 							return false;
 						}
 						$action = strtolower($matches[1]);
-						if($action == 'add' || $action == 'rename to')	
+						if(($action == 'add' || $action == 'rename to') && isset($matches[4]) && $matches[4]!='')	
 							$column = str_replace("''","'",$matches[4]);		// enclosed in ''
-						elseif($action == 'add primary key')
+						elseif($action == 'add primary key' && isset($matches[2]) && $matches[2]!='')
 							$column = $matches[2];	
 						elseif($action == 'drop primary key')
 							$column = '';	// DROP PRIMARY KEY has no column definition
-						else
+						elseif(isset($matches[3]) && $matches[3]!='')
 							$column = str_replace('""','"',$matches[3]);		// enclosed in ""
+						else
+							$column = '';
 
 						$column_escaped = str_replace("'","''",$column);
 
@@ -598,12 +601,12 @@ class Database
 						switch($action)
 						{
 							case 'add':
-								if(!isset($matches[5]))
+								if($column=='')
 								{
 									$this->alterError = $errormsg . ' (add) - '. $lang['alter_no_add_col'];
 									return false;
 								}
-								$new_col_definition = "'$column_escaped' ".$matches[5];
+								$new_col_definition = "'$column_escaped' ".(isset($matches[5])?$matches[5]:'');
 								$preg_pattern_add = "/^".$preg_create_table.   // the CREATE TABLE statement ($1)
 									"((?:(?!,\s*(?:PRIMARY\s+KEY\s*\(|CONSTRAINT\s|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()).)*)". // column definitions ($2)
 									"(.*)\\)\s*$/si"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
