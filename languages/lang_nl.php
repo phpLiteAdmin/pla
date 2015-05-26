@@ -1,4 +1,5 @@
 <?php
+// phpliteAdmin_lang_nl_1-9-6-dev
 // Dutch (Flemish) language-texts By Leo Van Nieuwenhuyse.
 $lang = array(
 	"direction" => "LTR",
@@ -64,6 +65,7 @@ $lang = array(
 	"sqlite_limit" => "Door de beperkingen van SQLite, kan enkel de veldnaam en het gegevenstype gewijzigd worden",
 	
 	"php_v" => "PHP versie",
+	"new_version" => "Er bestaat een nieuwe versie!",	
 	
 	"db_dump" => "databank dump",
 	"db_f" => "databank bestand",
@@ -95,6 +97,8 @@ $lang = array(
 	"bad_php_directive" => "Het blijkt dat de PHP-richtlijn, 'register_globals' ingeschakeld is. Dit is ten zeerste af te raden. U dient ze uit te schakelen voordat u verder gaat.",
 	"page_gen" => "De pagina werd gegenereerd in %s seconden.",
 	"powered" => "Aangedreven door",
+	"free_software" => "Dit is vrije software.",
+	"please_donate" => "Graag uw gift.",	
 	"remember" => "Onthoud me op deze computer",
 	"no_db" => "Welkom bij% s. Het blijkt dat u de keuze maakte een map te doorzoeken om databanken te kunnen beheren. Echter, %s kon geen geldige SQLite-databanken vinden. U kunt het formulier hieronder gebruiken om uw eerste databank aan te maken.",
 	"no_db2" => "De map die u opgaf bevat geen bestaande te beheren databanken, en er kan niet in deze map geschreven worden. Dit betekent dat u geen nieuwe databanken met behulp van% s kunt maken. Maak ofwel de map beschrijfbaar, of plaats manueel databanken in de map.",
@@ -156,6 +160,10 @@ $lang = array(
 	"query_time" => "(Query duurde %s sec)",
 	"syntax_err" => "Er is een probleem met de syntax van uw query (Query werd niet uitgevoerd)",
 	"run_sql" => "Voer SQL query/queries uit op databank '%s'",
+	
+	"recent_queries" => "Recente Queries",
+	"full_texts" => "Toon volledige teksten",
+	"no_full_texts" => "Verkort lange teksten",
 	
 	"ques_empty" => "Bent u zeker dat u de tabel '%s' wenst leeg te maken?",
 	"ques_drop" => "Bent u zeker dat u de tabel '%s' wenst te verwijderen?",
