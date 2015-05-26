@@ -1,6 +1,7 @@
 <?php
 // English language-texts.
 # REMOVE_FROM_BUILD
+// Version 1.9.6-dev
 // This file is only meant as a basis for you to do your own translation!
 # END REMOVE_FROM_BUILD
 // Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
