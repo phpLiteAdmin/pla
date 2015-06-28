@@ -111,6 +111,7 @@ See https://bitbucket.org/phpliteadmin/public/wiki/Configuration for details.
 The code repository is available both on bitbucket and github:
 
 Github: https://github.com/phpLiteAdmin/pla
+
 Bitbucket: https://bitbucket.org/phpliteadmin/public/src
 
 You are welcome to fork the project and send us pull requests on any of these
