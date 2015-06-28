@@ -9,10 +9,13 @@
 
 ## Download
 
-The files in the source repositories are for development. You can find
-the latest stable single-file version here:
+The files in the source repositories are for development.
 
+You can find the latest stable single-file version here:
 https://code.google.com/p/phpliteadmin/wiki/DownloadLinks?tm=2
+
+The latest single-file version of the development version can be found here:
+https://phpliteadmin.christosoft.de/phpliteadmin.zip
 
 
 ## Installation
