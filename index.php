@@ -36,10 +36,11 @@ define("VERSION", "1.9.6-dev");
 define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
-define('PROJECT_URL','http://phpliteadmin.googlecode.com');
+define('PROJECT_URL','https://bitbucket.org/phpliteadmin/public');
 define('DONATE_URL','http://phpliteadmin.christosoft.de/donate.php');
 define('VERSION_CHECK_URL','https://phpliteadmin.christosoft.de/current_version.php');
-define('PROJECT_BUGTRACKER_LINK','<a href="http://code.google.com/p/phpliteadmin/issues/list" target="_blank">http://code.google.com/p/phpliteadmin/issues/list</a>');
+define('PROJECT_BUGTRACKER_LINK','<a href="https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open" target="_blank">https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open</a>');
+define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/public/wiki/Installation" target="_blank">https://bitbucket.org/phpliteadmin/public/wiki/Installation</a>');
 
 // Resource output (css and javascript files)
 // we get out of the main code as soon as possible, without inizializing the session

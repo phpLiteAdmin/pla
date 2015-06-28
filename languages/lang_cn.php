@@ -1,6 +1,6 @@
 <?php
 // Chinese language-texts for phpLiteAdmin
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'Y/m/d H:i:s',  // see http://php.net/manual/en/function.date.php for what the letters stand for

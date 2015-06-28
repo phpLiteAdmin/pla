@@ -4,7 +4,7 @@
 // (http://www.linkedin.com/profile/view?id=73367896) 
 // (http://www.facebook.com/franco.tassi) 
 // Rev.0 - 25.3.2013 
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'G:i \d\e\l j M, Y \A\.\D\. (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for

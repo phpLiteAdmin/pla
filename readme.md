@@ -52,7 +52,7 @@ and enabled by default so no custom action is necessary.
 The files in the source repositories are for development.
 
 You can find the latest stable single-file version here:
-https://code.google.com/p/phpliteadmin/wiki/DownloadLinks?tm=2
+https://bitbucket.org/phpliteadmin/public/wiki/DownloadLinks
 
 The latest single-file version of the development version can be found here:
 https://phpliteadmin.christosoft.de/phpliteadmin.zip
@@ -60,7 +60,7 @@ https://phpliteadmin.christosoft.de/phpliteadmin.zip
 
 ## Installation
 
-See https://code.google.com/p/phpliteadmin/wiki/Installation
+See https://bitbucket.org/phpliteadmin/public/wiki/Installation
 
 
 ## Configuration
@@ -72,7 +72,7 @@ you want to do this:
 -   do not change the settings in `phpliteadmin.php` but in
     `phpliteadmin.config.php`
 
-See https://code.google.com/p/phpliteadmin/wiki/Configuration for details.
+See https://bitbucket.org/phpliteadmin/public/wiki/Configuration for details.
 
 1.   Open `phpliteadmin.config.php` (or `phpliteadmin.php` before 1.9.4) in
      a text editor.
@@ -122,12 +122,12 @@ See https://code.google.com/p/phpliteadmin/wiki/Configuration for details.
 ## Getting help
 
 The project's wiki provides information on how to do certain things and is
-located at http://code.google.com/p/phpliteadmin/w/ . In addition, the
-project's discussion group is located at
+located at https://bitbucket.org/phpliteadmin/public/wiki/Home .
+In addition, the project's discussion group is located at
 http://groups.google.com/group/phpliteadmin .
 
 
 ## Reporting errors and bugs
 
 If you find any issues while using the tool, please report them at
-http://code.google.com/p/phpliteadmin/issues/ .
+https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open .

@@ -1,6 +1,6 @@
 <?php
 // Arabic language file by Ayman Teryaki (teryaki1963)
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "RTL",
 	"date_format" => '\a\m d.m.Y \u\m H:i:s (T)',

@@ -133,7 +133,7 @@ class Database
 			else
 				echo $lang['report_issue'].' '.PROJECT_BUGTRACKER_LINK.'.';
 		}
-		echo "<br />See <a href='https://code.google.com/p/phpliteadmin/wiki/Installation'>https://code.google.com/p/phpliteadmin/wiki/Installation</a> for help.";
+		echo "<br />See ".PROJECT_INSTALL_LINK." for help.";
 		echo "</div><br/>";
 	}
 

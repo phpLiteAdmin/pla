@@ -7,7 +7,7 @@
 //    You can set only your custom settings in phpliteadmin.config.php. All other settings will be set to defaults.
 // 2. Change parameters directly in main phpliteadmin.php file
 //
-// Please see http://code.google.com/p/phpliteadmin/wiki/Configuration for more details
+// Please see https://bitbucket.org/phpliteadmin/public/wiki/Configuration for more details
 
 //password to gain access
 $password = 'admin';
@@ -38,7 +38,7 @@ $databases = array(
 $theme = 'phpliteadmin.css';
 
 // the default language! If you want to change it, save the language file in same folder of phpliteadmin or in folder "languages"
-// More about localizations (downloads, how to translate etc.): http://code.google.com/p/phpliteadmin/wiki/Localization
+// More about localizations (downloads, how to translate etc.): https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $language = 'en';
 
 // set default number of rows. You need to relog after changing the number

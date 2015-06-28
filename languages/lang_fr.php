@@ -1,6 +1,6 @@
 <?php
 // French language-texts by Olivier Briat (nospam@briat.org)
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => '\à G\hi \l\e d/m/Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for

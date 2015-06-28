@@ -1,6 +1,6 @@
 <?php
 // Czech translation by Jan Turoň
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'G:i \d\n\e j. n. Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for

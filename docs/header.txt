@@ -1,5 +1,5 @@
 
-Project: phpLiteAdmin (http://phpliteadmin.googlecode.com)
+Project: phpLiteAdmin (https://bitbucket.org/phpliteadmin/public)
 Version: 1.9.6-dev
 Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
 Last updated: ###build_date###
@@ -30,4 +30,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ////////////////////////////////////////////////////////////////////////
 
 Please report any bugs you may encounter to our issue tracker here:
-	http://code.google.com/p/phpliteadmin/issues/
+	https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open
