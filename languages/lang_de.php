@@ -1,6 +1,7 @@
 <?php
 // German language file by Christopher Kramer (crazy4chrissi)
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
+// Version 1.9.6-dev
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => '\a\m d.m.Y \u\m H:i:s (T)',
@@ -65,6 +66,7 @@ $lang = array(
 	"sqlite_limit" => "Auf Grund von Einschränkungen von SQLite kann nur der Feldname und Datentyp verändert werden.",
 	
 	"php_v" => "PHP Version",
+	"new_version" => "Es gibte eine neue Version!",
 	
 	"db_dump" => "Datenbank Dump",
 	"db_f" => "Datenbank Datei",
@@ -159,6 +161,10 @@ $lang = array(
 	"query_time" => "(Abfrage benötigte %s Sekunden)",
 	"syntax_err" => "Es gibt ein Problem mit dem Syntax Ihrer Abfrage (Abfrage nicht ausgeführt)",
 	"run_sql" => "Führe SQL Abfragen auf der Datenbank '%s' aus",
+	"recent_queries" => "Kürzliche Abfragen",
+	"full_texts" => "Zeige lange Texte komplett",
+	"no_full_texts" => "Kürze lange Texte",
+
 	
 	"ques_empty" => "Sind Sie sicher, dass Sie die Tabelle '%s' leeren möchten?",        
 	"ques_drop" => "Sind Sie sicher, dass Sie die Tabelle '%s' löschen möchten?",
