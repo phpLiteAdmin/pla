@@ -1,7 +1,7 @@
 <?php
 // German language file by Christopher Kramer (crazy4chrissi)
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
-// Version 1.9.6-dev
+// Version 1.9.6
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => '\a\m d.m.Y \u\m H:i:s (T)',

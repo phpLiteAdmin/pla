@@ -1,6 +1,7 @@
 <?php
-// phpliteAdmin_lang_nl_1-9-6-dev
 // Dutch (Flemish) language-texts By Leo Van Nieuwenhuyse.
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
+// Version 1.9.6
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'j/n/Y \o\m G\ui (e)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
