@@ -67,10 +67,13 @@ $pageTimer = new MicroTimer();
 
 // load language file
 if($language != 'en') {
+ 	$temp_lang=$lang;
 	if(is_file('languages/lang_'.$language.'.php'))
 		include('languages/lang_'.$language.'.php');
 	elseif(is_file('lang_'.$language.'.php'))
 		include('lang_'.$language.'.php');
+	$lang = array_merge($temp_lang, $lang);
+	unset($temp_lang);
 }
 // version-number added so after updating, old session-data is not used anylonger
 // cookies names cannot contain symbols, except underscores
