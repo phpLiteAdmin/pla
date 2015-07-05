@@ -857,20 +857,12 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$all_default = true;
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						// PHP replaces space with underscore
-						$fields[$j] = str_replace(" ","_",$fields[$j]);
+						if($result[$j]['name']!=$fields[$j])
+							die($lang['err'].' - schema missmatch');
 						
-						$null = isset($_POST[$i.":".$fields[$j]."_null"]);
+						$null = isset($_POST[$i.":".$j."_null"]);
 						if(!$null)
-						{
-							if(!isset($_POST[$i.":".$fields[$j]]) && $debug)
-							{
-								echo "MISSING POST INDEX (".$i.":".$fields[$j].")<br><pre />";
-								var_dump($_POST);
-								echo "</pre><hr />";
-							} 
-							$value = $_POST[$i.":".$fields[$j]];
-						}
+							$value = $_POST[$i.":".$j];
 						else
 							$value = "";
 						if($value===$result[$j]['dflt_value'])
@@ -883,7 +875,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 						
 						$type = $result[$j]['type'];
 						$typeAffinity = get_type_affinity($type);
-						$function = $_POST["function_".$i."_".$fields[$j]];
+						$function = $_POST["function_".$i."_".$j];
 						if($function!="")
 							$query_vals .= $function."(";
 						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
@@ -959,13 +951,12 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$all_default = true;
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						// PHP replaces space with underscore
-						$fields[$j] = str_replace(" ","_",$fields[$j]);
-						
-						$null = isset($_POST[$fields[$j]."_null"][$i]);
+						if($result[$j]['name']!=$fields[$j])
+							die($lang['err'].' - schema missmatch');
+						$null = isset($_POST[$j."_null"][$i]);
 						if(!$null)
 						{
-							$value = $_POST[$fields[$j]][$i];
+							$value = $_POST[$j][$i];
 						}
 						else
 							$value = "";
@@ -979,7 +970,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 						
 						$type = $result[$j]['type'];
 						$typeAffinity = get_type_affinity($type);
-						$function = $_POST["function_".$fields[$j]][$i];
+						$function = $_POST["function_".$j][$i];
 						if($function!="")
 							$query_vals .= $function."(";
 						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
@@ -1014,16 +1005,15 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$query = "UPDATE ".$db->quote_id($target_table)." SET ";
 					for($j=0; $j<sizeof($fields); $j++)
 					{
-						$field_index = str_replace(" ","_",$fields[$j]);
-						$function = $_POST["function_".$field_index][$i];
-						$null = isset($_POST[$field_index."_null"][$i]);
+						$function = $_POST["function_".$j][$i];
+						$null = isset($_POST[$j."_null"][$i]);
 						$query .= $db->quote_id($fields[$j])."=";
 						if($function!="")
 							$query .= $function."(";
 						if($null)
 							$query .= "NULL";
 						else
-							$query .= $db->quote($_POST[$field_index][$i]);
+							$query .= $db->quote($_POST[$j][$i]);
 						if($function!="")
 							$query .= ")";
 						$query .= ", ";
@@ -2452,7 +2442,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				for($i=0; $i<sizeof($result); $i++)
 				{
 					$field = $result[$i]['name'];
-					$field_html = htmlencode($field);
 					if($j==0)
 						$fieldStr .= ":".$field;
 					$type = strtolower($result[$i]['type']);
@@ -2461,13 +2450,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					echo "<tr>";
 					echo $tdWithClassLeft;
-					echo $field_html;
+					echo htmlencode($field);
 					echo "</td>";
 					echo $tdWithClassLeft;
 					echo htmlencode($type);
 					echo "</td>";
 					echo $tdWithClassLeft;
-					echo "<select name='function_".$j."_".$field_html."' onchange='notNull(\"row_".$j."_field_".$i."_null\");'>";
+					echo "<select name='function_".$j."_".$i."' onchange='notNull(\"row_".$j."_field_".$i."_null\");'>";
 					echo "<option value=''>&nbsp;</option>";
 					foreach (array_merge($sqlite_functions, $custom_functions) as $f) {
 						echo "<option value='".htmlencode($f)."'>".htmlencode($f)."</option>";
@@ -2479,9 +2468,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if($result[$i]['notnull']==0)
 					{
 						if($result[$i]['dflt_value']==="NULL")
-							echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' checked='checked' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
+							echo "<input type='checkbox' name='".$j.":".$i."_null' id='row_".$j."_field_".$i."_null' checked='checked' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 						else
-							echo "<input type='checkbox' name='".$j.":".$field_html."_null' id='row_".$j."_field_".$i."_null' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
+							echo "<input type='checkbox' name='".$j.":".$i."_null' id='row_".$j."_field_".$i."_null' onclick='disableText(this, \"row_".$j."_field_".$i."_value\");'/>";
 					}
 					echo "</td>";
 					echo $tdWithClassLeft;
@@ -2491,9 +2480,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$dflt_value = htmlencode(deQuoteSQL($result[$i]['dflt_value']));
 					
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
-						echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' value='".$dflt_value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+						echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' value='".$dflt_value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 					else
-						echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$field_html."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$dflt_value."</textarea>";
+						echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$dflt_value."</textarea>";
 				echo "</td>";
 				echo "</tr>";
 				}
@@ -2575,7 +2564,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo htmlencode($type);
 							echo "</td>";
 							echo $tdWithClassLeft;
-							echo "<select name='function_".htmlencode($field)."[]' onchange='notNull(\"".htmlencode($pks[$j]).":".htmlencode($field)."_null\");'>";
+							echo "<select name='function_".$i."[]' onchange='notNull(\"".$j.":".$i."_null\");'>";
 							echo "<option value=''></option>";
 							foreach (array_merge($sqlite_functions, $custom_functions) as $f) {
 								echo "<option value='".htmlencode($f)."'>".htmlencode($f)."</option>";
@@ -2586,16 +2575,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							if($result[$i][3]==0)
 							{
 								if($value===NULL)
-									echo "<input type='checkbox' name='".htmlencode($field)."_null[]' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null' checked='checked'/>";
+									echo "<input type='checkbox' name='".$i."_null[]' id='".$j.":".$i."_null' checked='checked'/>";
 								else
-									echo "<input type='checkbox' name='".htmlencode($field)."_null[]' id='".htmlencode($pks[$j]).":".htmlencode($field)."_null'/>";
+									echo "<input type='checkbox' name='".$i."_null[]' id='".$j.":".$i."_null'/>";
 							}
 							echo "</td>";
 							echo $tdWithClassLeft;
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
-								echo "<input type='text' name='".htmlencode($field)."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")' />";
+								echo "<input type='text' name='".$i."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"".$j.":".$i."_null\")' />";
 							else
-								echo "<textarea name='".htmlencode($field)."[]' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".htmlencode($pks[$j]).":".htmlencode($field)."_null\")'>".htmlencode($value)."</textarea>";
+								echo "<textarea name='".$i."[]' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"".$j.":".$i."_null\")'>".htmlencode($value)."</textarea>";
 							echo "</td>";
 							echo "</tr>";
 						}
