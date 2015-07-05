@@ -9,6 +9,10 @@ that is dropped into a directory on a server and then visited in a browser.
 There is no installation required. The available operations, feature set,
 interface, and user experience is comparable to that of phpMyAdmin.
 
+## News
+
+**05.07.2015: Just released phpLiteAdmin 1.9.6! [Download now](https://bitbucket.org/phpliteadmin/public/downloads/phpLiteAdmin_v1-9-6.zip)**
+
 ## Features
 
 -   Lightweight - consists of a single 200KB source file for portability
