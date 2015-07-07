@@ -82,7 +82,7 @@ $lang = array(
 	"db_create" => "Erzeuge neue Datenbank",
 	"db_vac" => "Die Datenbank '%s' wurde geVACUUMt.",
 	"db_not_writeable" => "Die Datenbank '%s' existiert nicht und kann nicht erzeugt werden, da der Ordner '%s' nicht beschreibbar ist. Die Anwendung kann nicht benutzt werden bevor Sie den Ordner beschreibbar machen.",
-	"db_setup" => "Es gab ein Problem Ihre Datenbank %s anzulegen. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
+	"db_setup" => "Es gab ein Problem beim Öffnen Ihrer Datenbank %s. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
 	"db_exists" => "Eine Datenbank, eine andere Datei oder ein Verzeichnis mit Namen '%s' existiert bereits.",
 	
 	"exported" => "Exportiert",
