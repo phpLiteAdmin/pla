@@ -377,10 +377,18 @@ if ($auth->isAuthorized())
 		for($i=0; $i<sizeof($databases); $i++)
 		{
 			if(!file_exists($databases[$i]['path']))
-				continue; //skip if file not found ! - probably a warning can be displayed - later
-			$databases[$i]['writable'] = is_writable($databases[$i]['path']);
-			$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
-			$databases[$i]['readable'] = is_readable($databases[$i]['path']);
+			{
+				// the file does not exist and will be created when clicked, if permissions allow to
+				$databases[$i]['writable'] = is_writable(dirname($databases[$i]['path']));
+				$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
+				$databases[$i]['readable'] = is_writable(dirname($databases[$i]['path']));
+			}
+			else 
+			{
+				$databases[$i]['writable'] = is_writable($databases[$i]['path']);
+				$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
+				$databases[$i]['readable'] = is_readable($databases[$i]['path']);
+			}
 		}
 		sort($databases);
 	}
