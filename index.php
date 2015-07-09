@@ -2698,7 +2698,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<span style='font-size:11px;'>".htmlencode($master[0]['sql'])."</span>";
 			echo "</div>";
 			echo "<br/>";
-			if($target_table_type == 'view')
+			if($target_table_type != 'view')
 			{
 				echo "<br/><hr/><br/>";
 				//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$target_table."'";
