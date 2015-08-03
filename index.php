@@ -1070,10 +1070,16 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					}
 					if($db->getVersion()==3 &&
 						($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL')
-						// Sqlite3 cannot add columns with default values that are not constant, so use AlterTable-workaround
-						&& !isset($_POST[$i.'_primarykey'])) // sqlite3 cannot add primary key columns
+						// Sqlite3 cannot add columns with default values that are not constant
+						&& !isset($_POST[$i.'_primarykey'])
+						// sqlite3 cannot add primary key columns
+						&& (!isset($_POST[$i.'_notnull']) || $_POST[$i.'_defaultoption']!='none')
+						// SQLite3 cannot add NOT NULL columns without DEFAULT even if the table is empty
+						)
+						// use SQLITE3 ALTER TABLE ADD COLUMN 
 						$result = $db->query($query, true);
 					else
+						// use ALTER TABLE workaround
 						$result = $db->query($query, false);
 					if($result===false)
 						$error = true;
