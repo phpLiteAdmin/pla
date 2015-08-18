@@ -40,7 +40,7 @@ interface, and user experience is comparable to that of phpMyAdmin.
 ## Demo
 
 A live demo of phpLiteAdmin can be found here:
-http://demo.phpliteadmin.christosoft.de/
+http://demo.phpliteadmin.org/
 
 ## Requirements
 
