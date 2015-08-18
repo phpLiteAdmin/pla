@@ -1754,18 +1754,33 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$field_index = str_replace(" ","_",$field);
 					$operator = $_POST[$field_index.":operator"];
 					$value = $_POST[$field_index];
-					if($value!="" || $operator=="!= ''" || $operator=="= ''")
+					if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
 					{
-						if($operator=="= ''" || $operator=="!= ''")
+						if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
 							$arr[$j] = $db->quote_id($field)." ".$operator;
-						
 						else{
 							if($operator == "LIKE%"){ 
 								$operator = "LIKE";
 								if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
+								$searchValues[$field] = array($value);
+								$value_quoted = $db->quote($value);
 							}
-							$searchValues[$field] = $value;
-							$arr[$j] = $db->quote_id($field)." ".$operator." ".$db->quote($value);
+							elseif($operator == 'IN' || $operator == 'NOT IN')
+							{
+								$value = trim($value, '() ');
+								$values = explode(',',$value);
+								$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
+								if($operator == 'IN')
+									$searchValues[$field] = $values;
+								$values = array_map([$db, 'quote'], $values);
+								$value_quoted = '(' .implode(', ', $values) . ')';
+							}
+							else
+							{
+								$searchValues[$field] = array($value);
+								$value_quoted = $db->quote($value);
+							}
+							$arr[$j] = $db->quote_id($field)." ".$operator." ".$value_quoted;
 						}
 						$j++;
 					}
@@ -1867,12 +1882,15 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						{
 							echo $tdWithClass;
 							$fldResult = $arr[$j][$headers[$z]];
-							if(isset($searchValues[$headers[$z]]))
+							if(isset($searchValues[$headers[$z]]) && is_array($searchValues[$headers[$z]]))
 							{
-								$foundVal = str_replace('%', '', $searchValues[$headers[$z]]);
-								$fldResult = str_ireplace($foundVal, '[fnd]'.$foundVal.'[/fnd]', $fldResult);
-								// we replace with [fnd] first because we need to htmlencode _afterwards_ without breaking the found-markers
-								// htmlencoing _before_ would mean we might highlight stuff inside of htmlcode thus breaking it
+								foreach($searchValues[$headers[$z]] as $searchValue)
+								{
+									$foundVal = str_replace('%', '', $searchValue);
+									$fldResult = str_ireplace($foundVal, '[fnd]'.$foundVal.'[/fnd]', $fldResult);
+									// we replace with [fnd] first because we need to htmlencode _afterwards_ without breaking the found-markers
+									// htmlencoing _before_ would mean we might highlight stuff inside of htmlcode thus breaking it
+								}
 							}
 							echo str_replace(array('[fnd]', '[/fnd]'), array('<u class="found">', '</u>'), htmlencode($fldResult));
 							echo "</td>";
@@ -1935,6 +1953,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						echo "<option value='LIKE'>LIKE</option>";
 					echo "<option value='LIKE%'>LIKE %...%</option>";
 					echo "<option value='NOT LIKE'>NOT LIKE</option>";
+					echo "<option value='IN'>IN (..., ...)</option>";
+					echo "<option value='NOT IN'>NOT IN (..., ...)</option>";
+					echo "<option value='IS NULL'>IS NULL</option>";
+					echo "<option value='IS NOT NULL'>IS NOT NULL</option>";
 					echo "</select>";
 					echo "</td>";
 					echo $tdWithClassLeft;
