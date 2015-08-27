@@ -1,5 +1,8 @@
 # phpLiteAdmin
 
+Website: http://www.phpliteadmin.org/
+Bitbucket: https://bitbucket.org/phpliteadmin/public/
+
 ## What is phpLiteAdmin?
 
 phpLiteAdmin is a web-based SQLite database admin tool written in PHP with
