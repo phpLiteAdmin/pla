@@ -1,6 +1,7 @@
 # phpLiteAdmin
 
 Website: http://www.phpliteadmin.org/
+
 Bitbucket: https://bitbucket.org/phpliteadmin/public/
 
 ## What is phpLiteAdmin?
@@ -56,14 +57,10 @@ and enabled by default so no custom action is necessary.
 
 ## Download
 
-The files in the source repositories are for development.
+The files in the source repositories are meant for development, not for use in production.
 
-You can find the latest stable single-file version here:
-https://bitbucket.org/phpliteadmin/public/wiki/DownloadLinks
-
-The latest single-file version of the development version can be found here:
-https://phpliteadmin.christosoft.de/phpliteadmin.zip
-
+You can find the latest downloads here:
+http://www.phpliteadmin.org/download/
 
 ## Installation
 
