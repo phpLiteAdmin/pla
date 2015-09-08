@@ -56,6 +56,7 @@ class Database
 					$this->showError();
 					exit();
 			}
+			$this->query("PRAGMA foreign_keys = ON");
 		}
 		catch(Exception $e)
 		{
