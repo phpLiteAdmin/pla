@@ -75,6 +75,12 @@ input, select, textarea {
 /* just input buttons */
 input.btn { cursor:pointer; }
 input.btn:hover { background-color:#ccc; }
+/* form label */
+label {
+	min-width: 200px;
+	display: block;
+	float: left;
+}
 /* general styles for hyperlink */
 fieldset {
 	padding:15px;

@@ -567,7 +567,7 @@ if(isset($_GET['help']))
 	(
 		$lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT), $lang['help2'] => $lang['help2_x'], $lang['help3'] => $lang['help3_x'], 
 		$lang['help4'] => $lang['help4_x'], $lang['help5'] => $lang['help5_x'], $lang['help6'] => $lang['help6_x'],
-		$lang['help7'] => $lang['help7_x'], $lang['help8'] => $lang['help8_x'], $lang['help9'] => $lang['help9_x']
+		$lang['help7'] => $lang['help7_x'], $lang['help8'] => $lang['help8_x'], $lang['help9'] => $lang['help9_x'], $lang['help10'] => $lang['help10_x']
 	);
 	?>
 	</head>
@@ -1195,6 +1195,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 						$str .= ", ".$db->quote_id($_POST[$i.'_field']).$_POST[$i.'_order'];
 				}
 				$str .= ")";
+				if(isset($_POST['where']) && $_POST['where']!='')
+					$str.=" WHERE ".$_POST['where']; 
 				$query = $str;
 				$result = $db->query($query);
 				if($result===false)
@@ -3116,12 +3118,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 				$result = $db->selectArray($query);
 				echo "<fieldset><legend>".$lang['define_index']."</legend>";
-				echo $lang['index_name'].": <input type='text' name='name'/><br/>";
-				echo $lang['dup_val'].": ";
-				echo "<select name='duplicate'>";
+				echo "<label for='index_name'>".$lang['index_name'].":</label> <input type='text' name='name' id='index_name'/><br/>";
+				echo "<label for='index_duplicate'>".$lang['dup_val'].":</label>";
+				echo "<select name='duplicate' id='index_duplicate'>";
 				echo "<option value='yes'>".$lang['allow']."</option>";
 				echo "<option value='no'>".$lang['not_allow']."</option>";
 				echo "</select><br/>";
+				if(version_compare($db->getSQLiteVersion(),'3.8.0')>=0)
+					echo "<label for='index_where'>WHERE:</label> <input type='text' name='where' id='index_where'/> ".helpLink($lang['help10']);
 				echo "</fieldset>";
 				echo "<br/>";
 				echo "<fieldset><legend>".$lang['define_in_col']."</legend>";
