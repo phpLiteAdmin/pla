@@ -190,6 +190,13 @@ class Database
 	{
 		return $this->type;
 	}
+	
+	// get the version of the SQLite library
+	public function getSQLiteVersion()
+	{
+		$queryVersion = $this->select("SELECT sqlite_version() AS sqlite_version");
+		return $queryVersion['sqlite_version'];
+	}
 
 	//get the name of the database
 	public function getName()

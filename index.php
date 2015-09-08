@@ -3211,10 +3211,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	if($view=="structure")
 	{
 		//- Database structure, shows all the tables (=structure)
-		$query = "SELECT sqlite_version() AS sqlite_version";
-		$queryVersion = $db->select($query);
-		$realVersion = $queryVersion['sqlite_version'];
-		
+	
 		if(isset($dbexists))
 		{
 			echo "<div class='confirm' style='margin:10px 20px;'>";
@@ -3249,7 +3246,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
 		echo "<b>".$lang['db_size']."</b>: ".$db->getSize()." KB<br/>";
 		echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
-		echo "<b>".$lang['sqlite_v']."</b>: ".$realVersion."<br/>";
+		echo "<b>".$lang['sqlite_v']."</b>: ".$db->getSQLiteVersion()."<br/>";
 		echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 
 		echo "<b>".$lang['php_v']."</b>: ".phpversion()."<br/>";
 		echo "<b>".PROJECT." ".$lang["ver"]."</b>: ".VERSION;
