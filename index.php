@@ -38,7 +38,7 @@ define("FORCETYPE", false); //force the extension that will be used (set to fals
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define('PROJECT_URL','http://www.phpliteadmin.org/');
 define('DONATE_URL','http://www.phpliteadmin.org/donate/');
-define('VERSION_CHECK_URL','https://phpliteadmin.christosoft.de/current_version.php');
+define('VERSION_CHECK_URL','https://www.phpliteadmin.org/current_version.php');
 define('PROJECT_BUGTRACKER_LINK','<a href="https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open" target="_blank">https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open</a>');
 define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/public/wiki/Installation" target="_blank">https://bitbucket.org/phpliteadmin/public/wiki/Installation</a>');
 
