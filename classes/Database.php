@@ -426,6 +426,53 @@ class Database
 			return $result->fetchAll($mode);
 		}
 	}
+	
+	//returns an array of the next row in $result
+	public function fetch($result, $mode="both")
+	{
+		//make sure the result is valid
+		if($result=== false || $result===NULL) 
+			return NULL;		// error
+		if(!is_object($result)) // no rows returned
+			return array();
+		if($this->type=="PDO")
+		{
+			if($mode=="assoc")
+				$mode = PDO::FETCH_ASSOC;
+			else if($mode=="num")
+				$mode = PDO::FETCH_NUM;
+			else
+				$mode = PDO::FETCH_BOTH;
+			return $result->fetch($mode);
+		}
+		else if($this->type=="SQLite3")
+		{
+			if($mode=="assoc")
+				$mode = SQLITE3_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE3_NUM;
+			else
+				$mode = SQLITE3_BOTH;
+			$arr = array();
+			$i = 0;
+			while($res = $result->fetch($mode))
+			{
+				$arr[$i] = $res;
+				$i++;
+			}
+			return $arr;
+		}
+		else if($this->type=="SQLiteDatabase")
+		{
+			if($mode=="assoc")
+				$mode = SQLITE_ASSOC;
+			else if($mode=="num")
+				$mode = SQLITE_NUM;
+			else
+				$mode = SQLITE_BOTH;
+			return $result->fetch($mode);
+		}
+	}
 
 	
 	// SQlite supports multiple ways of surrounding names in quotes:
@@ -1081,6 +1128,7 @@ class Database
 	//export csv
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
+		@set_time_limit(-1);
 		$field_enclosed = $field_enclosed;
 		$query = "SELECT * FROM sqlite_master WHERE type='table' or type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
@@ -1111,12 +1159,18 @@ class Database
 					echo "\r\n";	
 				}
 				$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
-				$arr = $this->selectArray($query, "assoc");
-				for($z=0; $z<sizeof($arr); $z++)
+				$table_result = $this->query($query);
+				$firstRow=true;
+				while($row = $this->fetch($table_result, "assoc"))
 				{
+					if(!$firstRow)
+						echo "\r\n";
+					else
+						$firstRow=false;
+
 					for($y=0; $y<sizeof($cols); $y++)
 					{
-						$cell = $arr[$z][$cols[$y]];
+						$cell = $row[$cols[$y]];
 						if($crlf)
 						{
 							$cell = str_replace("\n","", $cell);
@@ -1133,8 +1187,6 @@ class Database
 						if($y < sizeof($cols)-1)
 							echo $field_terminate;
 					}
-					if($z<sizeof($arr)-1)
-						echo "\r\n";	
 				}
 				if($i<sizeof($result)-1)
 					echo "\r\n";
@@ -1146,6 +1198,7 @@ class Database
 	public function export_sql($tables, $drop, $structure, $data, $transaction, $comments)
 	{
 		global $lang;
+		@set_time_limit(-1);
 		if($comments)
 		{
 			echo "----\r\n";
@@ -1198,38 +1251,36 @@ class Database
 				if($data && $result[$i]['type']=="table")
 				{
 					$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
-					$arr = $this->selectArray($query, "assoc");
+					$table_result = $this->query($query, "assoc");
 
 					if($comments)
 					{
+						$numRows = $this->numRows($result[$i]['tbl_name']);
 						echo "\r\n----\r\n";
-						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], sizeof($arr))."\r\n";
+						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], $numRows)."\r\n";
 						echo "----\r\n";
 					}
 					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
 					$temp = $this->selectArray($query);
 					$cols = array();
 					$cols_quoted = array();
-					$vals = array();
 					for($z=0; $z<sizeof($temp); $z++)
 					{
 						$cols[$z] = $temp[$z][1];
 						$cols_quoted[$z] = $this->quote_id($temp[$z][1]);
 					}
-					for($z=0; $z<sizeof($arr); $z++)
+					while($row = $this->fetch($table_result))
 					{
+						$vals = array();
 						for($y=0; $y<sizeof($cols); $y++)
 						{
-							if(!isset($vals[$z]))
-								$vals[$z] = array();
-							if($arr[$z][$cols[$y]] === NULL)
-								$vals[$z][$cols[$y]] = 'NULL';
+							if($row[$cols[$y]] === NULL)
+								$vals[$cols[$y]] = 'NULL';
 							else
-								$vals[$z][$cols[$y]] = $this->quote($arr[$z][$cols[$y]]);
+								$vals[$cols[$y]] = $this->quote($row[$cols[$y]]);
 						}
+						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols_quoted).") VALUES (".implode(",", $vals).");\r\n";
 					}
-					for($j=0; $j<sizeof($vals); $j++)
-						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols_quoted).") VALUES (".implode(",", $vals[$j]).");\r\n";
 				}
 			}
 		}
