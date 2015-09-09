@@ -76,7 +76,7 @@ input, select, textarea {
 input.btn { cursor:pointer; }
 input.btn:hover { background-color:#ccc; }
 /* form label */
-label {
+fieldset label {
 	min-width: 200px;
 	display: block;
 	float: left;
