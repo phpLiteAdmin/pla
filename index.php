@@ -219,7 +219,7 @@ function deQuoteSQL($s)
 function subString($str)
 {
 	global $charsNum;
-	if($charsNum > 10 && !$_SESSION[COOKIENAME.'fulltexts'] && strlen($str)>$charsNum)
+	if($charsNum > 10 && (!isset($_SESSION[COOKIENAME.'fulltexts']) || !$_SESSION[COOKIENAME.'fulltexts']) && strlen($str)>$charsNum)
 	{
 		$str = substr($str, 0, $charsNum).'...';
 	}
