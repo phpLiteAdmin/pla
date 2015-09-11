@@ -2113,6 +2113,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			$query .= " FROM ".$db->quote_id($target_table);
 			$queryDisp = "SELECT * FROM ".$db->quote_id($target_table);
+			$queryCount = "SELECT MIN(COUNT(*),".$numRows.") AS count FROM ".$db->quote_id($target_table);
 			$queryAdd = "";
 			if(isset($_SESSION[COOKIENAME.'sortRows']))
 				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sortRows']);
@@ -2121,15 +2122,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$queryAdd .= " LIMIT ".$startRow.", ".$numRows;
 			$query .= $queryAdd;
 			$queryDisp .= $queryAdd;
-			$queryTimer = new MicroTimer();
-			$arr = $db->selectArray($query);
-			$queryTimer->stop();
+			
+			$resultRows = $db->select($queryCount)['count'];
 
 			//- Show results
-			if(sizeof($arr)>0)
+			if($resultRows>0)
 			{
+				$queryTimer = new MicroTimer();
+				$table_result = $db->query($query);
+				$queryTimer->stop();
+
+
 				echo "<br/><div class='confirm'>";
-				echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + sizeof($arr)-1).", ".$lang['total'].": ".$rowCount." ";
+				echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + $resultRows-1).", ".$lang['total'].": ".$rowCount." ";
 				printf($lang['query_time'], $queryTimer);
 				echo "</b><br/>";
 				echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
@@ -2174,19 +2179,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					}
 					echo "</tr>";
 
-					for($i=0; $i<sizeof($arr); $i++)
+					for($i=0; $row = $db->fetch($table_result); $i++)
 					{
 						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
 						$pk_arr = array();
-						for($col = $pkFirstCol; array_key_exists($col, $arr[$i]); $col=$col+2)
+						for($col = $pkFirstCol; array_key_exists($col, $row); $col=$col+2)
 						{
 							// in $col we have the type and in $col-1 the value
-							if($arr[$i][$col]=='integer' || $arr[$i][$col]=='real')
+							if($row[$col]=='integer' || $row[$col]=='real')
 								// json encode as int or float, not string
-								$pk_arr[] = $arr[$i][$col-1]+0;
+								$pk_arr[] = $row[$col-1]+0;
 							else
 								// encode as json string
-								$pk_arr[] = $arr[$i][$col-1]; 
+								$pk_arr[] = $row[$col-1]; 
 						}
 						$pk = json_encode($pk_arr);
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
@@ -2212,12 +2217,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo $tdWithClass;
 							else
 								echo $tdWithClassLeft;
-							if($arr[$i][$j]==="")
+							if($row[$j]==="")
 								echo "&nbsp;";
-							elseif($arr[$i][$j]===NULL)
+							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
 							else
-								echo htmlencode(subString($arr[$i][$j]));
+								echo htmlencode(subString($row[$j]));
 							echo "</td>";
 						}
 						echo "</tr>";
@@ -2307,19 +2312,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						data.addColumn('number', '<?php echo $result[$_SESSION[COOKIENAME.$target_table.'chartvalues']]['name']; ?>');
 						data.addRows([
 						<?php
-						for($i=0; $i<sizeof($arr); $i++)
+						for($i=0; $row = $db->fetch($table_result); $i++)
 						{
-							$label = str_replace("'", "", htmlencode($arr[$i][$_SESSION[COOKIENAME.$target_table.'chartlabels']]));
-							$value = htmlencode($arr[$i][$_SESSION[COOKIENAME.$target_table.'chartvalues']]);
+							$label = str_replace("'", "", htmlencode($row[$_SESSION[COOKIENAME.$target_table.'chartlabels']]));
+							$value = htmlencode($row[$_SESSION[COOKIENAME.$target_table.'chartvalues']]);
 							
 							if($value==NULL || $value=="")
 								$value = 0;
 								
 							echo "['".$label."', ".$value."]";
-							if($i<sizeof($arr)-1)
+							if($i<$resultRows-1)
 								echo ",";
 						}
-						$height = (sizeof($arr)+1) * 30;
+						$height = ($resultRows+1) * 30;
 						if($height>1000)
 							$height = 1000;
 						else if($height<300)
