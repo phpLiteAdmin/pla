@@ -1582,7 +1582,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo "<b>".$lang['recent_queries']."</b><ul>";
 				foreach($_SESSION['query_history'] as $key => $value)
-					echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent' href='#'>".htmlencode($value)."</a></li>";
+					echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
 				echo "</ul><br/><br/>";
 			}
 			echo "<div style='float:left; width:70%;'>";
@@ -3543,7 +3543,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "<b>".$lang['recent_queries']."</b><ul>";
 			foreach($_SESSION['query_history'] as $key => $value)
 			{
-				echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent;' href='#'>".htmlencode($value)."</a></li>";
+				echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
 			}
 			echo "</ul><br/><br/>";
 		}
