@@ -453,14 +453,7 @@ class Database
 				$mode = SQLITE3_NUM;
 			else
 				$mode = SQLITE3_BOTH;
-			$arr = array();
-			$i = 0;
-			while($res = $result->fetch($mode))
-			{
-				$arr[$i] = $res;
-				$i++;
-			}
-			return $arr;
+			return $result->fetchArray($mode);
 		}
 		else if($this->type=="SQLiteDatabase")
 		{
