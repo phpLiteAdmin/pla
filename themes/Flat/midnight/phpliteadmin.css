@@ -1,0 +1,373 @@
+/*
+phpLiteAdmin Modern Theme
+Created by Petar Koretic on 01/04/2013
+*/
+
+table td {
+   border:none !important;
+}
+
+.body_tbl .left_td {
+   padding:0px !important;
+}
+.body_tbl .right_td {
+   margin:0px !important;
+   padding:0px !important;
+   padding-left:1px !important;
+   padding-top:5px !important;
+}
+
+html,body
+{
+    font: 81.25% arial, helvetica, sans-serif;
+    margin:0px;
+    padding:0px;
+}
+b {
+   font-weight:normal !important;
+}
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-size: 1em;
+	color: #fff;
+
+
+background: #485563; /* fallback for old browsers */
+background: -webkit-linear-gradient(to left, #485563 , #29323c); /* Chrome 10-25, Safari 5.1-6 */
+background: linear-gradient(to left, #485563 , #29323c); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}
+/* general styles for hyperlink */
+a
+{
+	color: #ace9ff;
+	text-decoration: none;
+	cursor :pointer;
+	text-shadow:1px 1px 1px rgba(0, 0, 0, 0.7);
+	transition:all 0.3s;
+	-webkit-transition: all 0.3s;
+	-moz-transition: all 0.3s;
+}
+a:hover
+{
+	color: #fff;
+	text-shadow:1px 1px 1px rgba(0, 0, 0, 0.1);
+}
+/* horizontal rule */
+hr
+{
+  height:1px;
+	border: 0;
+	color: #d2d2d2;
+	background: #d2d2d2;
+	width: 100%;
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 1.85em;
+	text-align: center;
+	margin-bottom: 0px;
+
+
+}
+/* version text within the logo */
+h1 #version
+{
+	font-size: 0.65em;
+  color:#FFF;
+  text-shadow: 0 1px 1px #194B7E;
+
+
+}
+/* logo text within logo */
+h1 #logo
+{
+	color:#FFF;
+  text-shadow: 0 1px 1px #194B7E;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:1em;
+	margin-bottom:20px;
+}
+select
+{
+ background:rgba(0, 0, 0, 0.4);
+ border: none;
+ height:27px;
+ line-height:27px;
+ vertical-align:middle;
+ color:#ace9ff;
+ margin-top:2px;
+  margin-bottom:2px;
+  margin-right:3px;
+}
+
+[multiple]
+{
+ height:100%;
+}
+
+
+/* input buttons and areas for entering text */
+textarea
+{
+  background:rgba(0, 0, 0, 0.4);
+  padding:5px;
+  margin:0;
+  outline: none;
+  border: none;
+  color:#fff;
+
+}
+input[type=checkbox] {
+   position:relative;
+   top:2px;
+}
+input[type=text],
+input[type=password]
+{
+   color:#fff;
+  background:rgba(0, 0, 0, 0.4);
+  display: inline-block;
+  height: 25px;
+  line-height:25px;
+  margin: 0;
+  padding: 0 8px;
+  vertical-align:middle;
+  border: none;
+}
+/* just input buttons */
+input.btn
+{
+   background:rgba(0, 0, 0, 0.4) !important;
+  cursor:pointer;
+  vertical-align:middle;
+  display:inline-block;
+  margin: 0;
+  outline:none;
+  height:27px;
+  padding:0 10px;
+  color:#ace9ff;
+  text-shadow:1px 1px 1px rgba(0, 0, 0, 0.7);
+  border:none;
+  margin-top:2px;
+  margin-bottom:2px;
+  margin-right:3px;
+}
+input.btn:hover
+{
+  border-color:#D2D2D2;
+}
+
+/* general styles for hyperlink */
+fieldset,.confirm
+{
+	padding:15px;
+	background:none;
+  border: none;
+}
+fieldset {
+   margin:0px !important;
+}
+fieldset legend {
+   background:rgba(0, 0, 0, 0.2);
+   margin-left:-15px;
+   padding-left:15px;
+   padding-right:15px;
+   padding-top:3px;
+   padding-bottom:3px;
+   display:block;
+   width:100%;
+}
+/* outer div that holds everything */
+#container
+{
+	padding:0px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:left;
+	width:250px;
+	padding:0px;
+	padding-bottom:15px;
+	border:none;
+	background:rgba(0, 0, 0, 0.1);
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:10px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:500px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border:none;
+	background:rgba(0, 0, 0, 0);
+}
+/* div under tabs with tab-specific content */
+#main
+{
+  border:none;
+	padding:15px;
+	overflow:auto;
+	background:rgba(0, 0, 0, 0.2);
+}
+/* odd-numbered table rows */
+.td1
+{
+	background:rgba(0, 0, 0, 0.2);
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* even-numbered table rows */
+.td2
+{
+	background:rgba(0, 0, 0, 0.4);
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* table column headers */
+.tdheader
+{
+  border:none;
+	font-weight:normal;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+  border:none;
+	margin-right:1px;
+	float:left;
+	position:relative;
+	background:rgba(0, 0, 0, 0.1) !important;
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	padding:5px 8px;
+  border:none;
+	margin-right:1px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	background:rgba(0, 0, 0, 0.2);
+	cursor:default;
+}
+/* tooltip styles */
+#tt
+{
+	position:absolute;
+	display:block;
+}
+#tttop
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+#ttcont
+{
+	display:block;
+	padding:2px 12px 3px 7px;
+	margin-left:5px;
+	background:#f3cece;
+	color:#333
+}
+#ttbot
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+
+
+input.btn, .tab, .tdheader
+{
+  background:rgba(0, 0, 0, 0.1);
+}
+
+table
+{
+  border-collapse: collapse;
+}
+table td
+{
+  border: 1px solid #eee;
+  padding:5px;
+}
+#headerlinks
+{
+   text-align:center;
+   background:rgba(0, 0, 0, 0.3);
+   padding-top:10px;
+   padding-bottom:10px;
+   margin-bottom:10px;                                                                                                                                                                                                                 }
+}
+
+#help_container {
+    padding: 0px;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: rgba(0, 0, 0, 0);
+}
+.help_outer {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0px;
+    height: 300px;
+    position: relative
+}
+.help_list {
+    padding: 10px;
+    height: auto
+}
+.headd {
+    font-size: 14px;
+    font-weight: normal;
+    display: block;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border:none;
+}
+.help_inner {
+    padding: 10px
+}
+.help_top {
+    display: block;
+    position: absolute;
+    right: 10px;
+    bottom: 10px
+}
+.confirm {
+  border:1px dotted rgba(0, 0, 0, 0.6);
+}
