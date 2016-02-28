@@ -35,6 +35,19 @@ table td {
    padding-bottom:30px !important;
 }
 
+.body_tbl .right_td > a:first-child {
+   margin-left:10px;
+}
+.body_tbl .right_td > span:last-child {
+   margin-left:10px;
+}
+
+#loginBox label {
+   margin-top:10px;
+   display:block;
+}
+
+
 html,body
 {
     font: 81.25% arial, helvetica, sans-serif;
@@ -177,6 +190,15 @@ textarea
    margin-bottom:20px;
    overflow:hidden;
    border:1px solid #fff;
+}
+.viewTable td {
+   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,dddddd+100 */
+background: #ffffff; /* Old browsers */
+background: -moz-linear-gradient(top,  #ffffff 0%, #dddddd 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #ffffff 0%,#dddddd 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #ffffff 0%,#dddddd 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 ); /* IE6-9 */
+
 }
 input[type=checkbox] {
    position:relative;
@@ -385,7 +407,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ededed', end
 	z-index:50;
 }
 /* odd-numbered table rows */
-.td1
+.td1, .viewTable .td1
 {
 	text-align:right;
 	font-size:0.9em;
@@ -400,7 +422,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 
 }
 /* even-numbered table rows */
-.td2
+.td2, .viewTable .td2
 {
 	text-align:right;
 	font-size:0.9em;
@@ -422,7 +444,13 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', end
 	font-size:0.9em;
 	padding-left:10px;
 	padding-right:10px;
-	background:#fff;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,dddddd+100 */
+background: #ffffff; /* Old browsers */
+background: -moz-linear-gradient(top,  #ffffff 0%, #dddddd 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #ffffff 0%,#dddddd 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #ffffff 0%,#dddddd 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#dddddd',GradientType=0 ); /* IE6-9 */
+
 }
 /* tab navigation for each table */
 .tab
