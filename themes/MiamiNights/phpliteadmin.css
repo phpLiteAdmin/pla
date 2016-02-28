@@ -1,0 +1,289 @@
+/*
+    phpLiteAdmin Miami Nights
+    Created by Danilo Alonso on 11/4/15
+    */
+
+    /* overall styles for entire page */
+    body
+    {
+        margin: 0px;
+        padding: 0px;
+        font-family:"Courier New", Courier, monospace;
+        font-size: 12px;
+        color:#eee;
+        background-color: #000;
+    }
+    b {
+        color: #888;
+        text-shadow: 1px 1px 0 black;
+    }
+
+    /* general styles for hyperlink */
+
+    a
+    {
+        color:#0cc;
+        background: #333;
+        padding: 2px 5px;
+        text-decoration: none;
+        cursor :pointer;
+        text-shadow: 1px 1px 0px black;
+        line-height: 2em;
+    }
+    a:hover
+    {
+        background: #0cc;
+        text-shadow: 1px 1px 0px #0ff;
+        color: #333;
+
+    }
+    /* horizontal rule */
+    hr
+    {
+        height: 1px;
+        border: 0;
+        color:#333;
+        width: 100%;
+    }
+    /* logo text containing name of project */
+    h1
+    {
+        margin: 0px;
+        padding: 5px;
+        font-size: 24px;
+        text-align: center;
+        margin-bottom: 10px;
+        color:#999;
+
+    }
+    /* version text within the logo */
+    h1 #version
+    {
+        color:#f5c;
+        font-size: 16px;
+    }
+    /* logo text within logo */
+    h1 #logo
+    {
+        color:#f5c;
+    }
+
+    /* general header for various views */
+    h2
+    {
+        margin:0px;
+        padding:0px;
+        font-size:14px;
+        margin-bottom:20px;
+    }
+    /* input buttons and areas for entering text */
+    input, select, textarea
+    {
+        font-family:Arial, Helvetica, sans-serif;
+        background-color: rgba(255,255,255,0.1);
+        color: #c59;
+        text-shadow: 1px 1px 0 black;
+        border-color: #333;
+        border-style: solid;
+        border-width:0px;
+        margin: 5px;
+        padding: 5px 8px;
+
+        -webkit-transition: all 100ms ease-in-out;
+        -moz-transition: all 100ms ease-in-out;
+        -ms-transition: all 100ms ease-in-out;
+        -o-transition: all 100ms ease-in-out;
+        transition: all 100ms ease-in-out;
+    }
+    input:focus, select:focus, textarea:focus {
+        /*background-color: rgba(255,255,255,0.2);*/
+        /*color: #c59;*/
+        background-color: #c59;
+        text-shadow: 1px 1px 0 #f7c;
+        color: #000;
+    }
+    /* just input buttons */
+    input.btn
+    {
+        cursor:pointer;
+    }
+    input.btn:hover
+    {
+        background-color:#c59;
+        text-shadow: 1px 1px 0 #f7c;
+        color:#000;
+    }
+    /* general styles for hyperlink */
+    fieldset
+    {
+        padding:15px;
+        border-color:#1a1a1a;
+        border-width: 1px;
+        border-style: solid;
+        background-color:#111;
+    }
+    /* outer div that holds everything */
+    #container
+    {
+        padding:10px;
+    }
+    /* div of left box with log, list of databases, etc. */
+    #leftNav
+    {
+        float:left;
+        width:350px;
+        padding:5px;
+        border-color:#333;
+        border-width:0px;
+        border-style: solid;
+        background-color:#000;
+        padding-bottom:15px;
+    }
+    /* div holding the content to the right of the leftNav */
+    #content
+    {
+        overflow:hidden;
+        padding-left:10px;
+    }
+    /* div holding the login fields */
+    #loginBox
+    {
+        width:500px;
+        margin-left:auto;
+        margin-right:auto;
+        margin-top:50px;
+        border-color:#333;
+        border-width:0px;
+        border-style: solid;
+        background-color:#111;
+    }
+    /* div under tabs with tab-specific content */
+    #main
+    {
+        border-color:#333;
+        border-width:0px;
+        border-style: solid;
+        padding:15px;
+        overflow:auto;
+        background-color:#111;
+    }
+    /* odd-numbered table rows */
+    .td1
+    {
+        background-color:#1a1a1a;
+        text-align:right;
+        padding: 5px 15px;
+    }
+    /* even-numbered table rows */
+    .td2
+    {
+        background-color:#222;
+        text-align:right;
+        padding: 5px 15px;
+
+    }
+    /* table column headers */
+    .tdheader
+    {
+        border-color:#333;
+        border-width:0px;
+        border-style: solid;
+        font-weight:bold;
+        padding: 5px 15px;
+        background-color:#333;
+    }
+    /* div holding the confirmation text of certain actions */
+    .confirm
+    {
+        border-color:#c59;
+        border-width:1px;
+        border-style:dashed;
+        padding: 40px 0;
+        background-color:#000;
+        text-align: center;
+    }
+    /* tab navigation for each table */
+    .tab
+    {
+        display:block;
+        padding:5px 15px;
+
+        border-color:#333;
+        border-width:0px;
+        border-style: solid;
+        border-bottom-style:none;
+
+        margin-right: 15px ;
+        float:left;
+
+        position:relative;
+        top:1px;
+        background-color:#111;
+    }
+    /* pressed state of tab */
+    .tab_pressed
+    {
+        display:block;
+        padding:5px 15px;
+
+        border-color:#c59;
+        border-width:0px;
+        border-style: solid;
+        border-bottom-style:none;
+
+        margin-right: 15px ;
+        float:left;
+
+        position:relative;
+        top:1px;
+        background-color:#5cc;
+        color: black;
+        text-shadow: 1px 1px 0 #0dd;
+        cursor:default;
+    }
+    /* tooltip styles */
+    #tt
+    {
+        position:absolute;
+        display:block;
+    }
+    #tttop
+    {
+        display:block;
+        height:5px;
+        margin-left:5px;
+        overflow:hidden
+    }
+    #ttcont
+    {
+        display:block;
+        padding:2px 12px 3px 7px;
+        margin-left:5px;
+        background:#f3cece;
+        color:#333
+    }
+    #ttbot
+    {
+        display:block;
+        height:5px;
+        margin-left:5px;
+        overflow:hidden
+    }
+
+
+    #main_column {
+        max-width: 700px;
+    }
+
+
+
+
+
+
+    h1, h1 a {
+        background: none ;
+    }
+    h1:hover, h1 a:hover {
+        background: none ;
+        text-shadow: none;
+    }
