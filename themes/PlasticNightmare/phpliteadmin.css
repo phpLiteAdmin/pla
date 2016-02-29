@@ -1,0 +1,635 @@
+/*
+phpLiteAdmin Plastic Nightmare
+Created by Dane Iracleous on 2/28/16
+*/
+
+table td {
+   border:none !important;
+}
+
+.body_tbl .left_td {
+   padding:0px !important;
+   display:block;
+   width:100% !important;
+   position:fixed;
+   opacity:0.95;
+   z-index:100;
+   transition:all 0.4s;
+  -webkit-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -ms-transition: all 0.4s;
+}
+.body_tbl .left_td:hover {
+   opacity:1;
+}
+.body_tbl .right_td {
+   margin:0px !important;
+   padding:0px !important;
+   padding-left:1px !important;
+   padding-top:5px !important;
+   display:block;
+
+   clear:both;
+   margin-top:85px !important;
+   padding-bottom:30px !important;
+}
+
+.body_tbl .right_td > a:first-child {
+   margin-left:10px;
+}
+.body_tbl .right_td > span:last-child {
+   margin-left:10px;
+}
+
+#loginBox label {
+   margin-top:10px;
+   display:block;
+}
+
+
+html,body
+{
+    font: 81.25% arial, helvetica, sans-serif;
+    margin:0px;
+    padding:0px;
+}
+b {
+   font-weight:normal !important;
+}
+/* overall styles for entire page */
+body
+{
+	margin: 0px;
+	padding: 0px;
+	font-size: 1em;
+	color: #ccc;
+   background-color:#333;
+
+}
+/* general styles for hyperlink */
+a
+{
+	color: #ff4a4a;
+	text-decoration: none;
+	cursor :pointer;
+	text-shadow:1px 1px 1px rgba(0, 0, 0, 0.2);
+	transition:all 0.4s;
+  -webkit-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -ms-transition: all 0.4s;
+}
+a:hover
+{
+	color: #ff0000;
+	text-shadow:1px 1px 1px rgba(0, 0, 0, 0.1);
+}
+/* horizontal rule */
+hr
+{
+  height:1px;
+	border: 0;
+	color: #d2d2d2;
+	background: #d2d2d2;
+	width: 100%;
+}
+/* logo text containing name of project */
+h1
+{
+	margin: 0px;
+	padding: 5px;
+	font-size: 1.85em;
+	text-align: center;
+	margin-bottom: 0px;
+	position:relative;
+	top:-2px;
+	text-shadow:none;
+
+
+}
+/* version text within the logo */
+h1 #version
+{
+	font-size: 0.65em;
+  color:#ff4a4a;
+  text-shadow:
+   -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+     1px 1px 0 #000;
+
+
+
+}
+/* logo text within logo */
+h1 #logo
+{
+	color:#ff4a4a;
+  text-shadow:
+   -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+     1px 1px 0 #000;
+}
+/* general header for various views */
+h2
+{
+	margin:0px;
+	padding:0px;
+	font-size:1em;
+	margin-bottom:20px;
+}
+select
+{
+ border: none;
+ height:27px;
+ line-height:27px;
+ vertical-align:middle;
+ color:#fff;
+ margin-top:2px;
+  margin-bottom:2px;
+  margin-right:3px;
+  border-radius:7px;
+  border:1px solid #333;
+  box-shadow:1px 1px 2px rgba(0, 0, 0, 0.7);
+  cursor:pointer;
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+outline:none;
+
+}
+select option {
+   background:#000;
+   border:none;
+   outline:none;
+}
+
+[multiple]
+{
+ height:100%;
+}
+
+
+/* input buttons and areas for entering text */
+textarea
+{
+  background:rgba(0, 0, 0, 1);
+  padding:5px;
+  margin:0;
+  outline: none;
+  border: 1px solid #333 !important;
+  color:#fff;
+  border:none;
+  box-shadow:1px 1px 2px rgba(0, 0, 0, 0.7);
+  border-radius:7px;
+
+
+}
+.viewTable {
+   box-shadow:1px 1px 2px rgba(0, 0, 0, 0.7);
+   border-radius:7px;
+   margin-bottom:20px;
+   overflow:hidden;
+   border:1px solid #333;
+}
+.viewTable td {
+   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#444444+0,000000+100 */
+background: #444444; /* Old browsers */
+background: -moz-linear-gradient(top,  #444444 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #444444 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #444444 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#444444', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+
+}
+input[type=checkbox] {
+   position:relative;
+   top:2px;
+}
+input[type=text],
+input[type=password]
+{
+   color:#fff;
+  background:rgba(0, 0, 0, 1);
+  display: inline-block;
+  height: 25px;
+  line-height:25px;
+  margin: 0;
+  padding: 0 8px;
+  vertical-align:middle;
+  border:1px solid #333;
+  box-shadow:1px 1px 2px rgba(0, 0, 0, 0.7);
+  border-radius:7px;
+  margin-left:4px;
+  margin-right:4px;
+}
+/* just input buttons */
+input.btn
+{
+  cursor:pointer;
+  vertical-align:middle;
+  display:inline-block;
+  margin: 0;
+  outline:none;
+  height:27px;
+  padding:0 10px;
+  color:#ff4a4a;
+  text-shadow:1px 1px 1px rgba(0, 0, 0, 0.1);
+  margin-top:2px;
+  margin-bottom:2px;
+  margin-right:3px;
+   border:1px solid #333;
+  border-radius:7px;
+  box-shadow:1px 1px 2px rgba(0, 0, 0, 0.7);
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+margin-left:4px;
+  margin-right:4px;
+  transition:all 0.4s;
+  -webkit-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -ms-transition: all 0.4s;
+}
+input.btn:hover
+{
+   color:#ff0000;
+   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,333333+100 */
+background: #000000; /* Old browsers */
+background: -moz-linear-gradient(top,  #000000 0%, #333333 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #000000 0%,#333333 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #000000 0%,#333333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#333333',GradientType=0 ); /* IE6-9 */
+
+
+}
+textarea:focus, input:focus{
+    outline: none;
+    box-shadow:inset 1px 1px 2px rgba(0, 0, 0, 0.4);
+    background:#111;
+}
+*:focus {
+    outline: none;
+}
+
+/* general styles for hyperlink */
+fieldset,.confirm
+{
+	padding:15px;
+	background:none;
+  border: none;
+}
+fieldset {
+   margin:0px !important;
+}
+fieldset legend {
+   border: 1px solid #333;
+   margin-left:-15px;
+   padding-left:15px;
+   padding-right:15px;
+   padding-top:3px;
+   padding-bottom:3px;
+   display:block;
+   width:100%;
+   box-shadow:1px 1px 2px rgba(0, 0, 0, 0.3);
+   border-radius:7px;
+   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+
+}
+/* outer div that holds everything */
+#container
+{
+	padding:0px;
+}
+/* div of left box with log, list of databases, etc. */
+#leftNav
+{
+	float:none;
+	width:100%;
+	padding:0px;
+	padding-bottom:7px;
+	border:none;
+	height:68px;
+	position:absolute;
+	top:0px;
+	left:0px;
+	box-shadow:2px 2px 2px rgba(0, 0, 0, 0.8);
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,333333+100 */
+background: #000000; /* Old browsers */
+background: -moz-linear-gradient(top,  #000000 0%, #333333 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #000000 0%,#333333 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #000000 0%,#333333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#333333',GradientType=0 ); /* IE6-9 */
+
+
+}
+#leftNav input[name=logout] {
+   display:block;
+   float:right;
+   margin-left:0px;
+   margin-top:0px;
+}
+#leftNav input {
+   display:block;
+}
+#leftNav fieldset {
+   display:block;
+   float:left;
+   height:10px;
+   overflow:hidden;
+   margin-top:-4px !important;
+   margin-left:10px !important;
+   transition:all 0.4s;
+  -webkit-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -ms-transition: all 0.4s;
+   border-radius:7px;
+}
+#leftNav fieldset:hover {
+   height:auto !important;
+   background:rgba(0, 0, 0, 0.8);
+   box-shadow:2px 2px 2px rgba(0, 0, 0, 0.3);
+}
+#leftNav fieldset legend {
+   border-radius:7px;
+   height:29px;
+   line-height:29px;
+   padding-top:0px !important;
+   padding-bottom:0px !important;
+   cursor:pointer;
+   width:auto !important;
+}
+#leftNav fieldset legend::after {
+   content: " \25BE";
+   color:#999;
+}
+#leftNav h1 {
+   display:block;
+   float:left;
+}
+#leftNav fieldset:first-of-type {
+   clear:both;
+}
+/* div holding the content to the right of the leftNav */
+#content
+{
+	overflow:hidden;
+	padding-left:10px;
+}
+/* div holding the login fields */
+#loginBox
+{
+	width:500px;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	border:1px solid #333;
+	background:rgba(0, 0, 0, 0.7);
+	padding-top:30px;
+	border-radius:7px;
+	padding-bottom:20px;
+	box-shadow:2px 2px 2px rgba(0, 0, 0, 0.4);
+}
+/* div under tabs with tab-specific content */
+#main
+{
+  border:none;
+	padding:15px;
+	overflow:auto;
+	background:#111;
+	box-shadow:0px -1px 2px rgba(0, 0, 0, 0.2);
+	position:relative;
+	z-index:50;
+}
+/* odd-numbered table rows */
+.td1, .viewTable .td1
+{
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+}
+/* even-numbered table rows */
+.td2, .viewTable .td2
+{
+	text-align:right;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+}
+/* table column headers */
+.tdheader
+{
+  border:none;
+	font-weight:normal;
+	font-size:0.9em;
+	padding-left:10px;
+	padding-right:10px;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#444444+0,000000+100 */
+background: #444444; /* Old browsers */
+background: -moz-linear-gradient(top,  #444444 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #444444 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #444444 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#444444', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+
+}
+/* tab navigation for each table */
+.tab
+{
+	display:block;
+	padding:5px;
+	padding-right:8px;
+	padding-left:8px;
+  border:1px solid #000;
+  border-bottom:none;
+	margin-right:1px;
+	float:left;
+	position:relative;
+
+	border-top-left-radius:7px;
+	border-top-right-radius:7px;
+	/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+}
+/* pressed state of tab */
+.tab_pressed
+{
+	display:block;
+	padding:5px 8px;
+	margin-right:1px;
+	float:left;
+	border-bottom-style:none;
+	position:relative;
+	background:#111;
+	cursor:default;
+	border-top-left-radius:7px;
+	border-top-right-radius:7px;
+	box-shadow:1px -1px 2px rgba(0, 0, 0, 0.3);
+	border:1px solid #000;
+  border-bottom:none;
+  position:relative;
+  z-index:60;
+}
+/* tooltip styles */
+#tt
+{
+	position:absolute;
+	display:block;
+}
+#tttop
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+#ttcont
+{
+	display:block;
+	padding:2px 12px 3px 7px;
+	margin-left:5px;
+	background:#f3cece;
+	color:#333
+}
+#ttbot
+{
+	display:block;
+	height:5px;
+	margin-left:5px;
+	overflow:hidden
+}
+
+
+input.btn, .tab, .tdheader
+{
+
+}
+
+table
+{
+  border-collapse: collapse;
+}
+table td
+{
+  border: 1px solid #000;
+  padding:5px;
+}
+
+#headerlinks
+{
+   text-align:center;
+   background:none;
+   padding-top:0px !important;
+   padding-bottom:0px !important;
+   height:29px;
+   line-height:29px;
+   margin-bottom:0px !important;
+   display:block;
+   padding-left:10px;
+   padding-right:10px;
+   margin-left:20px;
+   float:left;
+   margin-top:4px;
+   border-radius:7px;
+   overflow:hidden;                                                                                                                                                                                              }
+}
+form[name=create_database] .btn {
+   display:block;
+}
+
+#help_container {
+    padding: 0px;
+    font-size: 12px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.help_outer {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 0px;
+    height: 300px;
+    position: relative
+}
+.help_list {
+    padding: 10px;
+    height: auto
+}
+.headd {
+    font-size: 14px;
+    font-weight: normal;
+    display: block;
+    padding: 10px;
+    border:none;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#333333+0,000000+100 */
+background: #333333; /* Old browsers */
+background: -moz-linear-gradient(top,  #333333 0%, #000000 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #333333 0%,#000000 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #333333 0%,#000000 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#333333', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+
+
+}
+.help_inner {
+    padding: 10px
+}
+.help_top {
+    display: block;
+    position: absolute;
+    right: 10px;
+    bottom: 10px
+}
+.confirm {
+   border-radius:7px;
+   border:1px solid #000;
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,333333+100 */
+background: #000000; /* Old browsers */
+background: -moz-linear-gradient(top,  #000000 0%, #333333 100%); /* FF3.6-15 */
+background: -webkit-linear-gradient(top,  #000000 0%,#333333 100%); /* Chrome10-25,Safari5.1-6 */
+background: linear-gradient(to bottom,  #000000 0%,#333333 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#000000', endColorstr='#333333',GradientType=0 ); /* IE6-9 */
+
+   box-shadow:2px 2px 2px rgba(0, 0, 0, 0.15);
+}
