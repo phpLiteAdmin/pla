@@ -33,6 +33,7 @@
 // === build script configuration ===
 $inputfile  = 'phpliteadmin-build-template.php';
 $outputfile = 'phpliteadmin.php';
+date_default_timezone_set('UTC');
 
 // === identifiers recognized in EXPORT and ###something### directives ===
 $build_data = array(
