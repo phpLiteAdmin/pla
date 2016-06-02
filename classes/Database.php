@@ -518,7 +518,8 @@ class Database
 			case PREG_BACKTRACK_LIMIT_ERROR: return 'Backtrack limit was exhausted!';
 			case PREG_RECURSION_LIMIT_ERROR: return 'Recursion limit was exhausted!';
 			case PREG_BAD_UTF8_ERROR: return 'Bad UTF8 error!';
-			case PREG_BAD_UTF8_ERROR: return 'Bad UTF8 offset error!';
+			// PREG_BAD_UTF8_OFFSET_ERROR is introduced in PHP 5.3.0, which is not yet required by PLA, so we use its value 5 instead so long
+			case 5: return 'Bad UTF8 offset error!'; 
 			default: return 'Unknown Error';
 		} 
 	}
@@ -1130,7 +1131,6 @@ class Database
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		@set_time_limit(-1);
-		$field_enclosed = $field_enclosed;
 		$query = "SELECT * FROM sqlite_master WHERE type='table' or type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)

@@ -72,7 +72,7 @@ function changeIgnore(area, e, u)
 function moveFields()
 {
 	var fields = document.getElementById("fieldcontainer");
-	var selected = new Array();
+	var selected = [];
 	for(var i=0; i<fields.options.length; i++)
 		if(fields.options[i].selected)
 			selected.push(fields.options[i].value);

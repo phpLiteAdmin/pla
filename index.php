@@ -1777,7 +1777,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
 								if($operator == 'IN')
 									$searchValues[$field] = $values;
-								$values = array_map([$db, 'quote'], $values);
+								$values = array_map(array($db, 'quote'), $values);
 								$value_quoted = '(' .implode(', ', $values) . ')';
 							}
 							else
@@ -2126,7 +2126,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$query .= $queryAdd;
 			$queryDisp .= $queryAdd;
 			
-			$resultRows = $db->select($queryCount)['count'];
+			$resultRows = $db->select($queryCount);
+			$resultRows = $resultRows['count'];
 
 			//- Show results
 			if($resultRows>0)
