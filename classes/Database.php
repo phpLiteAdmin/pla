@@ -1073,7 +1073,7 @@ class Database
 		if($field_enclosed=="") $field_enclosed='"';
 		// PHP requires escaper defined
 		if($field_escaped=="") $field_escaped='\\';
-		while(!feof($csv_handle))
+		while($csv_handle!==false && !feof($csv_handle))
 		{
 			$csv_data = fgetcsv($csv_handle, 0, $field_terminate, $field_enclosed, $field_escaped); 
 			if($csv_data[0] != NULL || count($csv_data)>1)
@@ -1109,13 +1109,18 @@ class Database
 				}
 			}
 		}
-		$csv_insert .= "COMMIT;";
-		fclose($csv_handle);
-		$import = $this->multiQuery($csv_insert);
-		if(!$import)
-			return $this->getError();
+		if($csv_handle === false)
+			return "Error reading CSV file";
 		else
-			return true;
+		{
+			$csv_insert .= "COMMIT;";
+			fclose($csv_handle);
+			$import = $this->multiQuery($csv_insert);
+			if(!$import)
+				return $this->getError();
+			else
+				return true;
+		}
 	}
 	
 	//export csv
