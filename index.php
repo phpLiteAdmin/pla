@@ -1486,7 +1486,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Perform SQL query on table (=table_sql)
 		case "table_sql":
-			$isSelect = false;
 			if(isset($_POST['query']) && $_POST['query']!="")
 			{
 				$delimiter = $_POST['delimiter'];
@@ -1507,37 +1506,18 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$queryTimer = new MicroTimer();
-						$result = $db->selectArray($query[$i], "assoc");
-						$queryTimer->stop();
+						$table_result = $db->query($query[$i]);
 
 						echo "<div class='confirm'>";
-						echo "<b>";
-						
-						if($result !== NULL)
+						echo "<b>".htmlencode($query[$i])."</b>";
+						if($table_result === NULL || $table_result === false)
 						{
-						
-							if(sizeof($result)>0 || $db->getAffectedRows()==0)
-							{
-								printf($lang['show_rows'], sizeof($result));
-							}
-							if($db->getAffectedRows()>0 || sizeof($result)==0)
-							{
-								echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
-							}
-							printf($lang['query_time'], $queryTimer);
-							echo "</b><br/>";
+							echo "<br /><b>".$lang['err'].": ".$db->getError()."</b></div>";
 						}
-						else
-						{
-							echo $lang['err'].": ".$db->getError()."</b><br/>";
-						}
-						
-						echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 						echo "</div><br/>";
-						if(sizeof($result)>0)
+						if($row = $db->fetch($table_result, 'assoc'))
 						{
-							$headers = array_keys($result[0]);
-
+							$headers = array_keys($row);
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 							echo "<tr>";
 							for($j=0; $j<sizeof($headers); $j++)
@@ -1547,24 +1527,44 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "</td>";
 							}
 							echo "</tr>";
-							for($j=0; $j<sizeof($result); $j++)
+							$rowCount = 0;
+							for(; $rowCount==0 || $row = $db->fetch($table_result, 'assoc'); $rowCount++)
 							{
-								$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+								$tdWithClass = "<td class='td".($rowCount%2 ? "1" : "2")."'>";
 								echo "<tr>";
 								for($z=0; $z<sizeof($headers); $z++)
 								{
 									echo $tdWithClass;
-									if($result[$j][$headers[$z]]==="")
+									if($row[$headers[$z]]==="")
 										echo "&nbsp;";
-									elseif($result[$j][$headers[$z]]===NULL)
+									elseif($row[$headers[$z]]===NULL)
 										echo "<i class='null'>NULL</i>";
 									else
-										echo htmlencode(subString($result[$j][$headers[$z]]));
+										echo htmlencode(subString($row[$headers[$z]]));
 									echo "</td>";
 								}
 								echo "</tr>";
 							}
+							$queryTimer->stop();
 							echo "</table><br/><br/>";
+							
+						
+							if($table_result !== NULL && $table_result !== false)
+							{
+								echo "<div class='confirm' style='margin-bottom: 2em'>";
+								if($rowCount>0 || $db->getAffectedRows()==0)
+								{
+									printf($lang['show_rows'], $rowCount);
+								}
+								if($db->getAffectedRows()>0 || $rowCount==0)
+								{
+									echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
+								}
+								printf($lang['query_time'], $queryTimer);
+								echo "</div>";
+							}
+
+							
 						}
 					}
 				}
@@ -3447,7 +3447,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="sql")
 	{
 		//- Database SQL editor (=sql)
-		$isSelect = false;
 		if(isset($_POST['query']) && $_POST['query']!="")
 		{
 			$delimiter = $_POST['delimiter'];
@@ -3468,36 +3467,18 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
 				{
 					$queryTimer = new MicroTimer();
-					$result = $db->selectArray($query[$i], "assoc");
-					$queryTimer->stop();
+					$table_result = $db->query($query[$i]);
 
 					echo "<div class='confirm'>";
-					echo "<b>";
-					
-					if($result !== NULL)
+					echo "<b>".htmlencode($query[$i])."</b>";
+					if($table_result === NULL || $table_result === false)
 					{
-					
-						if(sizeof($result)>0 || $db->getAffectedRows()==0)
-						{
-							printf($lang['show_rows'], sizeof($result));
-						}
-						if($db->getAffectedRows()>0 || sizeof($result)==0)
-						{
-							echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
-						}
-						printf($lang['query_time'], $queryTimer);
-						echo "</b><br/>";
+						echo "<br /><b>".$lang['err'].": ".$db->getError()."</b></div>";
 					}
-					else
-					{
-						echo $lang['err'].": ".$db->getError()."</b><br/>";
-					}
-					echo "<span style='font-size:11px;'>".htmlencode($query[$i])."</span>";
 					echo "</div><br/>";
-					if(sizeof($result)>0)
+					if($row = $db->fetch($table_result, 'assoc'))
 					{
-						$headers = array_keys($result[0]);
-
+						$headers = array_keys($row);
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						for($j=0; $j<sizeof($headers); $j++)
@@ -3507,26 +3488,46 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 							echo "</td>";
 						}
 						echo "</tr>";
-						for($j=0; $j<sizeof($result); $j++)
+						$rowCount = 0;
+						for(; $rowCount==0 || $row = $db->fetch($table_result, 'assoc'); $rowCount++)
 						{
-							$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
+							$tdWithClass = "<td class='td".($rowCount%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								if($result[$j][$headers[$z]]==="")
+								if($row[$headers[$z]]==="")
 									echo "&nbsp;";
-								elseif($result[$j][$headers[$z]]===NULL)
+								elseif($row[$headers[$z]]===NULL)
 									echo "<i class='null'>NULL</i>";
 								else
-									echo htmlencode(subString($result[$j][$headers[$z]]));
+									echo htmlencode(subString($row[$headers[$z]]));
 								echo "</td>";
 							}
 							echo "</tr>";
 						}
+						$queryTimer->stop();
 						echo "</table><br/><br/>";
+						
+					
+						if($table_result !== NULL && $table_result !== false)
+						{
+							echo "<div class='confirm' style='margin-bottom: 2em'>";
+							if($rowCount>0 || $db->getAffectedRows()==0)
+							{
+								printf($lang['show_rows'], $rowCount);
+							}
+							if($db->getAffectedRows()>0 || $rowCount==0)
+							{
+								echo $db->getAffectedRows()." ".$lang['rows_aff']." ";
+							}
+							printf($lang['query_time'], $queryTimer);
+							echo "</div>";
+						}
+
+						
 					}
-			}
+				}
 			}
 		}
 		else
