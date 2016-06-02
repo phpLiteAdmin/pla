@@ -105,6 +105,10 @@ fieldset {
 	border-radius:5px;
 	-moz-border-radius:5px;
 }
+/* the database select list / select box */
+.databaseList select {
+	max-width: 200px;
+}
 /* The table that hold left */
 .viewTable tr td{ padding:1px; }
 /* div holding the login fields */

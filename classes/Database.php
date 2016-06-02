@@ -145,18 +145,21 @@ class Database
 	public function print_db_list()
 	{
 		global $databases, $lang;
-		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_ch']."</b></legend>";
+		echo "<fieldset style='margin:15px;' class='databaseList'><legend><b>".$lang['db_ch']."</b></legend>";
 		if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 		{
 			$i=0;
 			foreach($databases as $database)
 			{
 				$i++;
-				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ';
+				$name = $database['name'];
+				if(strlen($name)>25)
+					$name = "...".substr($name, strlen($name)-22, 22); 
+				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
 				if($database == $_SESSION[COOKIENAME.'currentDB'])
-					echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($database['name'])."</a>  (<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+					echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>[&darr;]</a>";
 				else
-					echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($database['name'])."</a>  (<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>&darr;</a>)";
+					echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>[&darr;]</a>";
 				if($i<sizeof($databases))
 					echo "<br/>";
 			}

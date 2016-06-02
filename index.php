@@ -1229,7 +1229,10 @@ echo "<fieldset style='margin:15px;'><legend>";
 echo "<a href='".PAGE."'";
 if (!$target_table)
 	echo " class='active_table'";
-echo ">".htmlencode($currentDB['name'])."</a>";
+$name = $currentDB['name'];
+if(strlen($name)>25)
+	$name = "...".substr($name, strlen($name)-22, 22); 
+echo ">".htmlencode($name)."</a>";
 echo "</legend>";
 
 //- HTML: table list
