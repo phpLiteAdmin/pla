@@ -31,14 +31,14 @@ class Database
 
 			switch(true)
 			{
-				case (FORCETYPE=="PDO" || (FORCETYPE==false && class_exists("PDO") && ($ver==-1 || $ver==3))):
+				case ($data['type']!=2 && (FORCETYPE=="PDO" || (FORCETYPE==false && class_exists("PDO") && ($ver==-1 || $ver==3)))):
 					$this->db = new PDO("sqlite:".$this->data['path']);
 					if($this->db!=NULL)
 					{
 						$this->type = "PDO";
 						break;
 					}
-				case (FORCETYPE=="SQLite3" || (FORCETYPE==false && class_exists("SQLite3") && ($ver==-1 || $ver==3))):
+				case ($data['type']!=2 && (FORCETYPE=="SQLite3" || (FORCETYPE==false && class_exists("SQLite3") && ($ver==-1 || $ver==3)))):
 					$this->db = new SQLite3($this->data['path']);
 					if($this->db!=NULL)
 					{

@@ -308,6 +308,10 @@ if ($auth->isAuthorized())
 				$tdata = array();	
 				$tdata['name'] = $dbname;
 				$tdata['path'] = $directory.DIRECTORY_SEPARATOR.$dbpath;
+				if(isset($_POST['new_dbtype']))
+					$tdata['type'] = $_POST['new_dbtype'];
+				else
+					$tdata['type'] = 3;
 				$td = new Database($tdata);
 				$td->query("VACUUM");
 			} else
@@ -667,7 +671,15 @@ else // the database array is empty, offer to create a new database
 		}			
 		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
 		echo "<form name='create_database' method='post' action='".PAGE."'>";
-		echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
+		echo "<input type='text' name='new_dbname' style='width:150px;'/> ";
+		if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
+		{
+			echo "<select name='new_dbtype' class='newDbType'>";
+			echo "<option value='3'>SQLite 3</option>";
+			echo "<option value='2'>SQLite 2</option>";
+			echo "</select>";
+		}
+		echo "<input type='submit' value='".$lang['create']."' class='btn'/>";
 		echo "</form>";
 		echo "</fieldset>";
 	}
@@ -1260,7 +1272,15 @@ if($directory!==false && is_writable($directory))
 {
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink($lang['help2'])."</legend>"; 
 	echo "<form name='create_database' method='post' action='".PAGE."'>";
-	echo "<input type='text' name='new_dbname' style='width:150px;'/> <input type='submit' value='".$lang['create']."' class='btn'/>";
+	echo "<input type='text' name='new_dbname' style='width:150px;'/>";
+	if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
+	{
+		echo "<select name='new_dbtype' class='newDbType'>";
+		echo "<option value='3'>SQLite 3</option>";
+		echo "<option value='2'>SQLite 2</option>";
+		echo "</select>";
+	}
+	echo "<input type='submit' value='".$lang['create']."' class='btn'/>";
 	echo "</form>";
 	echo "</fieldset>";
 }
