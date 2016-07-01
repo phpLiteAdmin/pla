@@ -1157,7 +1157,7 @@ class Database
 						if($z < sizeof($cols)-1)
 							echo $field_terminate;
 					}
-					echo "\r\n";	
+					echo "\r\n";
 				}
 				$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
 				$table_result = $this->query($query);
@@ -1234,7 +1234,7 @@ class Database
 						echo "-- ".$lang['drop']." ".$result[$i]['type']." ".$lang['for']." ".$result[$i]['name']."\r\n";
 						echo "----\r\n";
 					}
-					echo "DROP ".strtoupper($result[$i]['type'])." ".$this->quote_id($result[$i]['name']).";\r\n";
+					echo "DROP ".strtoupper($result[$i]['type'])." IF EXISTS ".$this->quote_id($result[$i]['name']).";\r\n";
 				}
 				if($structure)
 				{
