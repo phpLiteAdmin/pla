@@ -3400,7 +3400,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				{
 					echo "<tr>";
 					echo $tdWithClassLeft;
-					echo "View";
+					echo $lang['view'];
 					echo "</td>";
 					echo $tdWithClassLeft;
 					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
