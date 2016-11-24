@@ -569,7 +569,7 @@ class Database
 						if($debug) echo "ERROR: could not get rid of CREATE TABLE<hr />";
 						return false;
 					}
-					$createtemptableSQL = "CREATE TEMPORARY TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
+					$createtemptableSQL = "CREATE TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) echo "createtemptableSQL=($createtemptableSQL)<hr>";
 					$createindexsql = array();
 					$preg_alter_part = "/(?:DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // the ALTER command
@@ -671,7 +671,7 @@ class Database
 						  3. 'colX' ...,                                 (with colX being the column to change/drop)
 						  4. 'colX+1' ..., ..., 'colK')           $5     (with colX+1-colK being columns after the column to change/drop)
 						*/
-						$preg_create_table = "\s*+(CREATE\s++TEMPORARY\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
+						$preg_create_table = "\s*+(CREATE\s++TABLE\s++".preg_quote($this->quote($tmpname),"/")."\s*+\()";   // This is group $1 (keep unchanged)
 						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",true," '\"\[`,",$column)."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 														// this definition does NOT match columns with the column name $column
@@ -739,7 +739,7 @@ class Database
 								$preg_error = $this->getPregError();
 								// remove comma at the beginning if the first column is changed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
-								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
+								$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
 									echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
@@ -765,7 +765,7 @@ class Database
 								$preg_error = $this->getPregError();
 								// remove comma at the beginning if the first column is removed
 								// probably somebody is able to put this into the first regex (using lookahead probably).
-								$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
+								$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
 									echo $createtesttableSQL."<hr>";
@@ -825,7 +825,7 @@ class Database
 									$newSQL = preg_replace($preg_pattern_change, '$1$2,$3$4$5$6)', $createtesttableSQL);
 									// remove comma at the beginning if the first column is changed
 									// probably somebody is able to put this into the first regex (using lookahead probably).
-									$newSQL = preg_replace("/^\s*(CREATE\s+TEMPORARY\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
+									$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 									if($debug)
 									{
 										echo "preg_column_to_change=(".$preg_column_to_change.")<hr />";
@@ -859,7 +859,7 @@ class Database
 					}
 					$droptempsql = 'DROP TABLE '.$this->quote_id($tmpname);
 
-					$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TEMPORARY\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/is", '$1', $createtesttableSQL, 1);
+					$createnewtableSQL = "CREATE TABLE ".$this->quote($table_new)." ".preg_replace("/^\s*CREATE\s+TABLE\s+'?".str_replace("'","''",preg_quote($tmpname,"/"))."'?\s+(.*)$/is", '$1', $createtesttableSQL, 1);
 
 					$newcolumns = '';
 					$oldcolumns = '';
