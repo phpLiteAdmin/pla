@@ -157,9 +157,9 @@ class Database
 					$name = "...".substr($name, strlen($name)-22, 22); 
 				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
 				if($database == $_SESSION[COOKIENAME.'currentDB'])
-					echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>[&darr;]</a>";
+					echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."&amp;token=".urlencode($_SESSION['token'])."' title='".$lang['backup']."'>[&darr;]</a>";
 				else
-					echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."' title='".$lang['backup']."'>[&darr;]</a>";
+					echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."&amp;token=".urlencode($_SESSION['token'])."' title='".$lang['backup']."'>[&darr;]</a>";
 				if($i<sizeof($databases))
 					echo "<br/>";
 			}
