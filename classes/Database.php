@@ -21,6 +21,7 @@ class Database
 				echo "<div class='confirm' style='margin:20px;'>";
 				printf($lang['db_not_writeable'], htmlencode($this->data["path"]), htmlencode(dirname($this->data["path"])));
 				echo "<form action='".PAGE."' method='post'>";
+				echo '<input type="hidden" name="token" value="'.$_SESSION['token'].'" />';
 				echo "<input type='submit' value='Log Out' name='".$lang['logout']."' class='btn'/>";
 				echo "</form>";
 				echo "</div><br/>";
@@ -167,6 +168,7 @@ class Database
 		else //there are a lot of databases - show a drop down menu
 		{
 			echo "<form action='".PAGE."' method='post'>";
+			echo '<input type="hidden" name="token" value="'.$_SESSION['token'].'" />';
 			echo "<select name='database_switch'>";
 			foreach($databases as $database)
 			{
@@ -482,10 +484,19 @@ class Database
 			if($notAllowedName!==false && $preg_quote)
 				$notAllowedName = preg_quote($notAllowedName,"/");
 			// use possesive quantifiers to save memory
-			$nameSingle   = ($notAllowedName!==false?"(?!".$notAllowedName."')":"")."(?:[^']$name+|'')$name+";
-			$nameDouble   = ($notAllowedName!==false?"(?!".$notAllowedName."\")":"")."(?:[^\"]$name+|\"\")$name+";
-			$nameBacktick = ($notAllowedName!==false?"(?!".$notAllowedName."`)":"")."(?:[^`]$name+|``)$name+";
-			$nameSquare   = ($notAllowedName!==false?"(?!".$notAllowedName."\])":"")."(?:[^\]]$name+|\]\])$name+";
+			// there is a bug in PCRE starting somewehre after 8.12 and fixed in PCRE 8.36
+			// We might find out there is a version after 8.12 that is not affected
+			// See issue #310
+			if(version_compare(strstr(constant('PCRE_VERSION'), ' ', true), '8.36', '>=') ||
+				version_compare(strstr(constant('PCRE_VERSION'), ' ', true), '8.12', '<='))
+				$posessive='+';
+			else
+				$posessive='';
+			
+			$nameSingle   = ($notAllowedName!==false?"(?!".$notAllowedName."')":"")."(?:[^']$name+|'')$name".$posessive;
+			$nameDouble   = ($notAllowedName!==false?"(?!".$notAllowedName."\")":"")."(?:[^\"]$name+|\"\")$name".$posessive;
+			$nameBacktick = ($notAllowedName!==false?"(?!".$notAllowedName."`)":"")."(?:[^`]$name+|``)$name".$posessive;
+			$nameSquare   = ($notAllowedName!==false?"(?!".$notAllowedName."\])":"")."(?:[^\]]$name+|\]\])$name".$posessive;
 			$nameNo = ($notAllowedName!==false?"(?!".$notAllowedName."\s)":"")."[^".$notAllowedCharsIfNone."]$name";
 		}
 		else
