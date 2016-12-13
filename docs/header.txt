@@ -1,6 +1,6 @@
 
 Project: phpLiteAdmin (http://www.phpliteadmin.org/)
-Version: 1.9.7-dev
+Version: 1.9.7
 Summary: PHP-based admin tool to manage SQLite2 and SQLite3 databases on the web
 Last updated: ###build_date###
 Developers:
