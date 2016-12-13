@@ -16,6 +16,7 @@ interface, and user experience is comparable to that of phpMyAdmin.
 ## News
 
 **13.12.2016: Just released phpLiteAdmin 1.9.7! [Download now](https://bitbucket.org/phpliteadmin/public/downloads/phpLiteAdmin_v1-9-7.zip)**
+
 **05.07.2015: Just released phpLiteAdmin 1.9.6! [Download now](https://bitbucket.org/phpliteadmin/public/downloads/phpLiteAdmin_v1-9-6.zip)**
 
 ## Features
