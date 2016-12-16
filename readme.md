@@ -127,7 +127,7 @@ platforms.
 
 ## Installing a theme
 	
-1.   Download the themes package from the project Downloads page.
+1.   Download the themes package from the [project Downloads page](https://www.phpliteadmin.org/download/).
 	
 2.   Unzip the file and choose your desired theme.
 	
