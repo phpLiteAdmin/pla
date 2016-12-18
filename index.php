@@ -57,11 +57,12 @@ session_start();
 // generate CSRF token 
 if (empty($_SESSION['token']))
 {
-	if (function_exists('mcrypt_create_iv'))
+	if (function_exists('openssl_random_pseudo_bytes')) // introduced in PHP 5.3.0
 	{
-		$_SESSION['token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
-	} else {
 		$_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
+	} else {
+		// For PHP 5.2.x - This case can be removed once we drop support for 5.2.x
+		$_SESSION['token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
 	}
 }
 $token = $_SESSION['token'];
