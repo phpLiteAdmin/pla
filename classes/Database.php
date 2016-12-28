@@ -556,7 +556,7 @@ class Database
 			for($i=0; $i<sizeof($resultArr); $i++)
 			{
 				$row = $resultArr[$i];
-				if($row['type'] != 'table')
+				if($row['type'] != 'table' && $row['type'] != 'view')
 				{
 					if($row['sql']!='')
 					{
@@ -564,6 +564,29 @@ class Database
 						$recreateQueries[] = $row;
 						if($debug) echo "recreate=(".$row['sql'].";)<br />";
 					}
+				}
+				elseif($row['type']=='view')  // workaround to rename views
+				{
+					$origsql = $row['sql'];
+					$preg_remove_create_view = "/^\s*+CREATE\s++VIEW\s++".$this->sqlite_surroundings_preg($table)."\s*+(AS\s++SELECT\s++.*+)$/is";
+					$origsql_no_create = preg_replace($preg_remove_create_view, '$1', $origsql, 1);
+					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_view)<br />";
+					preg_match("/RENAME\s++TO\s++(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')/is", $alterdefs, $matches);
+					if(isset($matches[1]) && $matches[1]!='')
+						$newname = $matches[1];
+					elseif(isset($matches[2]) && $matches[2]!='')
+						$newname = $matches[2];
+					else
+					{
+						$this->alterError = $errormsg . ' could not detect new view name. It needs to be in single or double quotes.';
+						if($debug) echo "ERROR: could not detect new view name<hr />";
+						return false;	
+					}
+					$dropoldSQL = 'DROP VIEW '.$this->quote_id($table);
+					$createnewSQL = 'CREATE VIEW '.$this->quote_id($newname).' '.$origsql_no_create;
+					$alter_transaction = 'BEGIN; ' . $dropoldSQL .'; '. $createnewSQL . '; ' . 'COMMIT;';
+					if($debug) echo $alter_transaction;
+					return $this->multiQuery($alter_transaction); 
 				}
 				else
 				{

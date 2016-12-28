@@ -882,10 +882,11 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 		//- Rename table (=table_rename)
 		case "table_rename":
 			$query = "ALTER TABLE ".$db->quote_id($_POST['oldname'])." RENAME TO ".$db->quote($_POST['newname']);
-			if($db->getVersion()==3)
+			$type = $db->getTypeOfTable($_POST['oldname']);
+			if($db->getVersion()==3 && $type=='table') // SQLite 3 can rename tables, not views
 				$result = $db->query($query, true);
 			else
-				$result = $db->query($query, false);
+				$result = $db->query($query, false); // workaround can rename tables of sqlite2 and views of both sqlite versions
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
@@ -1452,6 +1453,12 @@ if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET
 		else
 			echo "class='tab'";
 		echo ">".$lang['export']."</a>";
+		echo "<a href='?table=".urlencode($target_table)."&amp;action=table_rename' ";
+		if($_GET['action']=="table_rename")
+			echo "class='tab_pressed'";
+		else
+			echo "class='tab'";
+		echo ">".$lang['rename']."</a>";
 		echo "<a href='?action=view_drop&amp;table=".urlencode($target_table)."' ";
 		echo "class='tab drop'";
 		echo ">".$lang['drop']."</a>";
@@ -1805,7 +1812,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo $token_html;
 			echo "<input type='hidden' name='oldname' value='".htmlencode($target_table)."'/>";
 			printf($lang['rename_tbl'], htmlencode($target_table));
-			echo " <input type='text' name='newname' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
+			echo " <input type='text' name='newname' value='".htmlencode($target_table)."' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 			echo "</form>";
 			break;
 
