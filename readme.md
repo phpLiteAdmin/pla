@@ -1,6 +1,6 @@
 # phpLiteAdmin
 
-Website: http://www.phpliteadmin.org/
+Website: https://www.phpliteadmin.org/
 
 Bitbucket: https://bitbucket.org/phpliteadmin/public/
 
@@ -48,7 +48,7 @@ interface, and user experience is comparable to that of phpMyAdmin.
 ## Demo
 
 A live demo of phpLiteAdmin can be found here:
-http://demo.phpliteadmin.org/
+https://demo.phpliteadmin.org/
 
 ## Requirements
 
@@ -64,7 +64,7 @@ and enabled by default so no custom action is necessary.
 The files in the source repositories are meant for development, not for use in production.
 
 You can find the latest downloads here:
-http://www.phpliteadmin.org/download/
+https://www.phpliteadmin.org/download/
 
 ## Installation
 
@@ -142,7 +142,7 @@ platforms.
 The project's wiki provides information on how to do certain things and is
 located at https://bitbucket.org/phpliteadmin/public/wiki/Home .
 In addition, the project's discussion group is located at
-http://groups.google.com/group/phpliteadmin .
+https://groups.google.com/group/phpliteadmin .
 
 
 ## Reporting errors and bugs
@@ -163,4 +163,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <[http://www.gnu.org/licenses/](http://www.gnu.org/licenses/)>.
+along with this program.  If not, see <[http://www.gnu.org/licenses/](https://www.gnu.org/licenses/)>.
