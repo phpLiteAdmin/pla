@@ -159,7 +159,7 @@ class Database
 				
 				echo $params->getLink(array('switchdb'=>$database['path']), htmlencode($name), ($database == $_SESSION[COOKIENAME.'currentDB']? 'active_db': '') );
 				echo "&nbsp;&nbsp;";
-				echo $params->getLink(array('download'=>$database['path'], 'token'=>$_SESSION['token']), '[&darr;]', '', $lang['backup']);
+				echo $params->getLink(array('download'=>$database['path'], 'token'=>$_SESSION[COOKIENAME.'token']), '[&darr;]', '', $lang['backup']);
 				
 				if($i<sizeof($databases))
 					echo "<br/>";

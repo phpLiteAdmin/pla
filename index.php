@@ -54,21 +54,25 @@ if (isset($_GET['resource']))
 ini_set('session.cookie_httponly', '1');
 session_start();
 
+// version-number added so after updating, old session-data is not used anylonger
+// cookies names cannot contain symbols, except underscores
+define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . VERSION) );
+
 $params = new GetParameters();
 $params->test ="TEST";
 
 // generate CSRF token 
-if (empty($_SESSION['token']))
+if (empty($_SESSION[COOKIENAME.'token']))
 {
 	if (function_exists('openssl_random_pseudo_bytes')) // introduced in PHP 5.3.0
 	{
-		$_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
+		$_SESSION[COOKIENAME.'token'] = bin2hex(openssl_random_pseudo_bytes(32));
 	} else {
 		// For PHP 5.2.x - This case can be removed once we drop support for 5.2.x
-		$_SESSION['token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
+		$_SESSION[COOKIENAME.'token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
 	}
 }
-$token = $_SESSION['token'];    
+$token = $_SESSION[COOKIENAME.'token'];    
 $token_html = '<input type="hidden" name="token" value="'.$token.'" />';
 
 // checking CSRF token
@@ -83,8 +87,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['download'])) // all POS
 	{
 		die("CSRF token missing");
 	}
-	elseif	((function_exists('hash_equals') && !hash_equals($_SESSION['token'], $check_token)) ||
-			 (!function_exists('hash_equals') && $_SESSION['token']!==$check_token) )   // yes, timing attacks might be possible here. update your php ;)
+	elseif	((function_exists('hash_equals') && !hash_equals($_SESSION[COOKIENAME.'token'], $check_token)) ||
+			 (!function_exists('hash_equals') && $_SESSION[COOKIENAME.'token']!==$check_token) )   // yes, timing attacks might be possible here. update your php ;)
 	{
 		die("CSRF token is wrong - please try to login again");
 	}
@@ -112,9 +116,6 @@ if($language != 'en') {
 	$lang = array_merge($temp_lang, $lang);
 	unset($temp_lang);
 }
-// version-number added so after updating, old session-data is not used anylonger
-// cookies names cannot contain symbols, except underscores
-define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . VERSION) );
 
 // stripslashes if MAGIC QUOTES is turned on
 // This is only a workaround. Please better turn off magic quotes!
@@ -1496,11 +1497,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				//save the queries in history if necessary
 				if($maxSavedQueries!=0 && $maxSavedQueries!=false)
 				{
-					if(!isset($_SESSION['query_history']))
-						$_SESSION['query_history'] = array();
-					$_SESSION['query_history'][md5(strtolower($queryStr))] = $queryStr;
-					if(sizeof($_SESSION['query_history']) > $maxSavedQueries)
-						array_shift($_SESSION['query_history']);
+					if(!isset($_SESSION[COOKIENAME.'query_history']))
+						$_SESSION[COOKIENAME.'query_history'] = array();
+					$_SESSION[COOKIENAME.'query_history'][md5(strtolower($queryStr))] = $queryStr;
+					if(sizeof($_SESSION[COOKIENAME.'query_history']) > $maxSavedQueries)
+						array_shift($_SESSION[COOKIENAME.'query_history']);
 				}
 				$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
@@ -1581,10 +1582,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<fieldset>";
 			echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 			echo $params->getForm(array('table'=>$target_table, 'action'=>'table_sql'));
-			if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
+			if(isset($_SESSION[COOKIENAME.'query_history']) && sizeof($_SESSION[COOKIENAME.'query_history'])>0)
 			{
 				echo "<b>".$lang['recent_queries']."</b><ul>";
-				foreach($_SESSION['query_history'] as $key => $value)
+				foreach($_SESSION[COOKIENAME.'query_history'] as $key => $value)
 					echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
 				echo "</ul><br/><br/>";
 			}
@@ -3426,11 +3427,11 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			//save the queries in history if necessary
 			if($maxSavedQueries!=0 && $maxSavedQueries!=false)
 			{
-				if(!isset($_SESSION['query_history']))
-					$_SESSION['query_history'] = array();
-				$_SESSION['query_history'][md5(strtolower($queryStr))] = $queryStr;
-				if(sizeof($_SESSION['query_history']) > $maxSavedQueries)
-					array_shift($_SESSION['query_history']);
+				if(!isset($_SESSION[COOKIENAME.'query_history']))
+					$_SESSION[COOKIENAME.'query_history'] = array();
+				$_SESSION[COOKIENAME.'query_history'][md5(strtolower($queryStr))] = $queryStr;
+				if(sizeof($_SESSION[COOKIENAME.'query_history']) > $maxSavedQueries)
+					array_shift($_SESSION[COOKIENAME.'query_history']);
 			}
 			$query = explode_sql($delimiter, $queryStr); //explode the query string into individual queries based on the delimiter
 
@@ -3511,10 +3512,10 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<fieldset>";
 		echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
 		echo $params->getForm(array('view'=>'sql'));
-		if(isset($_SESSION['query_history']) && sizeof($_SESSION['query_history'])>0)
+		if(isset($_SESSION[COOKIENAME.'query_history']) && sizeof($_SESSION[COOKIENAME.'query_history'])>0)
 		{
 			echo "<b>".$lang['recent_queries']."</b><ul>";
-			foreach($_SESSION['query_history'] as $key => $value)
+			foreach($_SESSION[COOKIENAME.'query_history'] as $key => $value)
 			{
 				echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
 			}
