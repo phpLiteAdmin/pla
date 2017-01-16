@@ -14,6 +14,21 @@ class GetParameters
 		$this->_fields[$key] = $value;
 	}
 
+	public function __isset($key)
+	{
+		return isset($this->_fields[$key]);
+	}
+
+	public function __unset($key)
+	{
+		unset($this->_fields[$key]);
+	}
+
+	public function __get($key)
+	{
+		return $this->_fields[$key];
+	}
+
 	public function getURL(array $assoc = array(), $html = true, $prefix='?')
 	{
 		$arg_sep = ($html?'&amp;':'&');
