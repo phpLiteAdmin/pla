@@ -12,7 +12,7 @@ class Database
 
 	public function __construct($data)
 	{
-		global $lang;
+		global $lang, $params;
 		$this->data = $data;
 		try
 		{
@@ -20,8 +20,7 @@ class Database
 			{
 				echo "<div class='confirm' style='margin:20px;'>";
 				printf($lang['db_not_writeable'], htmlencode($this->data["path"]), htmlencode(dirname($this->data["path"])));
-				echo "<form action='".PAGE."' method='post'>";
-				echo '<input type="hidden" name="token" value="'.$_SESSION['token'].'" />';
+				echo $params->getForm();
 				echo "<input type='submit' value='Log Out' name='".$lang['logout']."' class='btn'/>";
 				echo "</form>";
 				echo "</div><br/>";
@@ -145,7 +144,7 @@ class Database
 	// print the list of databases
 	public function print_db_list()
 	{
-		global $databases, $lang;
+		global $databases, $lang, $params;
 		echo "<fieldset style='margin:15px;' class='databaseList'><legend><b>".$lang['db_ch']."</b></legend>";
 		if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 		{
@@ -157,18 +156,18 @@ class Database
 				if(strlen($name)>25)
 					$name = "...".substr($name, strlen($name)-22, 22); 
 				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
-				if($database == $_SESSION[COOKIENAME.'currentDB'])
-					echo "<a href='?switchdb=".urlencode($database['path'])."' class='active_db'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."&amp;token=".urlencode($_SESSION['token'])."' title='".$lang['backup']."'>[&darr;]</a>";
-				else
-					echo "<a href='?switchdb=".urlencode($database['path'])."'>".htmlencode($name)."</a>&nbsp;&nbsp;<a href='?download=".urlencode($database['path'])."&amp;token=".urlencode($_SESSION['token'])."' title='".$lang['backup']."'>[&darr;]</a>";
+				
+				echo $params->getLink(array('switchdb'=>$database['path']), htmlencode($name), ($database == $_SESSION[COOKIENAME.'currentDB']? 'active_db': '') );
+				echo "&nbsp;&nbsp;";
+				echo $params->getLink(array('download'=>$database['path'], 'token'=>$_SESSION['token']), '[&darr;]', '', $lang['backup']);
+				
 				if($i<sizeof($databases))
 					echo "<br/>";
 			}
 		}
 		else //there are a lot of databases - show a drop down menu
 		{
-			echo "<form action='".PAGE."' method='post'>";
-			echo '<input type="hidden" name="token" value="'.$_SESSION['token'].'" />';
+			echo $params->getForm();
 			echo "<select name='database_switch'>";
 			foreach($databases as $database)
 			{

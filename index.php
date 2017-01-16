@@ -34,7 +34,6 @@ if (is_readable($config_filename))
 //constants 1
 define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.8-dev");
-define("PAGE", basename(__FILE__));
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define('PROJECT_URL','http://www.phpliteadmin.org/');
@@ -1270,7 +1269,7 @@ $target_table_type = $target_table ? $db->getTypeOfTable($target_table) : null;
 //- HTML: sidebar
 echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
 echo "<div id='leftNav'>";
-echo "<h1><a href='".PAGE."'>";
+echo "<h1><a href='".$params->getURL()."'>";
 echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>";
 echo "</a></h1>";
 echo "<div id='headerlinks'>";
@@ -1282,7 +1281,7 @@ echo "</div>";
 //- HTML: database list
 $db->print_db_list();
 echo "<fieldset style='margin:15px;'><legend>";
-echo "<a href='".PAGE."'";
+echo "<a href='".$params->getURL()."'";
 if (!$target_table)
 	echo " class='active_table'";
 $name = $currentDB['name'];
@@ -1337,7 +1336,7 @@ echo "</div>";
 echo '</td><td valign="top" id="main_column" class="right_td" style="padding:9px 2px 9px 9px;">';
 
 //- HTML: breadcrumb navigation
-echo "<a href='".PAGE."'>".htmlencode($currentDB['name'])."</a>";
+echo $params->getLink(array(), htmlencode($currentDB['name']));
 if ($target_table)
 	echo " &rarr; ".$params->getLink(array('action'=>'row_view', 'table'=>$target_table), htmlencode($target_table));
 echo "<br/><br/>";
@@ -1479,7 +1478,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['create']."' class='btn'/> ";
-				echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
+				echo $params->getLink(array(), $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -1618,7 +1617,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
+			echo $params->getLink(array(), $lang['cancel']);
 			echo "</div>";
 			break;
 
@@ -1629,7 +1628,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
+			echo $params->getLink(array(), $lang['cancel']);
 			echo "</div>";
 			break;
 
@@ -1640,7 +1639,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop_view'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
+			echo $params->getLink(array(), $lang['cancel']);
 			echo "</div>";
 			break;
 
@@ -2916,7 +2915,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['add_flds']."' class='btn'/> ";
-				echo "<a href='?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
+				echo $params->getLink(array('table'=>$_POST['tablename'], 'action'=>'column_view'), $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -2937,7 +2936,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<div class='confirm'>";
 				echo $lang['err'].": ".$lang['no_sel'];
 				echo "</div>";
-				echo "<br/><br/><a href='?table=".urlencode($target_table)."&amp;action=column_view'>".$lang['return']."</a>";
+				echo "<br/><br/>";
+				echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['return']);
 			}
 			else
 			{
@@ -3043,7 +3043,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
-				echo "<a href='?table=".urlencode($target_table)."&amp;action=column_view'>".$lang['cancel']."</a>";
+				echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -3057,7 +3057,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_del_index'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='?table=".urlencode($target_table)."&amp;action=column_view'>".$lang['cancel']."</a>";
+			echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['cancel']);
 			echo "</div>";
 			echo "</form>";
 			break;
@@ -3068,7 +3068,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_del_trigger'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo "<a href='?table=".urlencode($target_table)."&amp;action=column_view'>".$lang['cancel']."</a>";
+			echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['cancel']);
 			echo "</div>";
 			echo "</form>";
 			break;
@@ -3107,7 +3107,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<textarea name='triggersteps' style='width:500px; height:100px;' rows='8' cols='50'></textarea>";
 				echo "</fieldset><br/><br/>";
 				echo "<input type='submit' value='".$lang['create_trigger2']."' class='btn'/> ";
-				echo "<a href='?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
+				echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['cancel']);
 				echo "</form>";
 			}
 			break;
@@ -3155,7 +3155,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<br/><br/>";
 				echo "<input type='hidden' name='num' value='".$num."'/>";
 				echo "<input type='submit' value='".$lang['create_index1']."' class='btn'/> ";
-				echo "<a href='?table=".urlencode($_POST['tablename'])."&amp;action=column_view'>".$lang['cancel']."</a>";
+				echo $params->getLink(array('table'=>$target_table, 'action'=>'column_view'), $lang['cancel']);
 				echo "</form>";
 			}
 			break;
@@ -3170,51 +3170,22 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 {
 	$view = isset($_GET['view']) ? $_GET['view'] : 'structure';
 
-	echo "<a href='?view=structure' ";
-	if($view=="structure")
-		echo "class='tab_pressed'";
-	else
-		echo "class='tab'";
-	echo ">".$lang['struct']."</a>";
-	echo "<a href='?view=sql' ";
-	if($view=="sql")
-		echo "class='tab_pressed'";
-	else
-		echo "class='tab'";
-	echo ">".$lang['sql']."</a>";
-	echo "<a href='?view=export' ";
-	if($view=="export")
-		echo "class='tab_pressed'";
-	else
-		echo "class='tab'";
-	echo ">".$lang['export']."</a>";
-	echo "<a href='?view=import' ";
-	if($view=="import")
-		echo "class='tab_pressed'";
-	else
-		echo "class='tab'";
-	echo ">".$lang['import']."</a>";
-	echo "<a href='?view=vacuum' ";
-	if($view=="vacuum")
-		echo "class='tab_pressed'";
-	else
-		echo "class='tab'";
-	echo ">".$lang['vac']."</a>";
+	echo $params->getLink(array('view'=>'structure'), $lang['struct'], ($view=="structure" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'sql'), $lang['sql'], ($view=="sql" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'export'), $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
+
 	if($directory!==false && is_writable($directory))
 	{
-		echo "<a href='?view=rename' ";
-		if($view=="rename")
-			echo "class='tab_pressed'";
-		else
-			echo "class='tab'";
-		echo ">".$lang['db_rename']."</a>";
-		
-		echo "<a href='?view=delete' title='".$lang['db_del']."' ";
-		if($view=="delete")
-			echo "class='tab_pressed delete_db'";
-		else
-			echo "class='tab delete_db'";
-		echo "><span>".$lang['db_del']."</span></a>";
+
+		echo $params->getLink(array('view'=>'rename'), $lang['db_rename'], ($view=="rename" ? 'tab_pressed': 'tab')  );
+
+		echo $params->getLink(array('view'=>'delete'), "<span>".$lang['db_del']."</span>", ($view=="delete" ? 'tab_pressed delete_db': 'tab delete_db')  );
 	}
 	echo "<div style='clear:both;'></div>";
 	echo "<div id='main'>";
@@ -3251,7 +3222,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		if ($auth->isPasswordDefault())
 		{
 			echo "<div class='confirm' style='margin:20px 0px;'>";
-			echo sprintf($lang['warn_passwd'],(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':PAGE))."<br />".$lang['warn0'];
+			echo sprintf($lang['warn_passwd'],(is_readable('phpliteadmin.config.php')?'phpliteadmin.config.php':basename(__FILE__)))."<br />".$lang['warn0'];
 			echo "</div>";
 		}
 		
@@ -3290,25 +3261,22 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "<tr>";
 			
 			echo "<td class='tdheader'>";
-			echo "<a href='?sort=type";
 			if(isset($_SESSION[COOKIENAME.'sortTables']))
 				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="type" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 			else
 				$orderTag = "ASC";
-			echo "&amp;order=".$orderTag;
-			echo "'>".$lang['type']."</a> ".helpLink($lang['help3']); 
+			echo $params->getLink(array('sort'=>'type', 'order'=>$orderTag), $lang['type']);
+			echo helpLink($lang['help3']); 
 			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="type")
 				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 			echo "</td>";
 			
 			echo "<td class='tdheader'>";
-			echo "<a href='?sort=name";
 			if(isset($_SESSION[COOKIENAME.'sortTables']))
 				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="name" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 			else
 				$orderTag = "ASC";
-			echo "&amp;order=".$orderTag;
-			echo "'>".$lang['name']."</a>";
+			echo $params->getLink(array('sort'=>'name', 'order'=>$orderTag), $lang['name']);
 			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="name")
 				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 			echo "</td>";
@@ -3325,7 +3293,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				if($records == '?')
 				{
 					$skippedTables = true;
-					$records = "<a href='?forceCount=1'>?</a>";
+					$records = $params->getLink(array('forceCount'=>'1'), '?');
 				}
 				else
 					$totalRecords += $records;
@@ -3339,37 +3307,37 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 					echo $lang['tbl'];
 					echo "</td>";
 					echo $tdWithClassLeft;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".$lang['browse']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>".$lang['struct']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>".$lang['sql']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>".$lang['srch']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_create'>".$lang['insert']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_create'), $lang['insert']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>".$lang['export']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_import'>".$lang['import']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_import'), $lang['import']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_rename'>".$lang['rename']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_rename'), $lang['rename']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_empty' class='empty'>".$lang['empty']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_empty'), $lang['empty'], 'empty');
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_drop' class='drop'>".$lang['drop']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_drop'), $lang['drop'], 'drop');
 					echo "</td>";
 					echo $tdWithClass;
 					echo $records;
@@ -3383,37 +3351,37 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 					echo $lang['view'];
 					echo "</td>";
 					echo $tdWithClassLeft;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".htmlencode($result[$i]['name'])."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=row_view'>".$lang['browse']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=column_view'>".$lang['struct']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_sql'>".$lang['sql']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_search'>".$lang['srch']."</a>";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=table_export'>".$lang['export']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
 					echo "</td>";
 					echo $tdWithClass;
 					echo "";
 					echo "</td>";
 					echo $tdWithClass;
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
+					echo "</td>";
+					echo $tdWithClass;
+					echo "";
+					echo "</td>";
+					echo $tdWithClass;
 					echo "";
 					echo "</td>";
 					echo $tdWithClass;
 					echo "";
 					echo "</td>";
 					echo $tdWithClass;
-					echo "<a href='?table=".urlencode($result[$i]['name'])."&amp;action=view_drop' class='drop'>".$lang['drop']."</a>";
+					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'view_drop'), $lang['drop'], 'drop');
 					echo "</td>";
 					echo $tdWithClass;
 					echo $records;
@@ -3423,12 +3391,12 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			}
 			echo "<tr>";
 			echo "<td class='tdheader' colspan='12'>".sizeof($result)." ".$lang['total']."</td>";
-			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" <a href='?forceCount=1'>+ ?</a>":"")."</td>";
+			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" ".$params->getLink(array('forceCount'=>'1'),'+ ?'):"")."</td>";
 			echo "</tr>";
 			echo "</table>";
 			echo "<br/>";
 			if($skippedTables)
-				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='?forceCount=1'>","</a>")."</div>";
+				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='".$params->getURL(array('forceCount'=>'1'))."'>","</a>")."</div>";
 		}
 		echo "<fieldset>";
 		echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
@@ -3627,7 +3595,9 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<input type='text' name='filename' value='".htmlencode($name)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 		echo "</fieldset>";
 		echo "</form>";
-		echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], "<a href='?download=".urlencode($currentDB['path'])."&amp;token=".urlencode($token)."' title='".$lang['backup']."'>".$lang["backup_hint_linktext"]."</a>")."</div>";
+		echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], 
+			$params->getLink(array('download'=>$currentDB['path'], 'token'=>$token), $lang["backup_hint_linktext"], '', $lang['backup'])
+			)."</div>";
 	}
 	else if($view=="import")
 	{
@@ -3728,7 +3698,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo sprintf($lang['ques_del_db'],htmlencode($db->getPath()))."<br/><br/>";
 		echo "<input name='database_delete' value='".htmlencode($db->getPath())."' type='hidden'/>";
 		echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-		echo "<a href='".PAGE."'>".$lang['cancel']."</a>";
+		echo $params->getLink(array(), $lang['cancel']);
 		echo "</div>";
 		echo "</form>";	
 	}
