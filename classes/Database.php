@@ -144,7 +144,7 @@ class Database
 	// print the list of databases
 	public function print_db_list()
 	{
-		global $databases, $lang, $params;
+		global $databases, $lang, $params, $currentDB;
 		echo "<fieldset style='margin:15px;' class='databaseList'><legend><b>".$lang['db_ch']."</b></legend>";
 		if(sizeof($databases)<10) //if there aren't a lot of databases, just show them as a list of links instead of drop down menu
 		{
@@ -157,7 +157,7 @@ class Database
 					$name = "...".substr($name, strlen($name)-22, 22); 
 				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
 				
-				echo $params->getLink(array('switchdb'=>$database['path']), htmlencode($name), ($database == $_SESSION[COOKIENAME.'currentDB']? 'active_db': '') );
+				echo $params->getLink(array('database'=>$database['path']), htmlencode($name), ($database == $currentDB? 'active_db': '') );
 				echo "&nbsp;&nbsp;";
 				echo $params->getLink(array('download'=>$database['path'], 'token'=>$_SESSION[COOKIENAME.'token']), '[&darr;]', '', $lang['backup']);
 				
@@ -168,11 +168,11 @@ class Database
 		else //there are a lot of databases - show a drop down menu
 		{
 			echo $params->getForm();
-			echo "<select name='database_switch'>";
+			echo "<select name='database'>";
 			foreach($databases as $database)
 			{
 				$perms_string = htmlencode('[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ');
-				if($database == $_SESSION[COOKIENAME.'currentDB'])
+				if($database == $currentDB)
 					echo "<option value='".htmlencode($database['path'])."' selected='selected'>".$perms_string.htmlencode($database['name'])."</option>";
 				else
 					echo "<option value='".htmlencode($database['path'])."'>".$perms_string.htmlencode($database['name'])."</option>";

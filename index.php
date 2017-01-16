@@ -59,7 +59,6 @@ session_start();
 define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . VERSION) );
 
 $params = new GetParameters();
-$params->test ="TEST";
 
 // generate CSRF token 
 if (empty($_SESSION[COOKIENAME.'token']))
@@ -402,7 +401,7 @@ if ($auth->isAuthorized())
 				{
 					if($database['path'] == $tdata['path'])
 					{
-						$_SESSION[COOKIENAME.'currentDB'] = $database;
+						$currentDB = $database;
 						$params->database = $database['path'];
 						break;
 					}
@@ -435,9 +434,16 @@ if ($auth->isAuthorized())
 		}
 		sort($databases);
 	}
-	// we now have the $databases array set. Check whethet currentDB is a managed Db (is in this array)
-	if(isset($_SESSION[COOKIENAME.'currentDB']) && isManagedDB($_SESSION[COOKIENAME.'currentDB']['path']) === false)
-		unset($_SESSION[COOKIENAME.'currentDB']);
+	// we now have the $databases array set. Check whether selected DB is a managed Db (is in this array)
+	if(!isset($currentDB) && (isset($_GET['database']) || isset($_POST['database']) ) )
+	{
+		$selected_db = ( isset($_POST['database']) ? $_POST['database'] : $_GET['database'] );
+		$db_key = isManagedDB($selected_db);
+		if($db_key!==false) {
+			$currentDB = $databases[$db_key];
+			$params->database = $databases[$db_key]['path'];
+		}
+	}
 	
 	//- Delete an existing database
 	if(isset($_GET['database_delete']))
@@ -448,7 +454,8 @@ if ($auth->isAuthorized())
 		if($checkDB !== false)
 		{
 			unlink($dbpath);
-			unset($_SESSION[COOKIENAME.'currentDB']);
+			unset($params->database);
+			unset($currentDB);
 			unset($databases[$checkDB]);
 		} else die($lang['err'].': '.$lang['delete_only_managed']);
 	}
@@ -484,7 +491,7 @@ if ($auth->isAuthorized())
 				rename($oldpath, $newpath);
 				$databases[$checkDB]['path'] = $newpath;
 				$databases[$checkDB]['name'] = basename($newpath);
-				$_SESSION[COOKIENAME.'currentDB'] = $databases[$checkDB];
+				$currentDB = $databases[$checkDB];
 				$params->database = $databases[$checkDB]['path']; 
 				$justrenamed = true;
 			}
@@ -518,7 +525,7 @@ if ($auth->isAuthorized())
 			$data = isset($_POST['data']);
 			$transaction = isset($_POST['transaction']);
 			$comments = isset($_POST['comments']);
-			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+			$db = new Database($currentDB);
 			echo $db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
 		}
 		else if($_POST['export_type']=="csv")
@@ -540,7 +547,7 @@ if ($auth->isAuthorized())
 			$null = $_POST['export_csv_replacenull'];
 			$crlf = isset($_POST['export_csv_crlf']);
 			$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
-			$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+			$db = new Database($currentDB);
 			echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
 		}
 		exit();
@@ -549,7 +556,7 @@ if ($auth->isAuthorized())
 	//- Import a file into an existing database
 	if(isset($_POST['import']))
 	{
-		$db = new Database($_SESSION[COOKIENAME.'currentDB']);
+		$db = new Database($currentDB);
 		$db->registerUserFunction($custom_functions);
 		if($_POST['import_type']=="sql")
 		{
@@ -686,15 +693,14 @@ if(!$auth->isAuthorized())
 //- User is authorized, display the main application
 
 //- Select database (from session or first available)
-if(!isset($_SESSION[COOKIENAME.'currentDB']) && count($databases)>0)
+if(!isset($currentDB) && count($databases)>0)
 {
 	//set the current database to the first existing one in the array (default)
-	$_SESSION[COOKIENAME.'currentDB'] = reset($databases);
-	$params->database = $_SESSION[COOKIENAME.'currentDB']['path']; 
+	$currentDB = reset($databases);
+	$params->database = $currentDB['path']; 
 }
-if(sizeof($databases)>0)
-	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
-else // the database array is empty, offer to create a new database
+
+if(count($databases)==0) // the database array is empty, offer to create a new database
 {
 	//- HTML: form to create a new database, exit
 	if($directory!==false && is_writable($directory))
@@ -732,36 +738,6 @@ else // the database array is empty, offer to create a new database
 	}
 	exit();
 }
-
-//- Switch to a different database with drop-down menu
-if(isset($_POST['database_switch']))
-{
-	foreach($databases as $db_id => $database)
-	{
-		if($database['path'] == $_POST['database_switch'])
-		{
-			$_SESSION[COOKIENAME."currentDB"] = $database;
-			$params->database = $database['path'];
-			break;
-		}
-	}
-	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
-}
-else if(isset($_GET['switchdb']))
-{
-	foreach($databases as $db_id => $database)
-	{
-		if($database['path'] == $_GET['switchdb'])
-		{
-			$_SESSION[COOKIENAME."currentDB"] = $database;
-			$params->database = $database['path'];
-			break;
-		}
-	}
-	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
-}
-if(isset($_SESSION[COOKIENAME.'currentDB']) && in_array($_SESSION[COOKIENAME.'currentDB'], $databases))
-	$currentDB = $_SESSION[COOKIENAME.'currentDB'];
 
 //- Open database (creates a Database object)
 $db = new Database($currentDB); //create the Database object
