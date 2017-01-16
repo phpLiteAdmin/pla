@@ -255,8 +255,8 @@ function deQuoteSQL($s)
 // reduce string chars
 function subString($str)
 {
-	global $charsNum;
-	if($charsNum > 10 && (!isset($_SESSION[COOKIENAME.'fulltexts']) || !$_SESSION[COOKIENAME.'fulltexts']) && strlen($str)>$charsNum)
+	global $charsNum, $params;
+	if($charsNum > 10 && (!isset($params->fulltexts) || !$params->fulltexts) && strlen($str)>$charsNum)
 	{
 		$str = substr($str, 0, $charsNum).'...';
 	}
@@ -745,6 +745,12 @@ $db->registerUserFunction($custom_functions);
 
 // collect parameters early, just once
 $target_table = isset($_GET['table']) ? $_GET['table'] : null;
+
+// initialize / change fulltexts parameter
+if(isset($_GET['fulltexts']))
+	$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
+else
+	$params->fulltexts = 0;
 
 //- Switch on $_GET['action'] for operations without output
 if(isset($_GET['action']) && isset($_GET['confirm']))
@@ -1973,12 +1979,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if(!isset($_SESSION[COOKIENAME.'numRows']))
 				$_SESSION[COOKIENAME.'numRows'] = $rowsNum;
 			
-			if(isset($_GET['fulltexts']))
-				$_SESSION[COOKIENAME.'fulltexts'] = $_GET['fulltexts'];
-
-			if(!isset($_SESSION[COOKIENAME.'fulltexts']))
-				$_SESSION[COOKIENAME.'fulltexts'] = false;
-
 			if(isset($_SESSION[COOKIENAME.'currentTable']) && $_SESSION[COOKIENAME.'currentTable']!=$target_table)
 			{
 				unset($_SESSION[COOKIENAME.'sortRows']);
@@ -2140,8 +2140,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if($target_table_type == 'table')
 					{
 						echo "<td colspan='3' class='tdheader' style='text-align:center'>";
-						echo "<a href='".$params->getURL(array('action'=>'row_view', 'table'=>$target_table, 'fulltexts'=>($_SESSION[COOKIENAME.'fulltexts']?0:1) ))."' title='".$lang[($_SESSION[COOKIENAME.'fulltexts']?'no_full_texts':'full_texts')]."'>";
-						echo "<b>&".($_SESSION[COOKIENAME.'fulltexts']?'r':'l')."arr;</b> T <b>&".($_SESSION[COOKIENAME.'fulltexts']?'l':'r')."arr;</b></a>";
+						echo "<a href='".$params->getURL(array('action'=>'row_view', 'table'=>$target_table, 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
+						echo "<b>&".($params->fulltexts?'r':'l')."arr;</b> T <b>&".($params->fulltexts?'l':'r')."arr;</b></a>";
 						echo "</td>";
 					}
 
@@ -2411,7 +2411,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<br/>";
 			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 			$result = $db->selectArray($query);
-			echo $params->getForm(array('action'=>'row_view','confirm'=>'1','table'=>$target_table));
+			echo $params->getForm(array('action'=>'row_create','confirm'=>'1','table'=>$target_table));
 			if(isset($_POST['num']))
 				$num = $_POST['num'];
 			else
