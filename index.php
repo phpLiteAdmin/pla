@@ -1248,7 +1248,9 @@ for($i=0; $i<sizeof($result); $i++)
 {
 	if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
 	{
-		echo "<span class='sidebar_table'>[".$lang[$result[$i]['type']=='table'?'tbl':'view']."]</span> ";
+		echo "<span class='sidebar_table'>";
+		echo $params->getLink(array('action'=>'column_view', 'table'=>$result[$i]['name']), "[".$lang[$result[$i]['type']=='table'?'tbl':'view']."]");
+		echo "</span> ";
 		echo $params->getLink(array('action'=>'row_view', 'table'=>$result[$i]['name']), htmlencode($result[$i]['name']), 
 			($target_table == $result[$i]['name'] ? 'active_table' : '') );
 		echo "<br/>";
