@@ -36,8 +36,8 @@ define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.8-dev");
 define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
 define("SYSTEMPASSWORD", $password); // Makes things easier.
-define('PROJECT_URL','http://www.phpliteadmin.org/');
-define('DONATE_URL','http://www.phpliteadmin.org/donate/');
+define('PROJECT_URL','https://www.phpliteadmin.org/');
+define('DONATE_URL','https://www.phpliteadmin.org/donate/');
 define('VERSION_CHECK_URL','https://www.phpliteadmin.org/current_version.php');
 define('PROJECT_BUGTRACKER_LINK','<a href="https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open" target="_blank">https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open</a>');
 define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/public/wiki/Installation" target="_blank">https://bitbucket.org/phpliteadmin/public/wiki/Installation</a>');
@@ -265,7 +265,7 @@ function isManagedDB($path)
 }
 
 // from a typename of a colun, get the type of the column's affinty
-// see http://www.sqlite.org/datatype3.html section 2.1 for rules
+// see https://www.sqlite.org/datatype3.html section 2.1 for rules
 function get_type_affinity($type)
 {
 	if (preg_match("/INT/i", $type))
@@ -1224,7 +1224,7 @@ echo "<span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span>"
 echo "</a></h1>";
 echo "<div id='headerlinks'>";
 echo "<a href='javascript:void' onclick='openHelp(\"top\");'>".$lang['docu']."</a> | ";
-echo "<a href='http://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
+echo "<a href='https://www.gnu.org/licenses/gpl.html' target='_blank'>".$lang['license']."</a> | ";
 echo "<a href='".PROJECT_URL."' target='_blank'>".$lang['proj_site']."</a>";
 echo "</div>";
 
@@ -1786,7 +1786,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				{
 					if($target_table_type == 'view')
 					{
-						echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+						echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='https://en.wikipedia.org/wiki/View_(SQL)' target='_blank'>https://en.wikipedia.org/wiki/View_(SQL)</a>"; 
 						echo "<br/><br/>";	
 					}
 
@@ -2091,7 +2091,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				
 				if($target_table_type == 'view')
 				{
-					echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>"; 
+					echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='https://en.wikipedia.org/wiki/View_(SQL)' target='_blank'>https://en.wikipedia.org/wiki/View_(SQL)</a>"; 
 					echo "<br/><br/>";	
 				}
 				
