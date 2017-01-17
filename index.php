@@ -1636,7 +1636,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</fieldset>";
 			echo "</form>";
 			echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'],
-				$params->getLink(array('download' => $currentDB['path'], 'token' => $token), $lang["backup_hint_linktext"], '', $lang['backup']))."</div>";
+				$params->getLink(array('download' => $currentDB['path'], 'token' => $_SESSION[COOKIENAME.'token']), $lang["backup_hint_linktext"], '', $lang['backup']))."</div>";
 			break;
 
 		//- Import table (=table_import)
@@ -3496,7 +3496,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "</fieldset>";
 		echo "</form>";
 		echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'], 
-			$params->getLink(array('download'=>$currentDB['path'], 'token'=>$token), $lang["backup_hint_linktext"], '', $lang['backup'])
+			$params->getLink(array('download'=>$currentDB['path'], 'token'=>$_SESSION[COOKIENAME.'token']), $lang["backup_hint_linktext"], '', $lang['backup'])
 			)."</div>";
 	}
 	else if($view=="import")
