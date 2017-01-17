@@ -821,7 +821,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$name), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$name));
 			break;
 
 		//- Empty table (=table_empty)
@@ -835,7 +835,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$name), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_POST['tablename']));
 			break;
 
 		//- Create view (=view_create)
@@ -845,7 +845,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$_POST['viewname']), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$_POST['viewname']));
 			break;
 
 		//- Drop table (=table_drop)
@@ -855,7 +855,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
-			$backlinkParameters = "";
+			$backlinkParameters = $params->getURL();
 			break;
 
 		//- Drop view (=view_drop)
@@ -865,7 +865,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
-			$backlinkParameters = "";
+			$backlinkParameters = $params->getURL();
 			break;
 
 		//- Rename table (=table_rename)
@@ -879,7 +879,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_POST['newname']), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_POST['newname']));
 			break;
 
 	//- Row actions
@@ -954,7 +954,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				}
 			}
 			$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Delete row (=row_delete)
@@ -970,7 +970,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$target_table));
 			break;
 
 		//- Edit row (=row_edit)
@@ -1076,7 +1076,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			}
 			if(isset($_POST['new_row']))
 				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$target_table));
 			break;
 
 	//- Column actions
@@ -1124,7 +1124,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				}
 			}
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Delete column (=column_delete)
@@ -1139,7 +1139,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Add a primary key (=primarykey_add)
@@ -1155,7 +1155,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Edit column (=column_edit)
@@ -1165,7 +1165,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Delete trigger (=trigger_delete)
@@ -1175,7 +1175,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Delete index (=index_delete)
@@ -1185,7 +1185,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Create trigger (=trigger_create)
@@ -1206,7 +1206,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 
 		//- Create index (=index_create)
@@ -1241,7 +1241,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$error = true;
 				$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			}
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table), true, '');
+			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$target_table));
 			break;
 	}
 }
@@ -1340,7 +1340,7 @@ if(isset($_GET['confirm']))
 	else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
 		echo "<br/><br/>".$params->getLink(array('action'=>'column_view', 'table'=>$target_table), $lang['return']);
 	else
-		echo "<br/><br/><a href='?".(isset($backlinkParameters)?"?".$backlinkParameters:'')."'>".$lang['return']."</a>";
+		echo "<br/><br/><a href='".(isset($backlinkParameters)?$backlinkParameters:'?')."'>".$lang['return']."</a>";
 	echo "</div>";
 }
 
@@ -3277,94 +3277,50 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 				$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 				
+				echo "<tr>";
+				echo $tdWithClassLeft;
+				echo ($result[$i]['type']=="table"? $lang['tbl'] : $lang['view']);
+				echo "</td>";
+				echo $tdWithClassLeft;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
+				echo "</td>";
+				echo $tdWithClass;
 				if($result[$i]['type']=="table")
-				{
-					echo "<tr>";
-					echo $tdWithClassLeft;
-					echo $lang['tbl'];
-					echo "</td>";
-					echo $tdWithClassLeft;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
-					echo "</td>";
-					echo $tdWithClass;
 					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_create'), $lang['insert']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
-					echo "</td>";
-					echo $tdWithClass;
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
+				echo "</td>";
+				echo $tdWithClass;
+				if($result[$i]['type']=="table")
 					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_import'), $lang['import']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_rename'), $lang['rename']);
-					echo "</td>";
-					echo $tdWithClass;
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_rename'), $lang['rename']);
+				echo "</td>";
+				echo $tdWithClass;
+				if($result[$i]['type']=="table")
 					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_empty'), $lang['empty'], 'empty');
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_drop'), $lang['drop'], 'drop');
-					echo "</td>";
-					echo $tdWithClass;
-					echo $records;
-					echo "</td>";
-					echo "</tr>";
-				}
-				else
-				{
-					echo "<tr>";
-					echo $tdWithClassLeft;
-					echo $lang['view'];
-					echo "</td>";
-					echo $tdWithClassLeft;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo "";
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
-					echo "</td>";
-					echo $tdWithClass;
-					echo "";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "";
-					echo "</td>";
-					echo $tdWithClass;
-					echo "";
-					echo "</td>";
-					echo $tdWithClass;
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'view_drop'), $lang['drop'], 'drop');
-					echo "</td>";
-					echo $tdWithClass;
-					echo $records;
-					echo "</td>";
-					echo "</tr>";
-				}
+				echo "</td>";
+				echo $tdWithClass;
+				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_drop'), $lang['drop'], 'drop');
+				echo "</td>";
+				echo $tdWithClass;
+				echo $records;
+				echo "</td>";
+				echo "</tr>";
 			}
 			echo "<tr>";
 			echo "<td class='tdheader' colspan='12'>".sizeof($result)." ".$lang['total']."</td>";
