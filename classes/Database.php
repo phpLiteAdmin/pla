@@ -1016,10 +1016,13 @@ class Database
 			// the table is without rowid, so use the primary key
 			$query = "PRAGMA table_info(".$this->quote_id($table).")";
 			$table_info = $this->selectArray($query);
-			foreach($table_info as $row_id => $row_data)
+			if(is_array($table_info))
 			{
-				if($row_data['pk'])
-					$primary_key[] = $row_data['name'];
+				foreach($table_info as $row_id => $row_data)
+				{
+					if($row_data['pk'])
+						$primary_key[] = $row_data['name'];
+				}
 			}
 		}
 		return $primary_key;
