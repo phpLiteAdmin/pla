@@ -60,39 +60,6 @@ define("COOKIENAME", preg_replace('/[^a-zA-Z0-9_]/', '_', $cookie_name . '_' . V
 
 $params = new GetParameters();
 
-// generate CSRF token 
-if (empty($_SESSION[COOKIENAME.'token']))
-{
-	if (function_exists('openssl_random_pseudo_bytes')) // introduced in PHP 5.3.0
-	{
-		$_SESSION[COOKIENAME.'token'] = bin2hex(openssl_random_pseudo_bytes(32));
-	} else {
-		// For PHP 5.2.x - This case can be removed once we drop support for 5.2.x
-		$_SESSION[COOKIENAME.'token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
-	}
-}
-$token = $_SESSION[COOKIENAME.'token'];    
-$token_html = '<input type="hidden" name="token" value="'.$token.'" />';
-
-// checking CSRF token
-if($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['download'])) // all POST forms need tokens! downloads are protected as well
-{
-	if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['token']))
-		$check_token=$_POST['token'];
-	elseif($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['token']))
-		$check_token=$_GET['token'];
-	
-	if (!isset($check_token))
-	{
-		die("CSRF token missing");
-	}
-	elseif	((function_exists('hash_equals') && !hash_equals($_SESSION[COOKIENAME.'token'], $check_token)) ||
-			 (!function_exists('hash_equals') && $_SESSION[COOKIENAME.'token']!==$check_token) )   // yes, timing attacks might be possible here. update your php ;)
-	{
-		die("CSRF token is wrong - please try to login again");
-	}
-}
-
 if($debug==true)
 {
 	ini_set("display_errors", 1);
