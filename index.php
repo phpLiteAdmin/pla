@@ -793,7 +793,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Empty table (=table_empty)
 		case "table_empty":
-			$query = "DELETE FROM ".$db->quote_id($_POST['tablename']);
+			$query = "DELETE FROM ".$db->quote_id($_GET['table']);
 			$result = $db->query($query);
 			if($result===false)
 				$error = true;
@@ -801,8 +801,8 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$result = $db->query($query);
 			if($result===false)
 				$error = true;
-			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_POST['tablename']));
+			$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_GET['table']));
 			break;
 
 		//- Create view (=view_create)
@@ -817,11 +817,13 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Drop table (=table_drop)
 		case "table_drop":
-			$query = "DROP TABLE ".$db->quote_id($_POST['tablename']);
+			$query = "DROP TABLE ".$db->quote_id($_GET['table']);
 			$result=$db->query($query);
 			if($result===false)
 				$error = true;
-			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['dropped'].".";
+			else
+				$target_table = null;
+			$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".";
 			$backlinkParameters = $params->getURL();
 			break;
 
@@ -837,15 +839,17 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Rename table (=table_rename)
 		case "table_rename":
-			$query = "ALTER TABLE ".$db->quote_id($_POST['oldname'])." RENAME TO ".$db->quote($_POST['newname']);
-			$type = $db->getTypeOfTable($_POST['oldname']);
+			$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." RENAME TO ".$db->quote($_POST['newname']);
+			$type = $db->getTypeOfTable($_GET['table']);
 			if($db->getVersion()==3 && $type=='table') // SQLite 3 can rename tables, not views
 				$result = $db->query($query, true);
 			else
 				$result = $db->query($query, false); // workaround can rename tables of sqlite2 and views of both sqlite versions
 			if($result===false)
 				$error = true;
-			$completed = $lang['tbl']." '".htmlencode($_POST['oldname'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+			else
+				$target_table = $_POST['newname'];
+			$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$backlinkParameters = $params->getURL(array('action'=>'row_view', 'table'=>$_POST['newname']));
 			break;
 
@@ -1293,35 +1297,15 @@ if ($target_table)
 	echo " &rarr; ".$params->getLink(array('action'=>'row_view', 'table'=>$target_table), htmlencode($target_table));
 echo "<br/><br/>";
 
-//- HTML: confirmation panel
-//if the user has performed some action, show the resulting message
-if(isset($_GET['confirm']))
-{
-	echo "<div id='main'>";
-	echo "<div class='confirm'>";
-	if(isset($error) && $error) //an error occured during the action, so show an error message
-		echo $lang['err'].": ".htmlencode($db->getError())."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
-	else //action was performed successfully - show success message
-		echo $completed;
-	echo "</div>";
-	if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
-		echo "<br/><br/>".$params->getLink(array('action'=>'row_view', 'table'=>$target_table), $lang['return']);
-	else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
-		echo "<br/><br/>".$params->getLink(array('action'=>'column_view', 'table'=>$target_table), $lang['return']);
-	else
-		echo "<br/><br/><a href='".(isset($backlinkParameters)?$backlinkParameters:'?')."'>".$lang['return']."</a>";
-	echo "</div>";
-}
-
 //- Show the various tab views for a table
-if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET['action']=="table_export" || $_GET['action']=="table_import" || $_GET['action']=="table_sql" || $_GET['action']=="row_view" || $_GET['action']=="row_create" || $_GET['action']=="column_view" || $_GET['action']=="table_rename" || $_GET['action']=="table_search" || $_GET['action']=="table_triggers"))
+if($target_table)
 {
 	//- HTML: tabs
 	echo $params->getLink(array('action'=>'row_view', 'table'=>$target_table), $lang['browse'], 
-		($_GET['action']=="row_view" ? 'tab_pressed' : 'tab'));
+		(in_array($_GET['action'], array('row_view', 'row_editordelete') ) ? 'tab_pressed' : 'tab'));
 	
 	echo $params->getLink(array('action'=>'column_view', 'table'=>$target_table), $lang['struct'], 
-		($_GET['action']=="column_view" ? 'tab_pressed' : 'tab'));
+		(in_array($_GET['action'], array('column_view', 'column_edit', 'column_confirm', 'primarykey_add', 'column_create', 'index_create', 'index_delete', 'trigger_create', 'trigger_delete') ) ? 'tab_pressed' : 'tab'));
 	
 	echo $params->getLink(array('action'=>'table_sql', 'table'=>$target_table), $lang['sql'], 
 		($_GET['action']=="table_sql" ? 'tab_pressed' : 'tab'));
@@ -1345,12 +1329,55 @@ if(!isset($_GET['confirm']) && $target_table && isset($_GET['action']) && ($_GET
 
 	if($target_table_type == 'table')
 		echo $params->getLink(array('action'=>'table_empty', 'table'=>$target_table), $lang['empty'], 
-			'tab empty');
+			($_GET['action']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
 	echo $params->getLink(array('action'=>'table_drop', 'table'=>$target_table), $lang['drop'], 
-		'tab drop');
+			($_GET['action']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
+}
+else
+//- Show the various tab views for a database
+{
+	$view = isset($_GET['view']) ? $_GET['view'] : 'structure';
 
-	echo "<div style='clear:both;'></div>";
+	echo $params->getLink(array('view'=>'structure'), $lang['struct'], ($view=="structure" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'sql'), $lang['sql'], ($view=="sql" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'export'), $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
+	
+	echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
+
+	if($directory!==false && is_writable($directory))
+	{
+
+		echo $params->getLink(array('view'=>'rename'), $lang['db_rename'], ($view=="rename" ? 'tab_pressed': 'tab')  );
+
+		echo $params->getLink(array('view'=>'delete'), "<span>".$lang['db_del']."</span>", ($view=="delete" ? 'tab_pressed delete_db': 'tab delete_db')  );
+	}
+}	
+
+echo "<div style='clear:both;'></div>";
+
+//- HTML: confirmation panel
+//if the user has performed some action, show the resulting message
+if(isset($_GET['confirm']))
+{
+	echo "<div id='main'>";
+	echo "<div class='confirm'>";
+	if(isset($error) && $error) //an error occured during the action, so show an error message
+		echo $lang['err'].": ".htmlencode($db->getError())."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+	else //action was performed successfully - show success message
+		echo $completed;
+	echo "</div>";
+	if($_GET['action']=="row_delete" || $_GET['action']=="row_create" || $_GET['action']=="row_edit")
+		echo "<br/><br/>".$params->getLink(array('action'=>'row_view', 'table'=>$target_table), $lang['return']);
+	else if($_GET['action']=="column_create" || $_GET['action']=="column_delete" || $_GET['action']=="column_edit" || $_GET['action']=="index_create" || $_GET['action']=="index_delete" || $_GET['action']=="trigger_delete" || $_GET['action']=="trigger_create")
+		echo "<br/><br/>".$params->getLink(array('action'=>'column_view', 'table'=>$target_table), $lang['return']);
+	else
+		echo "<br/><br/><a href='".(isset($backlinkParameters)?$backlinkParameters:'?')."'>".$lang['return']."</a>";
+	echo "</div>";
 }
 
 //- Switch on $_GET['action'] for operations with output
@@ -1564,8 +1591,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Empty table (=table_empty)
 		case "table_empty":
-			echo $params->getForm(array('action'=>'table_empty','confirm'=>'1'));
-			echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
+			echo $params->getForm(array('action'=>'table_empty','confirm'=>'1', 'table'=>$target_table));
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
@@ -1575,8 +1601,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Drop table (=table_drop)
 		case "table_drop":
-			echo $params->getForm(array('action'=>'table_drop','confirm'=>'1'));
-			echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
+			echo $params->getForm(array('action'=>'table_drop','confirm'=>'1', 'table'=>$target_table));
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
@@ -1689,8 +1714,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Rename table (=table_rename)
 		case "table_rename":
-			echo $params->getForm(array('action'=>'table_rename', 'confirm'=>'1'));
-			echo "<input type='hidden' name='oldname' value='".htmlencode($target_table)."'/>";
+			echo $params->getForm(array('action'=>'table_rename', 'confirm'=>'1', 'table'=>$target_table));
 			printf($lang['rename_tbl'], htmlencode($target_table));
 			echo " <input type='text' name='newname' value='".htmlencode($target_table)."' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 			echo "</form>";
@@ -2675,7 +2699,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo "<br/>";
 				echo $params->getForm(array('action'=>'column_create', 'table'=>$target_table));
-				echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
 				echo $lang['add']." <input type='text' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
 				echo "</form>";
 			}
@@ -2784,14 +2807,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				}
 				
 				echo $params->getForm(array('table'=>$target_table, 'action'=>'index_create'));
-				echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
 				echo "<br/><div class='tdheader'>";
 				echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 				echo "</div>";
 				echo "</form>";
 				
 				echo $params->getForm(array('table'=>$target_table, 'action'=>'trigger_create'));
-				echo "<input type='hidden' name='tablename' value='".htmlencode($target_table)."'/>";
 				echo "<br/><div class='tdheader'>";
 				echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 				echo "</div>";
@@ -2801,17 +2822,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Create column (=column_create)
 		case "column_create":
-			echo "<h2>".sprintf($lang['new_fld'],htmlencode($_POST['tablename']))."</h2>";
+			echo "<h2>".sprintf($lang['new_fld'],htmlencode($_GET['table']))."</h2>";
 			if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
 				echo $lang['specify_fields'];
-			else if($_POST['tablename']=="")
+			else if($_GET['table']=="")
 				echo $lang['specify_tbl'];
 			else
 			{
 				$num = intval($_POST['tablefields']);
-				$name = $_POST['tablename'];
-				echo $params->getForm(array('table'=>$_POST['tablename'], 'action'=>'column_create', 'confirm'=>'1'));
-				echo "<input type='hidden' name='tablename' value='".htmlencode($name)."'/>";
+				$name = $_GET['table'];
+				echo $params->getForm(array('table'=>$_GET['table'], 'action'=>'column_create', 'confirm'=>'1'));
 				echo "<input type='hidden' name='rows' value='".$num."'/>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
@@ -2861,7 +2881,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['add_flds']."' class='btn'/> ";
-				echo $params->getLink(array('table'=>$_POST['tablename'], 'action'=>'column_view'), $lang['cancel']);
+				echo $params->getLink(array('table'=>$_GET['table'], 'action'=>'column_view'), $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -2933,7 +2953,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				
 				$name = $target_table;
 				echo $params->getForm(array('table'=>$name, 'action'=>'column_edit', 'confirm'=>'1'));
-				echo "<input type='hidden' name='tablename' value='".htmlencode($name)."'/>";
 				echo "<input type='hidden' name='oldvalue' value='".htmlencode($_GET['pk'])."'/>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
@@ -3021,12 +3040,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Create trigger (=trigger_create)
 		case "trigger_create":
-			echo "<h2>".$lang['create_trigger']." '".htmlencode($_POST['tablename'])."'</h2>";
-			if($_POST['tablename']=="")
+			echo "<h2>".$lang['create_trigger']." '".htmlencode($_GET['table'])."'</h2>";
+			if($_GET['table']=="")
 				echo $lang['specify_tbl'];
 			else
 			{
-				echo $params->getForm(array('table'=>$_POST['tablename'], 'action'=>'trigger_create', 'confirm'=>'1'));
+				echo $params->getForm(array('table'=>$_GET['table'], 'action'=>'trigger_create', 'confirm'=>'1'));
 				echo $lang['trigger_name'].": <input type='text' name='trigger_name'/><br/><br/>";
 				echo "<fieldset><legend>".$lang['db_event']."</legend>";
 				echo $lang['before']."/".$lang['after'].": ";
@@ -3060,16 +3079,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Create index (=index_create)
 		case "index_create":
-			echo "<h2>".$lang['create_index']." '".htmlencode($_POST['tablename'])."'</h2>";
+			echo "<h2>".$lang['create_index']." '".htmlencode($_GET['table'])."'</h2>";
 			if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
 				echo $lang['specify_fields'];
-			else if($_POST['tablename']=="")
+			else if($_GET['table']=="")
 				echo $lang['specify_tbl'];
 			else
 			{
-				echo $params->getForm(array('table'=>$_POST['tablename'], 'action'=>'index_create', 'confirm'=>'1'));
+				echo $params->getForm(array('table'=>$_GET['table'], 'action'=>'index_create', 'confirm'=>'1'));
 				$num = intval($_POST['numcolumns']);
-				$query = "PRAGMA table_info(".$db->quote_id($_POST['tablename']).")";
+				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 
 				$result = $db->selectArray($query);
 				echo "<fieldset><legend>".$lang['define_index']."</legend>";
@@ -3109,31 +3128,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 	echo "</div>";
 }
 
-$view = "structure";
-
-//- HMTL: tabs for databases	
+//- HMTL: views for databases	
 if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create"))) //the absence of these fields means we are viewing the database homepage
 {
-	$view = isset($_GET['view']) ? $_GET['view'] : 'structure';
-
-	echo $params->getLink(array('view'=>'structure'), $lang['struct'], ($view=="structure" ? 'tab_pressed': 'tab')  );
-	
-	echo $params->getLink(array('view'=>'sql'), $lang['sql'], ($view=="sql" ? 'tab_pressed': 'tab')  );
-	
-	echo $params->getLink(array('view'=>'export'), $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
-	
-	echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
-	
-	echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
-
-	if($directory!==false && is_writable($directory))
-	{
-
-		echo $params->getLink(array('view'=>'rename'), $lang['db_rename'], ($view=="rename" ? 'tab_pressed': 'tab')  );
-
-		echo $params->getLink(array('view'=>'delete'), "<span>".$lang['db_del']."</span>", ($view=="delete" ? 'tab_pressed delete_db': 'tab delete_db')  );
-	}
-	echo "<div style='clear:both;'></div>";
 	echo "<div id='main'>";
 
   //- Switch on $view (actually a series of if-else)
