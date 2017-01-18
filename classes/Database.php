@@ -660,8 +660,8 @@ class Database
 								."("											// $matches[5]: anything after the column name
 									."(?:\s+'((?:[^']|'')+)')?"					// $matches[6] (optional): a second column name surrounded with single quotes
 																				//		(the match does not contain the quotes) 
-									."\s+"
-									."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)\s*"	// $matches[7]: a type name
+									."\s*"
+									."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)?\s*"	// $matches[7] (optional): a type name
 									.".*".
 								")"
 								."?\s*$"
@@ -753,13 +753,17 @@ class Database
 								$createtesttableSQL = $newSQL;
 								break;
 							case 'change':
-								if(!isset($matches[6]) || !isset($matches[7]))
+								var_dump($matches);
+								if(!isset($matches[6]))
 								{
 									$this->alterError = $errormsg . ' (change) - '.$lang['alter_col_not_recognized'];
 									return false;
 								}
 								$new_col_name = $matches[6];
-								$new_col_type = $matches[7];
+								if(!isset($matches[7]))
+									$new_col_type = '';
+								else
+									$new_col_type = $matches[7];
 								$new_col_definition = "'$new_col_name' $new_col_type";
 								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")+)?";
 												// replace this part (we want to change this column)
