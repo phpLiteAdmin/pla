@@ -788,7 +788,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result===false)
 				$error = true;
 			$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$backlinkParameters = $params->getURL(array('action'=>'column_view', 'table'=>$name));
+			$backlinkParameters = $params->getURL( ($result===false ? array() : array('action'=>'column_view', 'table'=>$name) ) );
 			break;
 
 		//- Empty table (=table_empty)
