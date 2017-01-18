@@ -2227,9 +2227,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							}
 						}
 					}
-					if(!isset($_SESSION[COOKIENAME.'chartlabels']))
+					if(!isset($_SESSION[COOKIENAME.$target_table.'chartlabels']))
 						// no text column found, use the first column
-						$_SESSION[COOKIENAME.'chartlabels'] = 0;
+						$_SESSION[COOKIENAME.$target_table.'chartlabels'] = 0;
 						
 					if(!isset($_SESSION[COOKIENAME.$target_table.'chartvalues']))
 					{
