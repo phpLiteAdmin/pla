@@ -157,9 +157,9 @@ class Database
 					$name = "...".substr($name, strlen($name)-22, 22); 
 				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
 				
-				echo $params->getLink(array('database'=>$database['path']), htmlencode($name), ($database == $currentDB? 'active_db': '') );
+				echo $params->getLink(array('database'=>$database['path'], 'table'=>null), htmlencode($name), ($database == $currentDB? 'active_db': '') );
 				echo "&nbsp;&nbsp;";
-				echo $params->getLink(array('download'=>$database['path'], 'token'=>$_SESSION[COOKIENAME.'token']), '[&darr;]', '', $lang['backup']);
+				echo $params->getLink(array('download'=>$database['path'], 'table'=>null, 'token'=>$_SESSION[COOKIENAME.'token']), '[&darr;]', '', $lang['backup']);
 				
 				if($i<sizeof($databases))
 					echo "<br/>";
