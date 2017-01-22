@@ -45,9 +45,33 @@ class GetParameters
 
 	public function getForm(array $assoc = array(), $method = 'post', $upload = false, $name = '', $csrf = true)
 	{
-		return "<form action='". $this->getURL($assoc) ."' method='" . $method . "'" .
+		$hidden = '';
+		if($method == 'get')
+		{
+			$url = '';
+			foreach(array_merge($this->_fields, $assoc) as $key => $value)
+				$hidden .= '<input type="hidden" name="'.htmlencode($key).'" value="'.htmlencode($value).'" /> ';
+		}
+		else 
+			$url = $this->getURL($assoc);
+		
+		if($csrf)
+			$hidden .= '<input type="hidden" name="token" value="'.$_SESSION[COOKIENAME.'token'].'" />';
+		
+		return "<form action='". $url ."' method='" . $method . "'" .
 			($name!=''? " name='". $name ."'" : '') .
 			($upload? " enctype='multipart/form-data'" : '') . ">" .
-			($csrf ? '<input type="hidden" name="token" value="'.$_SESSION[COOKIENAME.'token'].'" />' : '');
+			$hidden;
+	}
+	
+	public function redirect(array $assoc = array(), $message="")
+	{
+		if($message!="")
+			$_SESSION[COOKIENAME.'messages'][md5($message)] = $message;
+		$url = $this->getURL(array_merge($assoc, array('message'=>md5($message))), false);
+		$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http'); 
+		
+		header("Location: ".$protocol."://".$_SERVER['HTTP_HOST'].rtrim(dirname($_SERVER['PHP_SELF']), '/\\')."/".$url, true, 302);
+		exit;
 	}
 }
