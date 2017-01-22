@@ -82,27 +82,34 @@ class Database
 		}
 	}
 	
-	public function getError()
+	public function getError($complete_msg = false)
 	{
+		global $lang;
+		$error = "unknown";
+		
 		if($this->alterError!='')
 		{
 			$error = $this->alterError;
 			$this->alterError = "";
-			return $error;
 		}
 		else if($this->type=="PDO")
 		{
 			$e = $this->db->errorInfo();
-			return $e[2];
+			$error = $e[2];
 		}
 		else if($this->type=="SQLite3")
 		{
-			return $this->db->lastErrorMsg();
+			$error = $this->db->lastErrorMsg();
 		}
 		else
 		{
-			return sqlite_error_string($this->db->lastError());
+			$error = sqlite_error_string($this->db->lastError());
 		}
+		
+		if($complete_msg)
+			return $lang['err'].": ".htmlencode($error)."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+		else
+			return $error;
 	}
 	
 	public function showError()
