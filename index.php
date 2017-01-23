@@ -566,6 +566,10 @@ $db->registerUserFunction($custom_functions);
 
 // collect parameters early, just once
 $target_table = isset($_GET['table']) ? $_GET['table'] : null;
+// are we working on a view? let's check once here
+$target_table_type = !is_null($target_table) ? $db->getTypeOfTable($target_table) : null;
+if(is_null($target_table_type) && !is_null($target_table))
+	$params->redirect(array('table'=>null), $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));	
 $params->table = $target_table; 
 
 //- Switch on $_GET['action'] for operations without output
@@ -1239,9 +1243,6 @@ if(isset($_GET['fulltexts']))
 	$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
 else
 	$params->fulltexts = 0;
-
-// are we working on a view? let's check once here
-$target_table_type = $target_table ? $db->getTypeOfTable($target_table) : null;
 
 //- HTML: sidebar
 echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
@@ -2992,68 +2993,75 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					}
 				}
 				
-				$name = $target_table;
-				echo $params->getForm(array('action'=>'column_edit', 'confirm'=>'1'));
-				echo "<input type='hidden' name='oldvalue' value='".htmlencode($_GET['pk'])."'/>";
-				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
-				echo "<tr>";
-				//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
-				$headings = array($lang["fld"], $lang["type"]);
-				for($k=0; $k<count($headings); $k++)
-					echo "<td class='tdheader'>".$headings[$k]."</td>";
-				echo "</tr>";
-			
-				$i = 0;
-				$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
-				echo "<tr>";
-				echo $tdWithClass;
-				echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlencode($fieldVal)."'/>";
-				echo "</td>";
-				echo $tdWithClass;
-				echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
-				if(!in_array($typeVal, $sqlite_datatypes))
-					echo "<option value='".htmlencode($typeVal)."' selected='selected'>".htmlencode($typeVal)."</option>";
-				foreach ($sqlite_datatypes as $t) {
-					if($t==$typeVal)
-						echo "<option value='".htmlencode($t)."' selected='selected'>".htmlencode($t)."</option>";
-					else
-						echo "<option value='".htmlencode($t)."'>".htmlencode($t)."</option>";
+				if(!isset($fieldVal))
+				{
+					echo "<div class='confirm'>".$lang['err'].": ".sprintf($lang['col_inexistent'], htmlencode($_GET['pk']))."</div>";
 				}
-				echo "</select>";
-				echo "</td>";
-				/*
-				echo $tdWithClass;
-				if($primarykeyVal)
-					echo "<input type='checkbox' name='".$i."_primarykey' checked='checked'/> Yes";
 				else
-					echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
-				echo "</td>";
-				echo $tdWithClass;
-				if(1==2)
-					echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement' checked='checked'/> Yes";
-				else
-					echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
-				echo "</td>";
-				echo $tdWithClass;
-				if($notnullVal)
-					echo "<input type='checkbox' name='".$i."_notnull' checked='checked'/> Yes";
-				else
-					echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
-				echo "</td>";
-				echo $tdWithClass;
-				echo "<input type='text' name='".$i."_defaultvalue' value='".$defaultVal."' style='width:100px;'/>";
-				echo "</td>";
-				*/
-				echo "</tr>";
-
-				echo "<tr>";
-				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
-				echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
-				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
-				echo "</td>";
-				echo "</tr>";
-				echo "</table>";
-				echo "</form>";
+				{
+					$name = $target_table;
+					echo $params->getForm(array('action'=>'column_edit', 'confirm'=>'1'));
+					echo "<input type='hidden' name='oldvalue' value='".htmlencode($_GET['pk'])."'/>";
+					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
+					echo "<tr>";
+					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
+					$headings = array($lang["fld"], $lang["type"]);
+					for($k=0; $k<count($headings); $k++)
+						echo "<td class='tdheader'>".$headings[$k]."</td>";
+					echo "</tr>";
+				
+					$i = 0;
+					$tdWithClass = "<td class='td" . ($i%2 ? "1" : "2") . "'>";
+					echo "<tr>";
+					echo $tdWithClass;
+					echo "<input type='text' name='".$i."_field' style='width:200px;' value='".htmlencode($fieldVal)."'/>";
+					echo "</td>";
+					echo $tdWithClass;
+					echo "<select name='".$i."_type' id='i".$i."_type' onchange='toggleAutoincrement(".$i.");'>";
+					if(!in_array($typeVal, $sqlite_datatypes))
+						echo "<option value='".htmlencode($typeVal)."' selected='selected'>".htmlencode($typeVal)."</option>";
+					foreach ($sqlite_datatypes as $t) {
+						if($t==$typeVal)
+							echo "<option value='".htmlencode($t)."' selected='selected'>".htmlencode($t)."</option>";
+						else
+							echo "<option value='".htmlencode($t)."'>".htmlencode($t)."</option>";
+					}
+					echo "</select>";
+					echo "</td>";
+					/*
+					echo $tdWithClass;
+					if($primarykeyVal)
+						echo "<input type='checkbox' name='".$i."_primarykey' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_primarykey'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					if(1==2)
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_autoincrement' id='".$i."_autoincrement'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					if($notnullVal)
+						echo "<input type='checkbox' name='".$i."_notnull' checked='checked'/> Yes";
+					else
+						echo "<input type='checkbox' name='".$i."_notnull'/> Yes";
+					echo "</td>";
+					echo $tdWithClass;
+					echo "<input type='text' name='".$i."_defaultvalue' value='".$defaultVal."' style='width:100px;'/>";
+					echo "</td>";
+					*/
+					echo "</tr>";
+	
+					echo "<tr>";
+					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
+					echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
+					echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+					echo "</td>";
+					echo "</tr>";
+					echo "</table>";
+					echo "</form>";
+				}
 			}
 			break;
 

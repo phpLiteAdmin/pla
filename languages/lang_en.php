@@ -260,6 +260,7 @@ $lang = array(
 	"add_allowed_extension" => "You can add extensions to this list by adding your extension to \$allowed_extensions in the configuration.",
 	"directory_not_writable" => "The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.",
 	"tbl_inexistent" => "Table %s does not exist",
+	"col_inexistent" => "Column %s does not exist",
 
 	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
 	"alter_failed" => "Altering of Table %s failed",
