@@ -174,7 +174,7 @@ class Database
 		}
 		else //there are a lot of databases - show a drop down menu
 		{
-			echo $params->getForm();
+			echo $params->getForm(array('table'=>null), 'get');
 			echo "<select name='database'>";
 			foreach($databases as $database)
 			{
