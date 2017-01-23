@@ -299,9 +299,7 @@ if ($auth->isAuthorized())
 	if(isset($_POST['new_dbname']))
 	{
 		if($_POST['new_dbname']=='')
-		{
-			// TODO: Display an error message (do NOT echo here. echo below in the html-body!)
-		}
+			$params->redirect(array('table'=>null), $lang['err'].': '.$lang['db_blank']);
 		else
 		{
 			$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
@@ -1216,7 +1214,7 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 			echo "</div><br/>";
 		}			
 		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
-		echo $params->getForm(array(), 'post', false, 'create_database');
+		echo $params->getForm(array('table'=>null), 'post', false, 'create_database');
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> ";
 		if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
 		{
@@ -1293,7 +1291,7 @@ echo "</fieldset>";
 if($directory!==false && is_writable($directory))
 {
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink($lang['help2'])."</legend>"; 
-	echo $params->getForm(array(), 'post', false, 'create_database');
+	echo $params->getForm(array('table'=>null), 'post', false, 'create_database');
 	echo "<input type='text' name='new_dbname' style='width:150px;'/>";
 	if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
 	{

@@ -87,7 +87,8 @@ $lang = array(
 	"db_not_writeable" => "The database, '%s', does not exist and cannot be created because the containing directory, '%s', is not writable. The application is unusable until you make it writable.",
 	"db_setup" => "There was a problem setting up your database, %s. An attempt will be made to find out what's going on so you can fix the problem more easily",
 	"db_exists" => "A database, other file or directory of the name '%s' already exists.",
-	
+	"db_blank" => "The database name cannot be blank.",
+		
 	"exported" => "Exported",
 	"struct" => "Structure",
 	"struct_for" => "structure for",
