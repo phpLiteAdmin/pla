@@ -1737,6 +1737,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		//- Search table (=table_search)
 		case "table_search":
 			$searchValues = array();
+			$searchOperators = array();
 			if(isset($_GET['done']))
 			{
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
@@ -1749,6 +1750,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$field = $result[$i][1];
 					$field_index = str_replace(" ","_",$field);
 					$operator = $_POST[$field_index.":operator"];
+					$searchOperators[$field] = $operator;
 					$value = $_POST[$field_index];
 					if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
 					{
@@ -1880,15 +1882,40 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							$fldResult = $arr[$j][$headers[$z]];
 							if(isset($searchValues[$headers[$z]]) && is_array($searchValues[$headers[$z]]))
 							{
+								// build one regex that matches (all) search words
+								$regex = '/';
+								$vali=0;
 								foreach($searchValues[$headers[$z]] as $searchValue)
 								{
-									$foundVal = str_replace('%', '', $searchValue);
-									$fldResult = str_ireplace($foundVal, '[fnd]'.$foundVal.'[/fnd]', $fldResult);
-									// we replace with [fnd] first because we need to htmlencode _afterwards_ without breaking the found-markers
-									// htmlencoing _before_ would mean we might highlight stuff inside of htmlcode thus breaking it
+									if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
+										$regex .= '(?:'.($searchValue[0]=='%'?'':'^'); // does the searchvalue have to occur at the start?
+									$regex .= preg_quote(trim($searchValue,'%'),'/');  // the search value
+									if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
+										$regex .= (substr($searchValue,-1)=='%'?'':'$').')';  // does the searchvalue have to occur at the end?
+									if($vali++<count($searchValues[$headers[$z]]))
+										$regex .= '|';    // there is another search value, so we add a | 
+								}
+								$regex .= '/';
+								// LIKE operator is not case sensitive, others are
+								if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
+									$regex.= 'i';
+								
+								// split the string into parts that match and should be highlighted and parts in between
+								// $fldBetweenParts: the parts that don't match (might contain empty strings)
+								$fldBetweenParts = preg_split($regex, $fldResult); 
+								// $fldFoundParts[0]: the parts that match
+								preg_match_all($regex, $fldResult, $fldFoundParts);
+								
+								// stick the parts together
+								$fldResult = '';
+								foreach($fldBetweenParts as $index => $betweenPart)
+								{
+									$fldResult .= htmlencode($betweenPart); // part that does not match (might be empty)
+									if(isset($fldFoundParts[0][$index]))
+										$fldResult .= '<u class="found">'.htmlencode($fldFoundParts[0][$index]).'</u>'; // the part that matched
 								}
 							}
-							echo str_replace(array('[fnd]', '[/fnd]'), array('<u class="found">', '</u>'), htmlencode($fldResult));
+							echo $fldResult;
 							echo "</td>";
 						}
 						echo "</tr>";
