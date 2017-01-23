@@ -674,9 +674,9 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			else
 			{
 				$target_table = null;
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".";
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";;
 			}
-			$params->redirect(array(), $completed);
+			$params->redirect(array('table'=>null), $completed);
 			break;
 
 		//- Drop view (=view_drop)
@@ -686,7 +686,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			if($result === false)
 				$completed = $db->getError(true);
 			else
-				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".";
+				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 			$params->redirect(array(), $completed);
 			break;
 
@@ -1609,7 +1609,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array(), $lang['cancel']);
+			echo $params->getLink(array('table'=>null), $lang['cancel']);
 			echo "</div>";
 			break;
 
@@ -1619,7 +1619,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array(), $lang['cancel']);
+			echo $params->getLink(array('table'=>null), $lang['cancel']);
 			echo "</div>";
 			break;
 
@@ -1630,7 +1630,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop_view'], htmlencode($target_table))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array(), $lang['cancel']);
+			echo $params->getLink(array('table'=>null), $lang['cancel']);
 			echo "</div>";
 			break;
 
