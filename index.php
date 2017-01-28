@@ -318,8 +318,10 @@ if ($auth->isAuthorized())
 				$td->query("VACUUM");
 			} else
 			{
-				if(is_file($dbname) || is_dir($dbname)) $dbexists = true;
-				else $extension_not_allowed=true;
+				if(is_file($dbname) || is_dir($dbname))
+					$params->redirect(array('view'=>'structure'),$lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname)));
+				else
+					$params->redirect(array('view'=>'structure'),$lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']); 
 			}
 		}
 	}
@@ -445,7 +447,7 @@ if ($auth->isAuthorized())
 				// its okay, the new directory is within $directory
 				$newpath =  $_POST['newname'];
 			}
-			else die($lang['err'].': '.$lang['db_moved_outside']);
+			else $params->redirect(array('view'=>'rename'), $lang['err'].': '.$lang['db_moved_outside']);
 		}
 		
 		if(checkDbName($newpath))
@@ -457,15 +459,17 @@ if ($auth->isAuthorized())
 				$databases[$checkDB]['path'] = $newpath;
 				$databases[$checkDB]['name'] = basename($newpath);
 				$currentDB = $databases[$checkDB];
-				$params->database = $databases[$checkDB]['path']; 
-				$justrenamed = true;
+				$params->database = $databases[$checkDB]['path'];
+				$params->redirect(array('view'=>'rename'), sprintf($lang['db_renamed'], htmlencode($oldpath))." '".htmlencode($newpath)."'.");
 			}
-			else die($lang['err'].': '.$lang['rename_only_managed']);
+			else $params->redirect(array('view'=>'rename'), $lang['err'].': '.$lang['rename_only_managed']);
 		}
 		else
 		{
-			if(is_file($newpath) || is_dir($newpath)) $dbexists = true;
-			else $extension_not_allowed = true;	
+			if(is_file($newpath) || is_dir($newpath))
+				$params->redirect(array('view'=>'rename'), $lang['err'].": " . sprintf($lang['db_exists'], htmlencode($newpath)));
+			else
+				$params->redirect(array('view'=>'rename'), $lang['err'].": " . $lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']);
 		}
 	}
 
@@ -558,9 +562,12 @@ if(!isset($currentDB) && count($databases)>0)
 	$params->database = $currentDB['path']; 
 }
 
-//- Open database (creates a Database object)
-$db = new Database($currentDB); //create the Database object
-$db->registerUserFunction($custom_functions);
+if(isset($currentDB))
+{
+	//- Open database (creates a Database object)
+	$db = new Database($currentDB); //create the Database object
+	$db->registerUserFunction($custom_functions);
+}
 
 // collect parameters early, just once
 $target_table = isset($_GET['table']) ? $_GET['table'] : null;
@@ -1204,15 +1211,15 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 	{
 		echo "<div class='confirm' style='margin:20px;'>";
 		printf($lang['no_db'], PROJECT, PROJECT);
-		echo "</div>";	
-		if(isset($extension_not_allowed))
+		echo "</div>";
+		//if the user has performed some action, show the resulting message
+		if(isset($_GET['message']) && isset($_SESSION[COOKIENAME.'messages'][$_GET['message']]))
 		{
 			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['err'].': '.$lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}			
+			echo $_SESSION[COOKIENAME.'messages'][$_GET['message']];
+			echo "</div><br />";
+			unset($_SESSION[COOKIENAME.'messages'][$_GET['message']]);
+		}
 		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
 		echo $params->getForm(array('table'=>null), 'post', false, 'create_database');
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> ";
@@ -2645,7 +2652,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 			$result = $db->selectArray($query);
 
-			echo $params->getForm(array('action'=>'column_confirm'), 'post', false, 'checkForm');
+			echo $params->getForm(array('action'=>'column_confirm'), 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 			echo "<tr>";
 			if($target_table_type == 'table')
@@ -2738,7 +2745,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if($target_table_type == 'table')
 			{
 				echo "<br/>";
-				echo $params->getForm(array('action'=>'column_create'));
+				echo $params->getForm(array('action'=>'column_create'), 'get');
 				echo $lang['add']." <input type='text' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
 				echo "</form>";
 			}
@@ -2846,13 +2853,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</table><br/><br/>";
 				}
 				
-				echo $params->getForm(array('action'=>'index_create'));
+				echo $params->getForm(array('action'=>'index_create'),'get');
 				echo "<br/><div class='tdheader'>";
 				echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 				echo "</div>";
 				echo "</form>";
 				
-				echo $params->getForm(array('action'=>'trigger_create'));
+				echo $params->getForm(array('action'=>'trigger_create'),'get');
 				echo "<br/><div class='tdheader'>";
 				echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 				echo "</div>";
@@ -2863,13 +2870,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		//- Create column (=column_create)
 		case "column_create":
 			echo "<h2>".sprintf($lang['new_fld'],htmlencode($_GET['table']))."</h2>";
-			if($_POST['tablefields']=="" || intval($_POST['tablefields'])<=0)
+			if($_GET['tablefields']=="" || intval($_GET['tablefields'])<=0)
 				echo $lang['specify_fields'];
 			else if($_GET['table']=="")
 				echo $lang['specify_tbl'];
 			else
 			{
-				$num = intval($_POST['tablefields']);
+				$num = intval($_GET['tablefields']);
 				$name = $_GET['table'];
 				echo $params->getForm(array('action'=>'column_create', 'confirm'=>'1'));
 				echo "<input type='hidden' name='rows' value='".$num."'/>";
@@ -2931,8 +2938,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Delete column (=column_confirm)
 		case "column_confirm":
-			if(isset($_POST['check']))
-				$pks = $_POST['check'];
+			if(isset($_GET['check']))
+				$pks = $_GET['check'];
 			elseif(isset($_GET['pk']))
 				$pks = array($_GET['pk']);
 			else $pks = array();
@@ -2954,9 +2961,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$str .= ", ".$pks[$i];
 					$pkVal .= ":".$pks[$i];
 				}
-				echo $params->getForm(array('action'=>$_REQUEST['action2'], 'confirm'=>'1', 'pk'=>$pkVal));
+				echo $params->getForm(array('action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>$pkVal));
 				echo "<div class='confirm'>";
-				printf($lang['ques_'.$_REQUEST['action2']], htmlencode($str), htmlencode($target_table));
+				printf($lang['ques_'.$_GET['action2']], htmlencode($str), htmlencode($target_table));
 				echo "<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
@@ -3127,14 +3134,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		//- Create index (=index_create)
 		case "index_create":
 			echo "<h2>".$lang['create_index']." '".htmlencode($_GET['table'])."'</h2>";
-			if($_POST['numcolumns']=="" || intval($_POST['numcolumns'])<=0)
+			if($_GET['numcolumns']=="" || intval($_GET['numcolumns'])<=0)
 				echo $lang['specify_fields'];
 			else if($_GET['table']=="")
 				echo $lang['specify_tbl'];
 			else
 			{
 				echo $params->getForm(array('action'=>'index_create', 'confirm'=>'1'));
-				$num = intval($_POST['numcolumns']);
+				$num = intval($_GET['numcolumns']);
 				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
 
 				$result = $db->selectArray($query);
@@ -3184,13 +3191,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	{
 		//- Database structure, shows all the tables (=structure)
 	
-		if(isset($dbexists))
-		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname));
-			echo "</div><br/>";
-		}
-		
 		if($db->isWritable() && !$db->isDirWritable())
 		{
 			echo "<div class='confirm' style='margin:10px 20px;'>";
@@ -3198,15 +3198,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "</div><br/>";
 		}
 		
-		if(isset($extension_not_allowed))
-		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
-			echo $lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}
-
 		if ($auth->isPasswordDefault())
 		{
 			echo "<div class='confirm' style='margin:20px 0px;'>";
@@ -3603,32 +3594,6 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="rename")
 	{
 		//- Rename database confirmation (=rename)
-		if(isset($extension_not_allowed))
-		{
-			echo "<div class='confirm'>";
-			echo $lang['extension_not_allowed'].': ';
-			echo implode(', ', array_map('htmlencode', $allowed_extensions));
-			echo '<br />'.$lang['add_allowed_extension'];
-			echo "</div><br/>";
-		}
-		if(isset($dbexists))
-		{
-			echo "<div class='confirm'>";
-			if($oldpath==$newpath)
-				echo $lang['err'].": ".$lang['warn_dumbass'];
-			else{
-				echo $lang['err'].": "; 
-				printf($lang['db_exists'], htmlencode($newpath));
-			}
-			echo "</div><br/>";
-		}
-		if(isset($justrenamed))
-		{
-			echo "<div class='confirm'>";
-			printf($lang['db_renamed'], htmlencode($oldpath));
-			echo " '".htmlencode($newpath)."'.";
-			echo "</div><br/>";
-		}
 		echo $params->getForm(array('view'=>'rename', 'database_rename'=>'1'));
 		echo "<input type='hidden' name='oldname' value='".htmlencode($db->getPath())."'/>";
 		echo $lang['db_rename']." '".htmlencode($db->getPath())."' ".$lang['to']." <input type='text' name='newname' style='width:200px;' value='".htmlencode($db->getPath())."'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
