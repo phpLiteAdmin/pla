@@ -235,7 +235,6 @@ $lang = array(
 	"desc" => "من الأعلى للأسفل",
 	"warn0" => "لقد قمنا بتحزيرك.",
 	"warn_passwd" => "إنك تستخدم كلمة السر المعروفة وهذا يشكل خطر على بنك المعلومات. بإمكانك تغيير كلمة السر بسهولة في المكان الأعلى من ملف %s .",
-	"warn_dumbass" => "لم تقم بإستخدام القيمة.",
 	#todo: translate
 	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "التعبير: Select",

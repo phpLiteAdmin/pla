@@ -238,7 +238,6 @@ $lang = array(
 	"desc" => "Discendente",
 	"warn0" => "Sei stato avvisato.",
 	"warn_passwd" => "Stai usando la password di default, può essere pericoloso. Puoi cambiarla facilmente editando %s.",
-	"warn_dumbass" => "Non hai cambiato dumbass ;-)",
 	#todo: translate
 	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "Seleziona l'istruzione",

@@ -239,7 +239,6 @@ $lang = array(
 	"desc" => "Descendente",
 	"warn0" => "Estas advertido.",
 	"warn_passwd" => "Est&aacute; usando la contrase&ntilde;a por defecto, y puede ser peligrosa. Puede cambiarla f&aacute;cilmente en la parte superior de %s.",
-	"warn_dumbass" => "No cambi&oacute; el valor",
 	"sel_state" => "Seleccione declaraci&oacute;n",
 	"delimit" => "Delimitador",
 	"back_top" => "Volver al principio",

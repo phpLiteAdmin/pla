@@ -234,7 +234,6 @@ $lang = array(
 	"desc" => "Sestupně",
 	"warn0" => "Byl jsi varován.",
 	"warn_passwd" => "Používáte výchozí heslo, což je nebezpečné. Můžete ho snadno změnit na začátku %s.",
-	"warn_dumbass" => "Nezměnil jsi hodnotu, troubo ;-)",
 	"sel_state" => "Výraz SELECT",
 	"delimit" => "Oddělovač",
 	"back_top" => "Zpět nahoru",

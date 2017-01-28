@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Chinese language-texts for phpLiteAdmin
 // Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
 $lang = array(
@@ -231,7 +231,6 @@ $lang = array(
 	"desc" => "降冪[DESC]",
 	"warn0" => "你已經受到警告.",
 	"warn_passwd" => "你正在使用默認的密碼, 這是比較危險的. 你可以很方便的在 %s 檔案中進行修改.",
-	"warn_dumbass" => "你沒有改變任何數值 傻瓜 ;-)",
 	"sel_state" => "選擇語法",
 	"delimit" => "分隔符號",
 	"back_top" => "回到上面",

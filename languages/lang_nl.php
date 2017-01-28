@@ -242,7 +242,6 @@ $lang = array(
 	"desc" => "Dalend",
 	"warn0" => "U bent gewaarschuwd.",
 	"warn_passwd" => "U gebruikt het standaard wachtwoord, wat gevaarlijk kan zijn. U kan het eenvoudig wijzigen bovenaan in %s.",
-	"warn_dumbass" => "U wijzigde de waarde niet slimmerik ;-)",
 	"counting_skipped" => "Het tellen van de rijen werd overgeslagen voor sommige tabellen omdat uw databank relatief groot is, en sommige tabellen geen primaire sleutels hebben, hierdoor zou het tellen langzaam worden. Voeg een primaire sleutel toe aan deze tabellen of %sdwing het tellen af%s",
 	"sel_state" => "'SELECT' statement",
 	"delimit" => "Scheidingsteken",

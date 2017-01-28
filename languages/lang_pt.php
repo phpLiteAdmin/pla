@@ -230,7 +230,6 @@ $lang = array(
 	"desc" => "Descendente",
 	"warn0" => "Você foi avisado.",
 	"warn_passwd" => "Você está usando a senha-padrão, o que pode ser perigoso. Você pode mudar isso facilmente no topo de %s.",
-	"warn_dumbass" => "Você não mudou o valor, sua anta... ;-)",
 	"sel_state" => "Selecionar Comando",
 	"delimit" => "Delimitador",
 	"back_top" => "Voltar para cima",

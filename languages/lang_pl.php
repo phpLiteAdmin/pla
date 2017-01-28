@@ -242,7 +242,6 @@ $lang = array(
 	"desc" => "Malejąco",
 	"warn0" => "Pamiętaj, że ostrzegaliśmy.",
 	"warn_passwd" => "Korzystasz z domyślnego hasła, co naraża bazy danych na poważne niebezpieczeństwo. Hasło możesz łatwo zmienić edytując %s.",
-	"warn_dumbass" => "Wartość nie została zmieniona.",
 	"counting_skipped" => "Zliczanie rekordów zostało pominięte ponieważ twoja baza danych jest duża, a niektóre zawarte w niej tabele nie posiadają kluczy głównych. Zliczanie rekordów mogłoby trwać bardzo długo. Dodaj klucze główne do tych tabel lub %swymuś zliczanie%s.",
 	"sel_state" => "Kwerenda",
 	"delimit" => "Separator",

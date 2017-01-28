@@ -231,7 +231,6 @@ $lang = array(
 	"desc" => "Descendant",
 	"warn0" => "Vous avez été prévenu.",
 	"warn_passwd" => "Vous utilisez le mot de passe par défaut, cela est risqué. Vous pouvez le modifier facilement en haut du fichier %s.",
-	"warn_dumbass" => "Vous n'avez pas changé la valeur, idiot ;-)",
 	"counting_skipped" => "Le dénombrement des enregistrements n'a pas été effectué pour certaines tables car votre base de données est volumineuse et certaines de ses tables n'ont pas de clés primaires rendant leur dénombrement particulièrement long à calculer. Ajoutez une clé primaires à ses tables ou %sforcer le dénombrement%s.",
 	"sel_state" => "Choisir une déclaration",
 	"delimit" => "Délimiteur",
