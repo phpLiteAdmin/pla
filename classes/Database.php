@@ -9,6 +9,7 @@ class Database
 	protected $data;
 	protected $lastResult;
 	protected $alterError;
+	protected $debugOutput ='';
 
 	public function __construct($data)
 	{
@@ -84,7 +85,7 @@ class Database
 	
 	public function getError($complete_msg = false)
 	{
-		global $lang;
+		global $lang, $debug;
 		$error = "unknown";
 		
 		if($this->alterError!='')
@@ -107,9 +108,17 @@ class Database
 		}
 		
 		if($complete_msg)
-			return $lang['err'].": ".htmlencode($error)."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
-		else
-			return $error;
+			$error = $lang['err'].": ".htmlencode($error)."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+		
+		if($debug)
+			$error .= $this->getDebugOutput();
+		
+		return $error;
+	}
+
+	function getDebugOutput()
+	{
+		return ($this->debugOutput != "" ? "<hr /><strong>DEBUG:</strong><br />".$this->debugOutput : $this->debugOutput);
 	}
 	
 	public function showError()
@@ -548,7 +557,7 @@ class Database
 		global $debug, $lang;
 		$this->alterError="";
 		$errormsg = sprintf($lang['alter_failed'],htmlencode($table)).' - ';
-		if($debug) echo "ALTER TABLE: table=($table), alterdefs=($alterdefs), PCRE version=(".PCRE_VERSION.")<hr /><br />";
+		if($debug) $this->debugOutput .= "ALTER TABLE: table=($table), alterdefs=($alterdefs), PCRE version=(".PCRE_VERSION.")<hr /><br />";
 		if($alterdefs != '')
 		{
 			$recreateQueries = array();
@@ -556,7 +565,7 @@ class Database
 			if(sizeof($resultArr)<1)
 			{
 				$this->alterError = $errormsg . sprintf($lang['tbl_inexistent'], htmlencode($table));
-				if($debug) echo "ERROR: unknown table<hr /><br />";
+				if($debug) $this->debugOutput .= "ERROR: unknown table<hr /><br />";
 				return false;
 			}
 			for($i=0; $i<sizeof($resultArr); $i++)
@@ -568,7 +577,7 @@ class Database
 					{
 						// store the CREATE statements of triggers and indexes to recreate them later
 						$recreateQueries[] = $row;
-						if($debug) echo "recreate=(".$row['sql'].";)<br />";
+						if($debug) $this->debugOutput .= "recreate=(".$row['sql'].";)<br />";
 					}
 				}
 				elseif($row['type']=='view')  // workaround to rename views
@@ -576,7 +585,7 @@ class Database
 					$origsql = $row['sql'];
 					$preg_remove_create_view = "/^\s*+CREATE\s++VIEW\s++".$this->sqlite_surroundings_preg($table)."\s*+(AS\s++SELECT\s++.*+)$/is";
 					$origsql_no_create = preg_replace($preg_remove_create_view, '$1', $origsql, 1);
-					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_view)<br />";
+					if($debug) $this->debugOutput .= "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_view)<br />";
 					preg_match("/RENAME\s++TO\s++(?:\"((?:[^\"]|\"\")+)\"|'((?:[^']|'')+)')/is", $alterdefs, $matches);
 					if(isset($matches[1]) && $matches[1]!='')
 						$newname = $matches[1];
@@ -585,13 +594,13 @@ class Database
 					else
 					{
 						$this->alterError = $errormsg . ' could not detect new view name. It needs to be in single or double quotes.';
-						if($debug) echo "ERROR: could not detect new view name<hr />";
+						if($debug) $this->debugOutput .= "ERROR: could not detect new view name<hr />";
 						return false;	
 					}
 					$dropoldSQL = 'DROP VIEW '.$this->quote_id($table);
 					$createnewSQL = 'CREATE VIEW '.$this->quote_id($newname).' '.$origsql_no_create;
 					$alter_transaction = 'BEGIN; ' . $dropoldSQL .'; '. $createnewSQL . '; ' . 'COMMIT;';
-					if($debug) echo $alter_transaction;
+					if($debug) $this->debugOutput .= $alter_transaction;
 					return $this->multiQuery($alter_transaction); 
 				}
 				else
@@ -601,15 +610,15 @@ class Database
 					$origsql = $row['sql'];
 					$preg_remove_create_table = "/^\s*+CREATE\s++TABLE\s++".$this->sqlite_surroundings_preg($table)."\s*+(\(.*+)$/is";
 					$origsql_no_create = preg_replace($preg_remove_create_table, '$1', $origsql, 1);
-					if($debug) echo "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<br />";
+					if($debug) $this->debugOutput .= "origsql=($origsql)<br />preg_remove_create_table=($preg_remove_create_table)<br />";
 					if($origsql_no_create == $origsql)
 					{
 						$this->alterError = $errormsg . $lang['alter_tbl_name_not_replacable'];
-						if($debug) echo "ERROR: could not get rid of CREATE TABLE<hr />";
+						if($debug) $this->debugOutput .= "ERROR: could not get rid of CREATE TABLE<hr />";
 						return false;
 					}
 					$createtemptableSQL = "CREATE TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
-					if($debug) echo "createtemptableSQL=($createtemptableSQL)<br />";
+					if($debug) $this->debugOutput .= "createtemptableSQL=($createtemptableSQL)<br />";
 					$createindexsql = array();
 					$preg_alter_part = "/(?:DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // the ALTER command
 						."(?:"
@@ -618,7 +627,7 @@ class Database
 							."\s+".$this->sqlite_surroundings_preg("+",false,",'\"\[`")			// column names and stuff like this
 						.")*/i";
 					if($debug)
-						echo "preg_alter_part=(".$preg_alter_part.")<br />";
+						$this->debugOutput .= "preg_alter_part=(".$preg_alter_part.")<br />";
 					preg_match_all($preg_alter_part,$alterdefs,$matches);
 					$defs = $matches[0];
 					
@@ -648,12 +657,12 @@ class Database
 					if(count($defs)<1)
 					{
 						$this->alterError = $errormsg . $lang['alter_no_def'];
-						if($debug) echo "ERROR: defs&lt;1<hr /><br />";
+						if($debug) $this->debugOutput .= "ERROR: defs&lt;1<hr /><br />";
 						return false;
 					}
 					foreach($defs as $def)
 					{
-						if($debug) echo "<hr />def=$def<br />";
+						if($debug) $this->debugOutput .= "<hr />def=$def<br />";
 						$preg_parse_def =
 							"/^(DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // $matches[1]: command
 							."(?:"												// this is either
@@ -673,18 +682,18 @@ class Database
 								")"
 								."?\s*$"
 							.")?\s*$/i"; // in case of DROP PRIMARY KEY, there is nothing after the command
-						if($debug) echo "preg_parse_def=$preg_parse_def<br />";
+						if($debug) $this->debugOutput .= "preg_parse_def=$preg_parse_def<br />";
 						$parse_def = preg_match($preg_parse_def,$def,$matches);
 						if($parse_def===false)
 						{
 							$this->alterError = $errormsg . $lang['alter_parse_failed'];
-							if($debug) echo "ERROR: !parse_def<hr /><br />";
+							if($debug) $this->debugOutput .= "ERROR: !parse_def<hr /><br />";
 							return false;
 						}
 						if(!isset($matches[1]))
 						{
 							$this->alterError = $errormsg . $lang['alter_action_not_recognized'];
-							if($debug) echo "ERROR: !isset(matches[1])<hr /><br />";
+							if($debug) $this->debugOutput .= "ERROR: !isset(matches[1])<hr /><br />";
 							return false;
 						}
 						$action = strtolower($matches[1]);
@@ -701,7 +710,7 @@ class Database
 
 						$column_escaped = str_replace("'","''",$column);
 
-						if($debug) echo "action=($action), column=($column), column_escaped=($column_escaped)<br />";
+						if($debug) $this->debugOutput .= "action=($action), column=($column), column_escaped=($column_escaped)<br />";
 
 						/* we build a regex that devides the CREATE TABLE statement parts:
 						  Part example                            Group  Explanation
@@ -714,7 +723,7 @@ class Database
 						$preg_column_definiton = "\s*+".$this->sqlite_surroundings_preg("+",true," '\"\[`,",$column)."(?:\s*+".$this->sqlite_surroundings_preg("*",false,"'\",`\[ ").")++";		// catches a complete column definition, even if it is
 														// 'column' TEXT NOT NULL DEFAULT 'we have a comma, here and a double ''quote!'
 														// this definition does NOT match columns with the column name $column
-						if($debug) echo "preg_column_definition=(".$preg_column_definiton.")<br />";
+						if($debug) $this->debugOutput .= "preg_column_definition=(".$preg_column_definiton.")<br />";
 						$preg_columns_before =  // columns before the one changed/dropped (keep)
 							"(?:".
 								"(".			// group $2. Keep this one unchanged!
@@ -725,7 +734,7 @@ class Database
 								")".			// end of group $2
 								",\s*+"			// the last comma of the last column before the column to change. Do not keep it!
 							.")?";    // there might be no columns before
-						if($debug) echo "preg_columns_before=(".$preg_columns_before.")<br />";
+						if($debug) $this->debugOutput .= "preg_columns_before=(".$preg_columns_before.")<br />";
 						$preg_columns_after = "(,\s*(.+))?"; // the columns after the column to drop. This is group $3 (drop) or $4(change) (keep!)
 												// we could remove the comma using $6 instead of $5, but then we might have no comma at all.
 												// Keeping it leaves a problem if we drop the first column, so we fix that case in another regex.
@@ -748,9 +757,9 @@ class Database
 								$preg_error = $this->getPregError();
 								if($debug)
 								{
-									echo $createtesttableSQL."<hr /><br />";
-									echo $newSQL."<hr /><br />";
-									echo $preg_pattern_add."<hr /><br />";
+									$this->debugOutput .= $createtesttableSQL."<hr /><br />";
+									$this->debugOutput .= $newSQL."<hr /><br />";
+									$this->debugOutput .= $preg_pattern_add."<hr /><br />";
 								}
 								if($newSQL==$createtesttableSQL) // pattern did not match, so column adding did not succed
 									{
@@ -785,11 +794,11 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									echo "preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
-									echo $createtesttableSQL."<hr /><br />";
-									echo $newSQL."<hr /><br />";
+									$this->debugOutput .= "preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
+									$this->debugOutput .= $createtesttableSQL."<hr /><br />";
+									$this->debugOutput .= $newSQL."<hr /><br />";
 
-									echo $preg_pattern_change."<hr /><br />";
+									$this->debugOutput .= $preg_pattern_change."<hr /><br />";
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
@@ -811,9 +820,9 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									echo $createtesttableSQL."<hr /><br />";
-									echo $newSQL."<hr /><br />";
-									echo $preg_pattern_drop."<hr /><br />";
+									$this->debugOutput .= $createtesttableSQL."<hr /><br />";
+									$this->debugOutput .= $newSQL."<hr /><br />";
+									$this->debugOutput .= $preg_pattern_drop."<hr /><br />";
 								}
 								if($newSQL==$createtesttableSQL || $newSQL=="") // pattern did not match, so column removal did not succed
 								{
@@ -836,12 +845,12 @@ class Database
 								break;
 							case 'drop primary key':
 								// we want to drop the primary key
-								if($debug) echo "DROP";
+								if($debug) $this->debugOutput .= "DROP";
 								if(sizeof($primarykey)==1)
 								{
 									// if not compound primary key, might be a column constraint -> try removal
 									$column = $primarykey[0];
-									if($debug) echo "<br>Trying to drop column constraint for column $column <br>";
+									if($debug) $this->debugOutput .= "<br>Trying to drop column constraint for column $column <br>";
 									/*
 									TODO: This does not work yet:
 									CREATE TABLE 't12' ('t1' INTEGER CONSTRAINT "bla" NOT NULL CONSTRAINT 'pk' PRIMARY KEY ); ALTER TABLE "t12" DROP PRIMARY KEY
@@ -871,20 +880,20 @@ class Database
 									$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 									if($debug)
 									{
-										echo "preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
-										echo $createtesttableSQL."<hr /><br />";
-										echo $newSQL."<hr /><br />";
+										$this->debugOutput .= "preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
+										$this->debugOutput .= $createtesttableSQL."<hr /><br />";
+										$this->debugOutput .= $newSQL."<hr /><br />";
 	
-										echo $preg_pattern_change."<hr /><br />";
+										$this->debugOutput .= $preg_pattern_change."<hr /><br />";
 									}
 									if($newSQL!=$createtesttableSQL && $newSQL!="") // pattern did match, so PRIMARY KEY constraint removed :)
 									{
 										$createtesttableSQL = $newSQL;
-										if($debug) echo "<br>SUCCEEDED<br>";
+										if($debug) $this->debugOutput .= "<br>SUCCEEDED<br>";
 									}
 									else
 									{
-										if($debug) echo "NO LUCK";
+										if($debug) $this->debugOutput .= "NO LUCK";
 										// TODO: try removing table constraint
 										return false;
 									}
@@ -895,7 +904,7 @@ class Database
 								
 								break;
 							default:
-								if($debug) echo 'ERROR: unknown alter operation!<hr /><br />';
+								if($debug) $this->debugOutput .= 'ERROR: unknown alter operation!<hr /><br />';
 								$this->alterError = $errormsg . $lang['alter_unknown_operation'];
 								return false;
 						}
@@ -934,7 +943,7 @@ class Database
 					{
 						if(!isset($newcols[$indexInfo['name']]))
 						{
-							if($debug) echo 'Not recreating the following index: <hr /><br />'.htmlencode($recreate_query['sql']).'<hr /><br />'; 
+							if($debug) $this->debugOutput .= 'Not recreating the following index: <hr /><br />'.htmlencode($recreate_query['sql']).'<hr /><br />'; 
 							// Index on a column that was dropped. Skip recreation.
 							continue 2;
 						}
@@ -959,7 +968,7 @@ class Database
 							else
 							{
 								// the CREATE INDEX regex did not match. this normally should not happen
-								if($debug) echo  'ERROR: CREATE INDEX regex did not match!?<hr /><br />';
+								if($debug) $this->debugOutput .= 'ERROR: CREATE INDEX regex did not match!?<hr /><br />';
 								// just try to recreate the index originally (will fail most likely)
 								$alter_transaction .= $recreate_query['sql'].';';
 							}
@@ -970,13 +979,13 @@ class Database
 							$alter_transaction .= $recreate_query['sql'].';';
 							break;
 						default:
-							if($debug) echo 'ERROR: Unknown type '.htmlencode($recreate_query['type']).'<hr /><br />';
+							if($debug) $this->debugOutput .= 'ERROR: Unknown type '.htmlencode($recreate_query['type']).'<hr /><br />';
 							$alter_transaction .= $recreate_query['sql'].';';
 					}
 				}
 			}
 			$alter_transaction .= 'COMMIT;';
-			if($debug) echo $alter_transaction;
+			if($debug) $this->debugOutput .= $alter_transaction;
 			return $this->multiQuery($alter_transaction);
 		}
 	}
