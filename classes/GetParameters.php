@@ -50,7 +50,10 @@ class GetParameters
 		{
 			$url = '';
 			foreach(array_merge($this->_fields, $assoc) as $key => $value)
-				$hidden .= '<input type="hidden" name="'.htmlencode($key).'" value="'.htmlencode($value).'" /> ';
+			{
+				if(!is_null($value))
+					$hidden .= '<input type="hidden" name="'.htmlencode($key).'" value="'.htmlencode($value).'" /> ';
+			}
 		}
 		else 
 			$url = $this->getURL($assoc);
@@ -71,7 +74,7 @@ class GetParameters
 		$url = $this->getURL(array_merge($assoc, array('message'=>md5($message))), false);
 		$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http'); 
 		
-		header("Location: ".$protocol."://".$_SERVER['HTTP_HOST'].rtrim(dirname($_SERVER['PHP_SELF']), '/\\')."/".$url, true, 302);
+		header("Location: ".$protocol."://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'].$url, true, 302);
 		exit;
 	}
 }
