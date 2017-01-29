@@ -58,7 +58,7 @@ class GetParameters
 		else 
 			$url = $this->getURL($assoc);
 		
-		if($csrf)
+		if($csrf && $method == 'post')
 			$hidden .= '<input type="hidden" name="token" value="'.$_SESSION[COOKIENAME.'token'].'" />';
 		
 		return "<form action='". $url ."' method='" . $method . "'" .
