@@ -722,7 +722,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 		//- Create row (=row_create)
 		case "row_create":
 			$completed = "";
-			$num = $_POST['numRows'];
+			$num = $_GET['numRows'];
 			$fields = explode(":", $_POST['fields']);
 			$z = 0;
 			
@@ -2010,11 +2010,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- View row (=row_view)
 		case "row_view":
-			if(!isset($_POST['startRow']))
-				$_POST['startRow'] = 0;
+			if(!isset($_GET['startRow']))
+				$_GET['startRow'] = 0;
 
-			if(isset($_POST['numRows']))
-				$_SESSION[COOKIENAME.'numRows'] = intval($_POST['numRows']);
+			if(isset($_GET['numRows']))
+				$_SESSION[COOKIENAME.'numRows'] = intval($_GET['numRows']);
 
 			if(!isset($_SESSION[COOKIENAME.'numRows']))
 				$_SESSION[COOKIENAME.'numRows'] = $rowsNum;
@@ -2024,9 +2024,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				unset($_SESSION[COOKIENAME.'sortRows']);
 				unset($_SESSION[COOKIENAME.'orderRows']);	
 			}
-			if(isset($_POST['viewtype']))
+			if(isset($_GET['viewtype']))
 			{
-				$_SESSION[COOKIENAME.'viewtype'] = $_POST['viewtype'];	
+				$_SESSION[COOKIENAME.'viewtype'] = $_GET['viewtype'];	
 			}
 			
 			$rowCount = $db->numRows($target_table);
@@ -2038,33 +2038,33 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			//- HTML: pagination buttons
 			echo "<div style=''>";
 			//previous button
-			if($_POST['startRow']>0)
+			if($_GET['startRow']>0)
 			{
 				echo "<div style='float:left;'>";
-				echo $params->getForm(array('action'=>'row_view'));
+				echo $params->getForm(array('action'=>'row_view'),'get');
 				echo "<input type='hidden' name='startRow' value='0'/>";
 				echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
-				echo "<input type='submit' value='&larr;&larr;' name='previous' class='btn'/> ";
+				echo "<input type='submit' value='&larr;&larr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
-				echo $params->getForm(array('action'=>'row_view'));
-				echo "<input type='hidden' name='startRow' value='".max(0,intval($_POST['startRow']-$_SESSION[COOKIENAME.'numRows']))."'/>";
+				echo $params->getForm(array('action'=>'row_view'),'get');
+				echo "<input type='hidden' name='startRow' value='".max(0,intval($_GET['startRow']-$_SESSION[COOKIENAME.'numRows']))."'/>";
 				echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
-				echo "<input type='submit' value='&larr;' name='previous_full' class='btn'/> ";
+				echo "<input type='submit' value='&larr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 			}
 			
 			//show certain number buttons
 			echo "<div style='float:left;'>";
-			echo $params->getForm(array('action'=>'row_view'));
+			echo $params->getForm(array('action'=>'row_view'),'get');
 			echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 			echo "<input type='text' name='numRows' style='width:50px;' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
 			echo $lang['rows_records'];
 
-			if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows']) < $rowCount)
-				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
+			if(intval($_GET['startRow']+$_SESSION[COOKIENAME.'numRows']) < $rowCount)
+				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_GET['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 			else
 				echo "<input type='text' name='startRow' style='width:90px;' value='0'/> ";
 			echo $lang['as_a'];
@@ -2084,20 +2084,20 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</div>";
 			
 			//next button
-			if(intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])<$rowCount)
+			if(intval($_GET['startRow']+$_SESSION[COOKIENAME.'numRows'])<$rowCount)
 			{
 				echo "<div style='float:left; margin-left:20px; '>";
-				echo $params->getForm(array('action'=>'row_view'));
-				echo "<input type='hidden' name='startRow' value='".intval($_POST['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
+				echo $params->getForm(array('action'=>'row_view'),'get');
+				echo "<input type='hidden' name='startRow' value='".intval($_GET['startRow']+$_SESSION[COOKIENAME.'numRows'])."'/>";
 				echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
-				echo "<input type='submit' value='&rarr;' name='next' class='btn'/> ";
+				echo "<input type='submit' value='&rarr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; '>";
-				echo $params->getForm(array('action'=>'row_view'));
+				echo $params->getForm(array('action'=>'row_view'),'get');
 				echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
 				echo "<input type='hidden' name='numRows' value='".$_SESSION[COOKIENAME.'numRows']."'/> ";
-				echo "<input type='submit' value='&rarr;&rarr;' name='next_full' class='btn'/> ";
+				echo "<input type='submit' value='&rarr;&rarr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 			}
@@ -2111,7 +2111,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$_GET['order'] = NULL;
 
 			$numRows = $_SESSION[COOKIENAME.'numRows'];
-			$startRow = $_POST['startRow'];
+			$startRow = $_GET['startRow'];
 			if(isset($_GET['sort']))
 			{
 				$_SESSION[COOKIENAME.'sortRows'] = $_GET['sort'];
