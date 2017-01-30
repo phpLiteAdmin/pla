@@ -839,7 +839,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 		//- Create row (=row_create)
 		case "row_create":
 			$completed = "";
-			$num = $_GET['numRows'];
+			$num = $_GET['newRows'];
 			$fields = explode(":", $_POST['fields']);
 			$z = 0;
 			
@@ -2013,14 +2013,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<div style='float:left;'>";
 				echo $params->getForm(array('action'=>$_GET['action']),'get');
 				echo "<input type='hidden' name='startRow' value='0'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
 				echo "<input type='submit' value='&larr;&larr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
 				echo $params->getForm(array('action'=>$_GET['action']),'get');
 				echo "<input type='hidden' name='startRow' value='".max(0,intval($_GET['startRow']-$params->numRows))."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
 				echo "<input type='submit' value='&larr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
@@ -2028,7 +2026,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			
 			//show certain number buttons
 			echo "<div style='float:left;'>";
-			echo $params->getForm(array('action'=>$_GET['action']),'get');
+			echo $params->getForm(array('action'=>$_GET['action'], 'numRows'=>null),'get');
 			echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 			echo "<input type='text' name='numRows' style='width:50px;' value='".$params->numRows."'/> ";
 			echo $lang['rows_records'];
@@ -2059,14 +2057,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<div style='float:left; margin-left:20px; '>";
 				echo $params->getForm(array('action'=>$_GET['action']),'get');
 				echo "<input type='hidden' name='startRow' value='".intval($_GET['startRow']+$params->numRows)."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
 				echo "<input type='submit' value='&rarr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; '>";
 				echo $params->getForm(array('action'=>$_GET['action']),'get');
 				echo "<input type='hidden' name='startRow' value='".intval($totalRows-$remainder)."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
 				echo "<input type='submit' value='&rarr;&rarr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
@@ -2367,12 +2363,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		//- Create new row (=row_create)
 		case "row_create":
 			$fieldStr = "";
-			echo $params->getForm(array('action'=>'row_create'));
+			echo $params->getForm(array('action'=>'row_create'), 'get');
 			echo $lang['restart_insert'];
-			echo " <select name='num'>";
+			echo " <select name='newRows'>";
 			for($i=1; $i<=40; $i++)
 			{
-				if(isset($_POST['num']) && $_POST['num']==$i)
+				if(isset($_GET['newRows']) && $_GET['newRows']==$i)
 					echo "<option value='".$i."' selected='selected'>".$i."</option>";
 				else
 					echo "<option value='".$i."'>".$i."</option>";
@@ -2385,11 +2381,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 			$result = $db->selectArray($query);
 			echo $params->getForm(array('action'=>'row_create','confirm'=>'1'));
-			if(isset($_POST['num']))
-				$num = $_POST['num'];
+			if(isset($_GET['newRows']))
+				$num = $_GET['newRows'];
 			else
 				$num = 1;
-			echo "<input type='hidden' name='numRows' value='".$num."'/>";
+			echo "<input type='hidden' name='newRows' value='".$num."'/>";
 			for($j=0; $j<$num; $j++)
 			{
 				if($j>0)
