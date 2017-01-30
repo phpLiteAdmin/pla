@@ -230,6 +230,48 @@ function subString($str)
 	return $str;
 }
 
+// marks searchwords and htmlencodes correctly
+function markSearchWords($input, $field, $search)
+{
+	$output = htmlencode($input);
+	if(isset($search['values'][$field]) && is_array($search['values'][$field]))
+	{
+		// build one regex that matches (all) search words
+		$regex = '/';
+		$vali=0;
+		foreach($search['values'][$field] as $searchValue)
+		{
+			if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
+				$regex .= '(?:'.($searchValue[0]=='%'?'':'^'); // does the searchvalue have to occur at the start?
+			$regex .= preg_quote(trim($searchValue,'%'),'/');  // the search value
+			if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
+				$regex .= (substr($searchValue,-1)=='%'?'':'$').')';  // does the searchvalue have to occur at the end?
+			if($vali++<count($search['values'][$field]))
+				$regex .= '|';    // there is another search value, so we add a | 
+		}
+		$regex .= '/';
+		// LIKE operator is not case sensitive, others are
+		if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
+			$regex.= 'i';
+		
+		// split the string into parts that match and should be highlighted and parts in between
+		// $fldBetweenParts: the parts that don't match (might contain empty strings)
+		$fldBetweenParts = preg_split($regex, $input); 
+		// $fldFoundParts[0]: the parts that match
+		preg_match_all($regex, $input, $fldFoundParts);
+		
+		// stick the parts together
+		$output = '';
+		foreach($fldBetweenParts as $index => $betweenPart)
+		{
+			$output .= htmlencode($betweenPart); // part that does not match (might be empty)
+			if(isset($fldFoundParts[0][$index]))
+				$output .= '<u class="found">'.htmlencode($fldFoundParts[0][$index]).'</u>'; // the part that matched
+		}
+	}
+	return $output;
+}
+
 // checks the (new) name of a database file  
 function checkDbName($name)
 {
@@ -575,7 +617,18 @@ $target_table = isset($_GET['table']) ? $_GET['table'] : null;
 $target_table_type = !is_null($target_table) ? $db->getTypeOfTable($target_table) : null;
 if(is_null($target_table_type) && !is_null($target_table))
 	$params->redirect(array('table'=>null), $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));	
-$params->table = $target_table; 
+$params->table = $target_table;
+
+// initialize / change fulltexts and numrows parameter
+if(isset($_GET['fulltexts']))
+	$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
+else
+	$params->fulltexts = 0;
+	
+if(isset($_GET['numRows']))
+	$params->numRows = intval($_GET['numRows']);
+else
+	$params->numRows = $rowsNum; 
 
 //- Switch on $_GET['action'] for operations without output
 if(isset($_GET['action']) && isset($_GET['confirm']))
@@ -716,6 +769,70 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			}
 			$params->redirect(array('action'=>'row_view', 'table'=>$_POST['newname']), $completed);
 			break;
+		
+		//- Search table (=table_search)
+		case "table_search":
+			$searchValues = array();
+			$searchOperators = array();
+	
+			$tableInfo = $db->selectArray("PRAGMA table_info(".$db->quote_id($target_table).")");
+			$j = 0;
+			$whereExpr = array();
+			for($i=0; $i<sizeof($tableInfo); $i++)
+			{
+				$field = $tableInfo[$i][1];
+				$field_index = str_replace(" ","_",$field);
+				$operator = $_POST[$field_index.":operator"];
+				$searchOperators[$field] = $operator;
+				$value = $_POST[$field_index];
+				if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
+				{
+					if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
+						$whereExpr[$j] = $db->quote_id($field)." ".$operator;
+					else{
+						if($operator == "LIKE%"){ 
+							$operator = "LIKE";
+							if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
+							$searchValues[$field] = array($value);
+							$valueQuoted = $db->quote($value);
+						}
+						elseif($operator == 'IN' || $operator == 'NOT IN')
+						{
+							$value = trim($value, '() ');
+							$values = explode(',',$value);
+							$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
+							if($operator == 'IN')
+								$searchValues[$field] = $values;
+							$values = array_map(array($db, 'quote'), $values);
+							$valueQuoted = '(' .implode(', ', $values) . ')';
+						}
+						else
+						{
+							$searchValues[$field] = array($value);
+							$valueQuoted = $db->quote($value);
+						}
+						$whereExpr[$j] = $db->quote_id($field)." ".$operator." ".$valueQuoted;
+					}
+					$j++;
+				}
+			}
+			$searchWhere = '';
+			if(sizeof($whereExpr)>0)
+			{
+				$searchWhere .= " WHERE ".$whereExpr[0];
+				for($i=1; $i<sizeof($whereExpr); $i++)
+				{
+					$searchWhere .= " AND ".$whereExpr[$i];
+				}
+			}
+			$searchID = md5($searchWhere);
+			$_SESSION[COOKIENAME.'search'][$searchID] = array(
+				'where' => $searchWhere,
+				'values' => $searchValues,
+				'operators' => $searchOperators
+				);
+			$params->redirect(array('action'=>'table_search','search'=>$searchID));
+		break;
 
 	//- Row actions
 
@@ -1243,17 +1360,6 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 	exit();
 }
 
-// initialize / change fulltexts parameter
-if(isset($_GET['fulltexts']))
-	$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
-else
-	$params->fulltexts = 0;
-	
-if(isset($_GET['numRows']))
-	$params->numRows = intval($_GET['numRows']);
-else
-	$params->numRows = $rowsNum;
-
 //- HTML: sidebar
 echo '<table class="body_tbl" width="100%" border="0" cellspacing="0" cellpadding="0"><tr><td valign="top" class="left_td" style="width:100px; padding:9px 2px 9px 9px;">';
 echo "<div id='leftNav'>";
@@ -1747,201 +1853,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Search table (=table_search)
 		case "table_search":
-			$searchValues = array();
-			$searchOperators = array();
-			if(isset($_GET['done']))
-			{
-				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-				$result = $db->selectArray($query);
-				$primary_key = $db->getPrimaryKey($target_table);
-				$j = 0;
-				$arr = array();
-				for($i=0; $i<sizeof($result); $i++)
-				{
-					$field = $result[$i][1];
-					$field_index = str_replace(" ","_",$field);
-					$operator = $_POST[$field_index.":operator"];
-					$searchOperators[$field] = $operator;
-					$value = $_POST[$field_index];
-					if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
-					{
-						if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
-							$arr[$j] = $db->quote_id($field)." ".$operator;
-						else{
-							if($operator == "LIKE%"){ 
-								$operator = "LIKE";
-								if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
-								$searchValues[$field] = array($value);
-								$value_quoted = $db->quote($value);
-							}
-							elseif($operator == 'IN' || $operator == 'NOT IN')
-							{
-								$value = trim($value, '() ');
-								$values = explode(',',$value);
-								$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
-								if($operator == 'IN')
-									$searchValues[$field] = $values;
-								$values = array_map(array($db, 'quote'), $values);
-								$value_quoted = '(' .implode(', ', $values) . ')';
-							}
-							else
-							{
-								$searchValues[$field] = array($value);
-								$value_quoted = $db->quote($value);
-							}
-							$arr[$j] = $db->quote_id($field)." ".$operator." ".$value_quoted;
-						}
-						$j++;
-					}
-				}
-				$query = "SELECT *";
-				// select the primary key column(s) last (ROWID if there is no PK).
-				// this will be used to identify rows, e.g. when editing/deleting rows
-				$primary_key = $db->getPrimaryKey($target_table);
-				foreach($primary_key as $pk)
-				{
-					$query.= ', '.$db->quote_id($pk);
-					$query.= ', typeof('.$db->quote_id($pk).')';
-				}
-				$query .= " FROM ".$db->quote_id($target_table);
-				$whereTo = '';
-				if(sizeof($arr)>0)
-				{
-					$whereTo .= " WHERE ".$arr[0];
-					for($i=1; $i<sizeof($arr); $i++)
-					{
-						$whereTo .= " AND ".$arr[$i];
-					}
-				}
-				$query .= $whereTo;
-				$query_disp = "SELECT * FROM " . $db->quote_id($target_table) . $whereTo;
-				$queryTimer = new MicroTimer();
-				$arr = $db->selectArray($query);
-				$queryTimer->stop();
-
-				echo "<div class='confirm'>";
-				echo "<b>";
-				if($arr!==false)
-				{
-					$affected = sizeof($arr);
-					echo $lang['showing']." ".$affected." ".$lang['rows'].". ";
-					printf($lang['query_time'], $queryTimer);
-					echo "</b><br/>";
-				}
-				else
-				{
-					echo $lang['err'].": ".htmlencode($db->getError()).".</b><br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK.'<br/>';
-				}
-				echo "<span style='font-size:11px;'>".htmlencode($query_disp)."</span>";
-				echo "</div><br/>";
-
-				if(sizeof($arr)>0)
-				{
-					if($target_table_type == 'view')
-					{
-						echo sprintf($lang['readonly_tbl'], htmlencode($target_table))." <a href='https://en.wikipedia.org/wiki/View_(SQL)' target='_blank'>https://en.wikipedia.org/wiki/View_(SQL)</a>"; 
-						echo "<br/><br/>";	
-					}
-
-					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
-					echo "<tr>";
-					if($target_table_type == 'table')
-					{
-						echo "<td colspan='2' class='tdheader' style='text-align:center'>";
-						#todo: make sure the search keywords are kept
-						#echo "<a href='?action=table_search&amp;done=1&amp;table=".$target_table."&amp;fulltexts=".($_SESSION[COOKIENAME.'fulltexts']?0:1)."' title='".$lang[($_SESSION[COOKIENAME.'fulltexts']?'no_full_texts':'full_texts')]."'>";
-						#echo "<b>&".($_SESSION[COOKIENAME.'fulltexts']?'r':'l')."arr;</b> T <b>&".($_SESSION[COOKIENAME.'fulltexts']?'l':'r')."arr;</b></a>";
-						echo "</td>";
-					}
-					
-					$header = array();
-					for($j=0; $j<sizeof($result); $j++)
-					{
-						$headers[$j]=$result[$j]['name'];
-						echo "<td class='tdheader'>";
-						echo htmlencode($headers[$j]);
-						echo "</td>";
-					}
-					echo "</tr>";
-					
-					$pkFirstCol = sizeof($result)+1;
-					for($j=0; $j<sizeof($arr); $j++)
-					{
-						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
-						$pk_arr = array();
-						for($col = $pkFirstCol; array_key_exists($col, $arr[$j]); $col=$col+2)
-						{
-							// in $col we have the type and in $col-1 the value
-							if($arr[$j][$col]=='integer' || $arr[$j][$col]=='real')
-								// json encode as int or float, not string
-								$pk_arr[] = $arr[$j][$col-1]+0;
-							else
-								// encode as json string
-								$pk_arr[] = $arr[$j][$col-1]; 
-						}
-						$pk = json_encode($pk_arr);
-						$tdWithClass = "<td class='td".($j%2 ? "1" : "2")."'>";
-						echo "<tr>";
-						if($target_table_type == 'table')
-						{
-							echo $tdWithClass . $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'edit'), "<span>".$lang['edit']."</span>", 'edit', $lang['edit'])."</td>"; 
-							echo $tdWithClass . $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'delete'), "<span>".$lang['del']."</span>", 'delete', $lang['del'])."</td>"; 
-						}
-						for($z=0; $z<sizeof($result); $z++)
-						{
-							echo $tdWithClass;
-							$fldResult = $arr[$j][$headers[$z]];
-							if(isset($searchValues[$headers[$z]]) && is_array($searchValues[$headers[$z]]))
-							{
-								// build one regex that matches (all) search words
-								$regex = '/';
-								$vali=0;
-								foreach($searchValues[$headers[$z]] as $searchValue)
-								{
-									if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
-										$regex .= '(?:'.($searchValue[0]=='%'?'':'^'); // does the searchvalue have to occur at the start?
-									$regex .= preg_quote(trim($searchValue,'%'),'/');  // the search value
-									if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
-										$regex .= (substr($searchValue,-1)=='%'?'':'$').')';  // does the searchvalue have to occur at the end?
-									if($vali++<count($searchValues[$headers[$z]]))
-										$regex .= '|';    // there is another search value, so we add a | 
-								}
-								$regex .= '/';
-								// LIKE operator is not case sensitive, others are
-								if($searchOperators[$headers[$z]] =='LIKE' || $searchOperators[$headers[$z]] == 'LIKE%')
-									$regex.= 'i';
-								
-								// split the string into parts that match and should be highlighted and parts in between
-								// $fldBetweenParts: the parts that don't match (might contain empty strings)
-								$fldBetweenParts = preg_split($regex, $fldResult); 
-								// $fldFoundParts[0]: the parts that match
-								preg_match_all($regex, $fldResult, $fldFoundParts);
-								
-								// stick the parts together
-								$fldResult = '';
-								foreach($fldBetweenParts as $index => $betweenPart)
-								{
-									$fldResult .= htmlencode($betweenPart); // part that does not match (might be empty)
-									if(isset($fldFoundParts[0][$index]))
-										$fldResult .= '<u class="found">'.htmlencode($fldFoundParts[0][$index]).'</u>'; // the part that matched
-								}
-							}
-							echo $fldResult;
-							echo "</td>";
-						}
-						echo "</tr>";
-					}
-					echo "</table><br/><br/>";
-				}
-				
-				echo $params->getLink(array('action'=>'table_search'), $lang['srch_again']);
-			}
-			else
+			if(!isset($_GET['search']))
 			{
 				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
 				
-				echo $params->getForm(array('action'=>'table_search', 'done'=>'1'));
+				echo $params->getForm(array('action'=>'table_search', 'confirm'=>'1'));
 					
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
@@ -2008,9 +1925,16 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</tr>";
 				echo "</table>";
 				echo "</form>";
-			}
-			break;
 
+				break;
+			}
+			elseif(isset($_SESSION[COOKIENAME.'search'][$_GET['search']]))
+			{
+				$params->search = $_GET['search'];
+				$search = $_SESSION[COOKIENAME.'search'][$_GET['search']];
+				// NOTICE: we do not break here!! we just do the same now like row_view-action does   
+			}
+			
 	//- Row actions
 
 		//- View row (=row_view)
@@ -2028,81 +1952,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$_SESSION[COOKIENAME.'viewtype'] = $_GET['viewtype'];	
 			}
 			
-			$rowCount = $db->numRows($target_table);
-			$lastPage = intval($rowCount / $params->numRows);
-			$remainder = intval($rowCount % $params->numRows);
-			if($remainder==0)
-				$remainder = $params->numRows;
-			
-			//- HTML: pagination buttons
-			echo "<div style=''>";
-			//previous button
-			if($_GET['startRow']>0)
-			{
-				echo "<div style='float:left;'>";
-				echo $params->getForm(array('action'=>'row_view'),'get');
-				echo "<input type='hidden' name='startRow' value='0'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
-				echo "<input type='submit' value='&larr;&larr;' class='btn'/> ";
-				echo "</form>";
-				echo "</div>";
-				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
-				echo $params->getForm(array('action'=>'row_view'),'get');
-				echo "<input type='hidden' name='startRow' value='".max(0,intval($_GET['startRow']-$params->numRows))."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
-				echo "<input type='submit' value='&larr;' class='btn'/> ";
-				echo "</form>";
-				echo "</div>";
-			}
-			
-			//show certain number buttons
-			echo "<div style='float:left;'>";
-			echo $params->getForm(array('action'=>'row_view'),'get');
-			echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
-			echo "<input type='text' name='numRows' style='width:50px;' value='".$params->numRows."'/> ";
-			echo $lang['rows_records'];
-
-			if(intval($_GET['startRow']+$params->numRows) < $rowCount)
-				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_GET['startRow']+$params->numRows)."'/>";
-			else
-				echo "<input type='text' name='startRow' style='width:90px;' value='0'/> ";
-			echo $lang['as_a'];
-			echo " <select name='viewtype'>";
-			if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
-			{
-				echo "<option value='table' selected='selected'>".$lang['tbl']."</option>";
-				echo "<option value='chart'>".$lang['chart']."</option>";
-			}
-			else
-			{
-				echo "<option value='table'>".$lang['tbl']."</option>";
-				echo "<option value='chart' selected='selected'>".$lang['chart']."</option>";
-			}
-			echo "</select>";
-			echo "</form>";
-			echo "</div>";
-			
-			//next button
-			if(intval($_GET['startRow']+$params->numRows)<$rowCount)
-			{
-				echo "<div style='float:left; margin-left:20px; '>";
-				echo $params->getForm(array('action'=>'row_view'),'get');
-				echo "<input type='hidden' name='startRow' value='".intval($_GET['startRow']+$params->numRows)."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
-				echo "<input type='submit' value='&rarr;' class='btn'/> ";
-				echo "</form>";
-				echo "</div>";
-				echo "<div style='float:left; '>";
-				echo $params->getForm(array('action'=>'row_view'),'get');
-				echo "<input type='hidden' name='startRow' value='".intval($rowCount-$remainder)."'/>";
-				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
-				echo "<input type='submit' value='&rarr;&rarr;' class='btn'/> ";
-				echo "</form>";
-				echo "</div>";
-			}
-			echo "<div style='clear:both;'></div>";
-			echo "</div>";
-
 			//- Query execution
 			if(!isset($_GET['sort']))
 				$_GET['sort'] = NULL;
@@ -2132,8 +1981,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			$query .= " FROM ".$db->quote_id($target_table);
 			$queryDisp = "SELECT * FROM ".$db->quote_id($target_table);
-			$queryCount = "SELECT MIN(COUNT(*),".$numRows.") AS count FROM ".$db->quote_id($target_table);
+			$queryCount = "SELECT COUNT(*) AS count FROM ".$db->quote_id($target_table);
 			$queryAdd = "";
+			if(isset($search) && isset($search['where']))
+			{
+				$queryAdd = $search['where'];
+				$queryCount .= $search['where']; 
+			}
 			if(isset($_SESSION[COOKIENAME.'sortRows']))
 				$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sortRows']);
 			if(isset($_SESSION[COOKIENAME.'orderRows']))
@@ -2143,10 +1997,86 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			$queryDisp .= $queryAdd;
 			
 			$resultRows = $db->select($queryCount);
-			$resultRows = $resultRows['count'];
+			$totalRows = $resultRows['count'];
+			$shownRows = min($resultRows['count']-$startRow, $numRows);
+			
+			//- HTML: pagination buttons
+			$lastPage = intval($totalRows / $params->numRows);
+			$remainder = intval($totalRows % $params->numRows);
+			if($remainder==0)
+				$remainder = $params->numRows;
+			
+			echo "<div style=''>";
+			//previous button
+			if($_GET['startRow']>0)
+			{
+				echo "<div style='float:left;'>";
+				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo "<input type='hidden' name='startRow' value='0'/>";
+				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
+				echo "<input type='submit' value='&larr;&larr;' class='btn'/> ";
+				echo "</form>";
+				echo "</div>";
+				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
+				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo "<input type='hidden' name='startRow' value='".max(0,intval($_GET['startRow']-$params->numRows))."'/>";
+				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
+				echo "<input type='submit' value='&larr;' class='btn'/> ";
+				echo "</form>";
+				echo "</div>";
+			}
+			
+			//show certain number buttons
+			echo "<div style='float:left;'>";
+			echo $params->getForm(array('action'=>$_GET['action']),'get');
+			echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
+			echo "<input type='text' name='numRows' style='width:50px;' value='".$params->numRows."'/> ";
+			echo $lang['rows_records'];
+
+			if(intval($_GET['startRow']+$params->numRows) < $totalRows)
+				echo "<input type='text' name='startRow' style='width:90px;' value='".intval($_GET['startRow']+$params->numRows)."'/>";
+			else
+				echo "<input type='text' name='startRow' style='width:90px;' value='0'/> ";
+			echo $lang['as_a'];
+			echo " <select name='viewtype'>";
+			if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
+			{
+				echo "<option value='table' selected='selected'>".$lang['tbl']."</option>";
+				echo "<option value='chart'>".$lang['chart']."</option>";
+			}
+			else
+			{
+				echo "<option value='table'>".$lang['tbl']."</option>";
+				echo "<option value='chart' selected='selected'>".$lang['chart']."</option>";
+			}
+			echo "</select>";
+			echo "</form>";
+			echo "</div>";
+			
+			//next button
+			if(intval($_GET['startRow']+$params->numRows)<$totalRows)
+			{
+				echo "<div style='float:left; margin-left:20px; '>";
+				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo "<input type='hidden' name='startRow' value='".intval($_GET['startRow']+$params->numRows)."'/>";
+				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
+				echo "<input type='submit' value='&rarr;' class='btn'/> ";
+				echo "</form>";
+				echo "</div>";
+				echo "<div style='float:left; '>";
+				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo "<input type='hidden' name='startRow' value='".intval($totalRows-$remainder)."'/>";
+				echo "<input type='hidden' name='numRows' value='".$params->numRows."'/> ";
+				echo "<input type='submit' value='&rarr;&rarr;' class='btn'/> ";
+				echo "</form>";
+				echo "</div>";
+			}
+			echo "<div style='clear:both;'></div>";
+			echo "</div>";
+
 
 			//- Show results
-			if($resultRows>0)
+			if($totalRows>0)
 			{
 				$queryTimer = new MicroTimer();
 				$table_result = $db->query($query);
@@ -2154,7 +2084,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 
 				echo "<br/><div class='confirm'>";
-				echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + $resultRows-1).", ".$lang['total'].": ".$rowCount." ";
+				echo "<b>".$lang['showing_rows']." ".$startRow." - ".($startRow + $shownRows-1).", ".$lang['total'].": ".$totalRows." ";
 				printf($lang['query_time'], $queryTimer);
 				echo "</b><br/>";
 				echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
@@ -2178,7 +2108,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if($target_table_type == 'table')
 					{
 						echo "<td colspan='3' class='tdheader' style='text-align:center'>";
-						echo "<a href='".$params->getURL(array('action'=>'row_view', 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
+						echo "<a href='".$params->getURL(array('action'=>$_GET['action'], 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
 						echo "<b>&".($params->fulltexts?'r':'l')."arr;</b> T <b>&".($params->fulltexts?'l':'r')."arr;</b></a>";
 						echo "</td>";
 					}
@@ -2190,7 +2120,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							$orderTag = ($_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'] && $_SESSION[COOKIENAME.'orderRows']=="ASC") ? "DESC" : "ASC";
 						else
 							$orderTag = "ASC";
-						echo $params->getLink(array('action'=>'row_view', 'sort'=>$result[$i]['name'], 'order'=>$orderTag ), htmlencode($result[$i]['name']));
+						echo $params->getLink(array('action'=>$_GET['action'], 'sort'=>$result[$i]['name'], 'order'=>$orderTag ), htmlencode($result[$i]['name']));
 						if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'])
 							echo (($_SESSION[COOKIENAME.'orderRows']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 						echo "</td>";
@@ -2239,6 +2169,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "&nbsp;";
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
+							elseif(isset($search))
+								echo markSearchWords(subString($row[$j]),$result[$j]['name'], $search);
 							else
 								echo htmlencode(subString($row[$j]));
 							echo "</td>";
@@ -2339,10 +2271,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								$value = 0;
 								
 							echo "['".$label."', ".$value."]";
-							if($i<$resultRows-1)
+							if($i<$totalRows-1)
 								echo ",";
 						}
-						$height = ($resultRows+1) * 30;
+						$height = ($totalRows+1) * 30;
 						if($height>1000)
 							$height = 1000;
 						else if($height<300)
@@ -2375,7 +2307,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					<div id="chart_div" style="float:left;"><?php echo $lang['no_chart']; ?></div>
 					<?php
 					echo "<fieldset style='float:right; text-align:center;' id='chartsettingsbox'><legend><b>Chart Settings</b></legend>";
-					echo $params->getForm(array('action'=>'row_view'));
+					echo $params->getForm(array('action'=>$_GET['action']));
 					echo $lang['chart_type'].": <select name='charttype'>";
 					echo "<option value='bar'";
 					if($_SESSION[COOKIENAME.'charttype']=="bar")
@@ -2418,7 +2350,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					//end chart view
 				}
 			}
-			else if($rowCount>0)//no rows - do nothing
+			else if($totalRows>0)//no rows - do nothing
 			{
 				echo "<br/><br/>".$lang['no_rows'];
 			}
@@ -2426,6 +2358,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo "<br/><br/>".$lang['empty_tbl']." ".$params->getLink(array('action'=>'row_create'), $lang['click']) ." ".$lang['insert_rows'];
 			}
+			
+			if(isset($search))
+				echo "<br/><br/>".$params->getLink(array('action'=>'table_search','search'=>null), $lang['srch_again']);  
 
 			break;
 
