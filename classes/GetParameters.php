@@ -70,8 +70,13 @@ class GetParameters
 	public function redirect(array $assoc = array(), $message="")
 	{
 		if($message!="")
+		{
 			$_SESSION[COOKIENAME.'messages'][md5($message)] = $message;
-		$url = $this->getURL(array_merge($assoc, array('message'=>md5($message))), false);
+			$url = $this->getURL(array_merge($assoc, array('message'=>md5($message))), false);
+		}
+		else
+			$url = $this->getURL($assoc, false);
+		
 		$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? 'https' : 'http'); 
 		
 		header("Location: ".$protocol."://".$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'].$url, true, 302);
