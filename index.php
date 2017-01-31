@@ -2076,7 +2076,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 
 			//- Show results
-			if($totalRows>0)
+			if($shownRows>0)
 			{
 				$queryTimer = new MicroTimer();
 				$table_result = $db->query($query);
@@ -2350,13 +2350,15 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					//end chart view
 				}
 			}
-			else if($totalRows>0)//no rows - do nothing
+			else //no rows - do nothing
 			{
-				echo "<br/><br/>".$lang['no_rows'];
-			}
-			elseif($target_table_type == 'table')
-			{
-				echo "<br/><br/>".$lang['empty_tbl']." ".$params->getLink(array('action'=>'row_create'), $lang['click']) ." ".$lang['insert_rows'];
+				echo "<br/><div class='confirm'>";
+				if(isset($search) || $totalRows>0)
+					echo $lang['no_rows']."<br/><br/>";
+				elseif($target_table_type == 'table')
+					echo $lang['empty_tbl']." ".$params->getLink(array('action'=>'row_create'), $lang['click']) ." ".$lang['insert_rows'].'<br/><br/>';
+				echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
+				echo "</div><br/>";
 			}
 			
 			if(isset($search))
