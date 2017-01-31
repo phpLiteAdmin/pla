@@ -1450,8 +1450,10 @@ if($target_table)
 	echo $params->getLink(array('action'=>'table_sql'), $lang['sql'], 
 		($_GET['action']=="table_sql" ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array('action'=>'table_search'), $lang['srch'], 
-		($_GET['action']=="table_search" ? 'tab_pressed' : 'tab'));
+	echo $params->getLink(array(
+		'action' => 'table_search',
+		'oldSearch' => (isset($_GET['search'])?$_GET['search']:null)
+		), $lang['srch'], ($_GET['action']=="table_search" ? 'tab_pressed' : 'tab'));
 
 	if($target_table_type == 'table')
 		echo $params->getLink(array('action'=>'row_create'), $lang['insert'], 
@@ -1875,6 +1877,17 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$typeAffinity = get_type_affinity($type);
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
+					if(isset($_GET['oldSearch']) && isset($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['values'][$field]))
+						$value = implode($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['values'][$field], ",");
+					else
+						$value = '';
+					if(isset($_GET['oldSearch']) && isset($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['operators'][$field]))
+						$operator = $_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['operators'][$field];
+					elseif($typeAffinity=="TEXT" || $typeAffinity=="NONE")
+						$operator = 'LIKE';
+					else
+						$operator = '=';
+						
 					echo "<tr>";
 					echo $tdWithClassLeft;
 					echo htmlencode($field);
@@ -1884,37 +1897,27 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</td>";
 					echo $tdWithClassLeft;
 					echo "<select name='".htmlencode($field).":operator' onchange='checkLike(\"".htmlencode($field)."_search\", this.options[this.selectedIndex].value); '>";
-					echo "<option value='='>=</option>";
-					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
+					
+					$operators = array('=', '>', '>=', '<', '<=', "= ''", "!= ''", '!=', 'LIKE', 'LIKE%','NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL');
+					$operatorsDisplay = array('LIKE%' => 'LIKE %...%', 'IN'=>'IN (..., ...)', 'NOT IN'=>'NOT IN (..., ...)');
+					$operatorsNumbersOnly = array('>', '>=', '<', '<=');
+					$operatorsTextOnly = array("= ''", "!= ''");
+					foreach($operators as $op)
 					{
-						echo "<option value='&gt;'>&gt;</option>";
-						echo "<option value='&gt;='>&gt;=</option>";
-						echo "<option value='&lt;'>&lt;</option>";
-						echo "<option value='&lt;='>&lt;=</option>";
+						if($typeAffinity!="INTEGER" && $typeAffinity!="REAL" && $typeAffinity!="NUMERIC" && in_array($op, $operatorsNumbersOnly))
+							continue;
+						if($typeAffinity!="TEXT" && $typeAffinity!="NONE" && in_array($op, $operatorsTextOnly))
+							continue;
+						$display = (isset($operatorsDisplay[$op]) ? $operatorsDisplay[$op] : $op);
+						echo "<option value='".htmlencode($op)."'".($operator==$op?" selected='selected'":'').">".htmlencode($display)."</option>";
 					}
-					else if($typeAffinity=="TEXT" || $typeAffinity=="NONE")
-					{
-						echo "<option value='= '''>= ''</option>";
-						echo "<option value='!= '''>!= ''</option>";
-					}
-					echo "<option value='!='>!=</option>";
-					if($typeAffinity=="TEXT" || $typeAffinity=="NONE")
-						echo "<option value='LIKE' selected='selected'>LIKE</option>";
-					else
-						echo "<option value='LIKE'>LIKE</option>";
-					echo "<option value='LIKE%'>LIKE %...%</option>";
-					echo "<option value='NOT LIKE'>NOT LIKE</option>";
-					echo "<option value='IN'>IN (..., ...)</option>";
-					echo "<option value='NOT IN'>NOT IN (..., ...)</option>";
-					echo "<option value='IS NULL'>IS NULL</option>";
-					echo "<option value='IS NOT NULL'>IS NOT NULL</option>";
 					echo "</select>";
 					echo "</td>";
 					echo $tdWithClassLeft;
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
-						echo "<input type='text' id='".htmlencode($field)."_search' name='".htmlencode($field)."'/>";
+						echo "<input type='text' id='".htmlencode($field)."_search' name='".htmlencode($field)."' value='".htmlencode($value)."'/>";
 					else
-						echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' rows='1' cols='60'></textarea>";
+						echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' rows='1' cols='60'>".htmlencode($value)."</textarea>";
 					echo "</td>";
 					echo "</tr>";
 				}
@@ -2356,7 +2359,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			
 			if(isset($search))
-				echo "<br/><br/>".$params->getLink(array('action'=>'table_search','search'=>null), $lang['srch_again']);  
+				echo "<br/><br/>".$params->getLink(array('action'=>'table_search','search'=>null,'oldSearch' => (isset($_GET['search'])?$_GET['search']:null)), $lang['srch_again']);  
 
 			break;
 
