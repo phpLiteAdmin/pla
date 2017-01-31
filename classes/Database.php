@@ -184,7 +184,7 @@ class Database
 		else //there are a lot of databases - show a drop down menu
 		{
 			echo $params->getForm(array('table'=>null), 'get');
-			echo "<select name='database'>";
+			echo "<select name='database' onchange='this.form.submit()'>";
 			foreach($databases as $database)
 			{
 				$perms_string = htmlencode('[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . '] ');
@@ -193,8 +193,8 @@ class Database
 				else
 					echo "<option value='".htmlencode($database['path'])."'>".$perms_string.htmlencode($database['name'])."</option>";
 			}
-			echo "</select> ";
-			echo "<input type='submit' value='".$lang['go']."' class='btn'>";
+			echo "</select>";
+			echo "<noscript><input type='submit' value='".$lang['go']."' class='btn'></noscript>";
 			echo "</form>";
 		}
 		echo "</fieldset>";	
