@@ -839,9 +839,10 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 		//- Create row (=row_create)
 		case "row_create":
 			$completed = "";
-			$num = $_GET['newRows'];
+			$num = $_POST['newRows'];
 			$fields = explode(":", $_POST['fields']);
 			$z = 0;
+			$error = false;
 			
 			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
 			$result = $db->selectArray($query);
