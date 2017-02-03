@@ -294,6 +294,11 @@ class Database
 		$result = $this->select("SELECT `type` FROM `sqlite_master` WHERE `name`=" . $this->quote($table), 'assoc');
 		return $result['type'];
 	}
+	
+	public function getTableInfo($table)
+	{
+		return $this->selectArray("PRAGMA table_info(".$this->quote_id($table).")");
+	}
 
 	public function close()
 	{
@@ -631,8 +636,7 @@ class Database
 					preg_match_all($preg_alter_part,$alterdefs,$matches);
 					$defs = $matches[0];
 					
-					$get_oldcols_query = "PRAGMA table_info(".$this->quote_id($table).")";
-					$result_oldcols = $this->selectArray($get_oldcols_query);
+					$result_oldcols = $this->getTableInfo($table);
 					$newcols = array();
 					$coltypes = array();
 					$primarykey = array();
@@ -1007,8 +1011,7 @@ class Database
 	// checks whether a table has a primary key
 	public function hasPrimaryKey($table)
 	{
-		$query = "PRAGMA table_info(".$this->quote_id($table).")";
-		$table_info = $this->selectArray($query);
+		$table_info = $this->getTableInfo($table);
 		foreach($table_info as $row_id => $row_data)
 		{
 			if($row_data['pk'])
@@ -1034,8 +1037,7 @@ class Database
 		else
 		{
 			// the table is without rowid, so use the primary key
-			$query = "PRAGMA table_info(".$this->quote_id($table).")";
-			$table_info = $this->selectArray($query);
+			$table_info = $this->getTableInfo($table);
 			if(is_array($table_info))
 			{
 				foreach($table_info as $row_id => $row_data)
@@ -1198,8 +1200,7 @@ class Database
 			}
 			if($valid)
 			{
-				$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
-				$temp = $this->selectArray($query);
+				$temp = $this->getTableInfo($result[$i]['tbl_name']);
 				$cols = array();
 				for($z=0; $z<sizeof($temp); $z++)
 					$cols[$z] = $temp[$z][1];
@@ -1316,8 +1317,7 @@ class Database
 						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], $numRows)."\r\n";
 						echo "----\r\n";
 					}
-					$query = "PRAGMA table_info(".$this->quote_id($result[$i]['tbl_name']).")";
-					$temp = $this->selectArray($query);
+					$temp = $this->getTableInfo($result[$i]['tbl_name']);
 					$cols = array();
 					$cols_quoted = array();
 					for($z=0; $z<sizeof($temp); $z++)
