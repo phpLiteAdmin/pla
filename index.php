@@ -320,11 +320,14 @@ function get_type_affinity($type)
 $auth = new Authorization(); //create authorization object
 
 // check if user has attempted to log out
-if (isset($_POST['logout']))
+if (isset($_GET['logout']))
 	$auth->revoke();
 // check if user has attempted to log in
 else if (isset($_POST['login']) && isset($_POST['password']))
-	$auth->attemptGrant($_POST['password'], isset($_POST['remember']));
+{
+	$attempt = $auth->attemptGrant($_POST['password'], isset($_POST['remember']));
+	$params->redirect( $attempt ? array():array('failed'=>'1') );	
+}
 
 //- Actions on database files and bulk data
 if ($auth->isAuthorized())
@@ -1296,7 +1299,7 @@ if(!$auth->isAuthorized())
 	echo "<div id='loginBox'>";
 	echo "<h1><span id='logo'>".PROJECT."</span> <span id='version'>v".VERSION."</span></h1>";
 	echo "<div style='padding:15px; text-align:center;'>";
-	if ($auth->isFailedLogin())
+	if (isset($_GET['failed']))
 		echo "<span class='warning'>".$lang['passwd_incorrect']."</span><br/><br/>";
 	echo $params->getForm();
 	echo $lang['passwd'].": <input type='password' name='password'/><br/>";
@@ -1420,7 +1423,7 @@ if($directory!==false && is_writable($directory))
 }
 
 echo "<div style='text-align:center;'>";
-echo $params->getForm();
+echo $params->getForm(array(),'get');
 echo "<input type='submit' value='".$lang['logout']."' name='logout' class='btn'/>";
 echo "</form>";
 echo "</div>";
