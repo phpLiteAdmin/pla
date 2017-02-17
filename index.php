@@ -698,14 +698,19 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Empty table (=table_empty)
 		case "table_empty":
-			$query1 = "DELETE FROM ".$db->quote_id($_GET['table']);
+			$query1 = "DELETE FROM ".$db->quote_id($_GET['table']).";";
 			$result1 = $db->query($query1);
-			$query2 = "VACUUM";
-			$result2 = $db->query($query2);
 			if($result1 === false)
 				$completed = $db->getError(true);
+			if(isset($_POST['vacuum']) && $_POST['vacuum'])
+			{ 
+				$query2 = "VACUUM;";
+				$result2 = $db->query($query2);
+			}
 			else
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1).";<br />".htmlencode($query2).";</span>";
+				$query2 = "";
+			if($result1 !== false)
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
 			$params->redirect(($result1===false ? array() : array('action'=>'row_view') ), $completed);
 			break;
 
@@ -722,14 +727,21 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 
 		//- Drop table (=table_drop)
 		case "table_drop":
-			$query = "DROP TABLE ".$db->quote_id($_GET['table']);
-			$result=$db->query($query);
-			if($result === false)
+			$query1 = "DROP TABLE ".$db->quote_id($_GET['table']).";";
+			$result1=$db->query($query1);
+			if($result1 === false)
 				$completed = $db->getError(true);
+			if(isset($_POST['vacuum']) && $_POST['vacuum'])
+			{ 
+				$query2 = "VACUUM;";
+				$result2 = $db->query($query2);
+			}
 			else
+				$query2 = "";
+			if($result1 !== false)
 			{
 				$target_table = null;
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";;
+				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
 			}
 			$params->redirect(array('table'=>null), $completed);
 			break;
@@ -742,7 +754,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				$completed = $db->getError(true);
 			else
 				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array(), $completed);
+			$params->redirect(array('table'=>null), $completed);
 			break;
 
 		//- Rename table (=table_rename)
@@ -1454,11 +1466,16 @@ if($target_table)
 		($_GET['action']=="table_rename" ? 'tab_pressed' : 'tab'));
 
 	if($target_table_type == 'table')
+	{
 		echo $params->getLink(array('action'=>'table_empty'), $lang['empty'], 
 			($_GET['action']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
-	echo $params->getLink(array('action'=>'table_drop'), $lang['drop'], 
+		echo $params->getLink(array('action'=>'table_drop'), $lang['drop'], 
 			($_GET['action']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
+	} else {
+		echo $params->getLink(array('action'=>'view_drop'), $lang['drop'], 
+			($_GET['action']=="view_drop" ? 'tab_pressed drop' : 'tab drop'));
+	}
 }
 else
 //- Show the various tab views for a database
@@ -1710,6 +1727,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo $params->getForm(array('action'=>'table_empty','confirm'=>'1'));
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
+			echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 			echo $params->getLink(array('table'=>null), $lang['cancel']);
 			echo "</div>";
@@ -1720,6 +1738,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo $params->getForm(array('action'=>'table_drop','confirm'=>'1'));
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_drop'], htmlencode($target_table))."<br/><br/>";
+			echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 			echo $params->getLink(array('table'=>null), $lang['cancel']);
 			echo "</div>";

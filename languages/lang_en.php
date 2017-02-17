@@ -235,6 +235,7 @@ $lang = array(
 	"edit_col" => "Editing column '%s'",
 	"vac" => "Vacuum",
 	"vac_desc" => "Large databases sometimes need to be VACUUMed to reduce their footprint on the server. Click the button below to VACUUM the database '%s'.",
+	"vac_on_empty"=>"Rebuild database file to recover unused space (Vacuum)",
 	"event" => "Event",
 	"each_row" => "For Each Row",
 	"define_index" => "Define index properties",
