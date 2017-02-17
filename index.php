@@ -699,14 +699,14 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 		//- Empty table (=table_empty)
 		case "table_empty":
 			$query1 = "DELETE FROM ".$db->quote_id($_GET['table']);
-			$result = $db->query($query1);
+			$result1 = $db->query($query1);
 			$query2 = "VACUUM";
-			$result = $db->query($query2);
-			if($result === false)
+			$result2 = $db->query($query2);
+			if($result1 === false)
 				$completed = $db->getError(true);
 			else
 				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1).";<br />".htmlencode($query2).";</span>";
-			$params->redirect(($result===false ? array() : array('action'=>'row_view') ), $completed);
+			$params->redirect(($result1===false ? array() : array('action'=>'row_view') ), $completed);
 			break;
 
 		//- Create view (=view_create)
@@ -768,7 +768,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$searchValues = array();
 			$searchOperators = array();
 	
-			$tableInfo = $db->selectArray("PRAGMA table_info(".$db->quote_id($target_table).")");
+			$tableInfo = $db->getTableInfo($target_table);
 			$j = 0;
 			$whereExpr = array();
 			for($i=0; $i<sizeof($tableInfo); $i++)
@@ -836,8 +836,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$z = 0;
 			$error = false;
 			
-			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-			$result = $db->selectArray($query);
+			$tableInfo = $db->getTableInfo($target_table);
 			
 			for($i=0; $i<$num; $i++)
 			{
@@ -846,22 +845,22 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$query_cols = "";
 					$query_vals = "";
 					$all_default = true;
-					for($j=0; $j<sizeof($result); $j++)
+					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
 						$null = isset($_POST[$j."_null"][$i]);
 						if(!$null)
 							$value = $_POST[$i.":".$j];
 						else
 							$value = "";
-						if($value===$result[$j]['dflt_value'])
+						if($value===$tableInfo[$j]['dflt_value'])
 						{
 							// if the value is the default value, skip it
 							continue;
 						} else
 							$all_default = false;
-						$query_cols .= $db->quote_id($result[$j]['name']).",";
+						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
 						
-						$type = $result[$j]['type'];
+						$type = $tableInfo[$j]['type'];
 						$typeAffinity = get_type_affinity($type);
 						$function = $_POST["function_".$j][$i];
 						if($function!="")
@@ -924,8 +923,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			$pks = json_decode($_GET['pk']);
 			$z = 0;
 			
-			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-			$result = $db->selectArray($query);
+			$tableInfo = $db->getTableInfo($target_table);
 			
 			if(isset($_POST['new_row']))
 				$completed = "";
@@ -939,7 +937,7 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$query_cols = "";
 					$query_vals = "";
 					$all_default = true;
-					for($j=0; $j<sizeof($result); $j++)
+					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
 						$null = isset($_POST[$j."_null"][$i]);
 						if(!$null)
@@ -948,15 +946,15 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 						}
 						else
 							$value = "";
-						if($value===$result[$j]['dflt_value'])
+						if($value===$tableInfo[$j]['dflt_value'])
 						{
 							// if the value is the default value, skip it
 							continue;
 						} else
 							$all_default = false;
-						$query_cols .= $db->quote_id($result[$j]['name']).",";
+						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
 						
-						$type = $result[$j]['type'];
+						$type = $tableInfo[$j]['type'];
 						$typeAffinity = get_type_affinity($type);
 						$function = $_POST["function_".$j][$i];
 						if($function!="")
@@ -991,11 +989,11 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				else
 				{
 					$query = "UPDATE ".$db->quote_id($target_table)." SET ";
-					for($j=0; $j<sizeof($result); $j++)
+					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
 						$function = $_POST["function_".$j][$i];
 						$null = isset($_POST[$j."_null"][$i]);
-						$query .= $db->quote_id($result[$j]['name'])."=";
+						$query .= $db->quote_id($tableInfo[$j]['name'])."=";
 						if($function!="")
 							$query .= $function."(";
 						if($null)
@@ -1692,11 +1690,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div style='float:left; width:28%; padding-left:10px;'>";
 			echo $lang['fields']."<br/>";
 			echo "<select multiple='multiple' style='width:100%;' id='fieldcontainer'>";
-			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-			$result = $db->selectArray($query);
-			for($i=0; $i<sizeof($result); $i++)
+			$tableInfo = $db->getTableInfo($target_table);
+			for($i=0; $i<sizeof($tableInfo); $i++)
 			{
-				echo "<option value='".htmlencode($result[$i][1])."'>".htmlencode($result[$i][1])."</option>";
+				echo "<option value='".htmlencode($tableInfo[$i][1])."'>".htmlencode($tableInfo[$i][1])."</option>";
 			}
 			echo "</select>";
 			echo "<input type='button' value='&lt;&lt;' onclick='moveFields();' class='btn'/>";
@@ -1843,8 +1840,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		case "table_search":
 			if(!isset($_GET['search']))
 			{
-				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-				$result = $db->selectArray($query);
+				$tableInfo = $db->getTableInfo($target_table);
 				
 				echo $params->getForm(array('action'=>'table_search', 'confirm'=>'1'));
 					
@@ -1856,10 +1852,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<td class='tdheader'>".$lang['val']."</td>";
 				echo "</tr>";
 
-				for($i=0; $i<sizeof($result); $i++)
+				for($i=0; $i<sizeof($tableInfo); $i++)
 				{
-					$field = $result[$i][1];
-					$type = $result[$i]['type'];
+					$field = $tableInfo[$i][1];
+					$type = $tableInfo[$i]['type'];
 					$typeAffinity = get_type_affinity($type);
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
@@ -2081,9 +2077,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "<br/><br/>";	
 				}
 				
-				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-				$result = $db->selectArray($query);
-				$pkFirstCol = sizeof($result)+1;
+				$tableInfo = $db->getTableInfo($target_table);
+				$pkFirstCol = sizeof($tableInfo)+1;
 				//- Table view
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
@@ -2098,15 +2093,15 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						echo "</td>";
 					}
 
-					for($i=0; $i<sizeof($result); $i++)
+					for($i=0; $i<sizeof($tableInfo); $i++)
 					{
 						echo "<td class='tdheader'>";
 						if(isset($_SESSION[COOKIENAME.'sortRows']))
-							$orderTag = ($_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'] && $_SESSION[COOKIENAME.'orderRows']=="ASC") ? "DESC" : "ASC";
+							$orderTag = ($_SESSION[COOKIENAME.'sortRows']==$tableInfo[$i]['name'] && $_SESSION[COOKIENAME.'orderRows']=="ASC") ? "DESC" : "ASC";
 						else
 							$orderTag = "ASC";
-						echo $params->getLink(array('action'=>$_GET['action'], 'sort'=>$result[$i]['name'], 'order'=>$orderTag ), htmlencode($result[$i]['name']));
-						if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$result[$i]['name'])
+						echo $params->getLink(array('action'=>$_GET['action'], 'sort'=>$tableInfo[$i]['name'], 'order'=>$orderTag ), htmlencode($tableInfo[$i]['name']));
+						if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$tableInfo[$i]['name'])
 							echo (($_SESSION[COOKIENAME.'orderRows']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 						echo "</td>";
 					}
@@ -2143,9 +2138,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'delete'),"<span>".$lang['del']."</span>",'delete', $lang['del']);
 							echo "</td>";
 						}
-						for($j=0; $j<sizeof($result); $j++)
+						for($j=0; $j<sizeof($tableInfo); $j++)
 						{
-							$typeAffinity = get_type_affinity($result[$j]['type']);
+							$typeAffinity = get_type_affinity($tableInfo[$j]['type']);
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 								echo $tdWithClass;
 							else
@@ -2155,7 +2150,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
 							elseif(isset($search))
-								echo markSearchWords(subString($row[$j]),$result[$j]['name'], $search);
+								echo markSearchWords(subString($row[$j]),$tableInfo[$j]['name'], $search);
 							else
 								echo htmlencode(subString($row[$j]));
 							echo "</td>";
@@ -2180,9 +2175,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					if(!isset($_SESSION[COOKIENAME.$target_table.'chartlabels']))
 					{
 						// No label-column set. Try to pick a text-column as label-column.
-						for($i=0; $i<sizeof($result); $i++)
+						for($i=0; $i<sizeof($tableInfo); $i++)
 						{
-							if(get_type_affinity($result[$i]['type'])=='TEXT')
+							if(get_type_affinity($tableInfo[$i]['type'])=='TEXT')
 							{
 								$_SESSION[COOKIENAME.$target_table.'chartlabels'] = $i;
 								break;
@@ -2199,13 +2194,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						// If not possible, pick the first column that is not the label-column.
 						
 						$potential_value_column = null;
-						for($i=0; $i<sizeof($result); $i++)
+						for($i=0; $i<sizeof($tableInfo); $i++)
 						{
 							if($potential_value_column===null && $i != $_SESSION[COOKIENAME.$target_table.'chartlabels'])
 								// the first column (of any type) that is not the label-column
 								$potential_value_column = $i;
 							// check if the col is numeric
-							$typeAffinity = get_type_affinity($result[$i]['type']);  
+							$typeAffinity = get_type_affinity($tableInfo[$i]['type']);  
 							if($typeAffinity=='INTEGER' || $typeAffinity=='REAL' || $typeAffinity=='NUMERIC')
 							{
 								// this is defined as a numeric column, so prefer this as a value column over $potential_value_column
@@ -2243,8 +2238,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					function drawChart()
 					{
 						var data = new google.visualization.DataTable();
-						data.addColumn('string', '<?php echo $result[$_SESSION[COOKIENAME.$target_table.'chartlabels']]['name']; ?>');
-						data.addColumn('number', '<?php echo $result[$_SESSION[COOKIENAME.$target_table.'chartvalues']]['name']; ?>');
+						data.addColumn('string', '<?php echo $tableInfo[$_SESSION[COOKIENAME.$target_table.'chartlabels']]['name']; ?>');
+						data.addColumn('number', '<?php echo $tableInfo[$_SESSION[COOKIENAME.$target_table.'chartvalues']]['name']; ?>');
 						data.addRows([
 						<?php
 						for($i=0; $row = $db->fetch($table_result); $i++)
@@ -2276,7 +2271,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						{
 							'width':chartWidth,
 							'height':<?php echo $height; ?>,
-							'title':'<?php echo $result[$_SESSION[COOKIENAME.$target_table.'chartlabels']]['name']." vs ".$result[$_SESSION[COOKIENAME.$target_table.'chartvalues']]['name']; ?>'
+							'title':'<?php echo $tableInfo[$_SESSION[COOKIENAME.$target_table.'chartlabels']]['name']." vs ".$tableInfo[$_SESSION[COOKIENAME.$target_table.'chartvalues']]['name']; ?>'
 						};
 						<?php
 						if($_SESSION[COOKIENAME.'charttype']=="bar")
@@ -2309,22 +2304,22 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</select>";
 					echo "<br/><br/>";
 					echo $lang['lbl'].": <select name='chartlabels'>";
-					for($i=0; $i<sizeof($result); $i++)
+					for($i=0; $i<sizeof($tableInfo); $i++)
 					{
 						if(isset($_SESSION[COOKIENAME.$target_table.'chartlabels']) && $_SESSION[COOKIENAME.$target_table.'chartlabels']==$i)
-							echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i]['name'])."</option>";
+							echo "<option value='".$i."' selected='selected'>".htmlencode($tableInfo[$i]['name'])."</option>";
 						else
-							echo "<option value='".$i."'>".htmlencode($result[$i]['name'])."</option>";
+							echo "<option value='".$i."'>".htmlencode($tableInfo[$i]['name'])."</option>";
 					}
 					echo "</select>";
 					echo "<br/><br/>";
 					echo $lang['val'].": <select name='chartvalues'>";
-					for($i=0; $i<sizeof($result); $i++)
+					for($i=0; $i<sizeof($tableInfo); $i++)
 					{
 						if(isset($_SESSION[COOKIENAME.$target_table.'chartvalues']) && $_SESSION[COOKIENAME.$target_table.'chartvalues']==$i)
-							echo "<option value='".$i."' selected='selected'>".htmlencode($result[$i]['name'])."</option>";
+							echo "<option value='".$i."' selected='selected'>".htmlencode($tableInfo[$i]['name'])."</option>";
 						else
-							echo "<option value='".$i."'>".htmlencode($result[$i]['name'])."</option>";
+							echo "<option value='".$i."'>".htmlencode($tableInfo[$i]['name'])."</option>";
 					}
 					echo "</select>";
 					echo "<br/><br/>";
@@ -2369,7 +2364,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "</form>";
 			echo "<br/>";
 			echo $params->getForm(array('action'=>'row_create','confirm'=>'1'));
-			$tableInfo = $db->selectArray("PRAGMA table_info(".$db->quote_id($target_table).")");
+			$tableInfo = $db->getTableInfo($target_table);
 			if(isset($_GET['newRows']))
 				$num = $_GET['newRows'];
 			else
@@ -2461,7 +2456,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 				{
 					echo $params->getForm(array('action'=>'row_edit', 'confirm'=>'1', 'pk'=>json_encode($pks)));
-					$tableInfo = $db->selectArray("PRAGMA table_info(".$db->quote_id($target_table).")");
+					$tableInfo = $db->getTableInfo($target_table);
 					$primary_key = $db->getPrimaryKey($target_table);
 					
 					for($j=0; $j<sizeof($pks); $j++)
@@ -2547,8 +2542,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- View table structure (=column_view)
 		case "column_view":
-			$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-			$result = $db->selectArray($query);
+			$tableInfo = $db->getTableInfo($target_table);
 
 			echo $params->getForm(array('action'=>'column_confirm'), 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -2565,14 +2559,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 			$noPrimaryKey = true;
 			
-			for($i=0; $i<sizeof($result); $i++)
+			for($i=0; $i<sizeof($tableInfo); $i++)
 			{
-				$colVal = $result[$i][0];
-				$fieldVal = $result[$i][1];
-				$typeVal = $result[$i]['type'];
-				$notnullVal = $result[$i][3];
-				$defaultVal = $result[$i][4];
-				$primarykeyVal = $result[$i][5];
+				$colVal = $tableInfo[$i][0];
+				$fieldVal = $tableInfo[$i][1];
+				$typeVal = $tableInfo[$i]['type'];
+				$notnullVal = $tableInfo[$i][3];
+				$defaultVal = $tableInfo[$i][4];
+				$primarykeyVal = $tableInfo[$i][5];
 
 				if(intval($notnullVal)!=0)
 					$notnullVal = $lang['yes'];
@@ -2879,19 +2873,18 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo $lang['specify_tbl'];
 			else
 			{
-				$query = "PRAGMA table_info(".$db->quote_id($target_table).")";
-				$result = $db->selectArray($query);
+				$tableInfo = $db->getTableInfo($target_table);
 
-				for($i=0; $i<sizeof($result); $i++)
+				for($i=0; $i<sizeof($tableInfo); $i++)
 				{
-					if($result[$i][1]==$_GET['pk'])
+					if($tableInfo[$i][1]==$_GET['pk'])
 					{
-						$colVal = $result[$i][0];
-						$fieldVal = $result[$i][1];
-						$typeVal = $result[$i]['type'];
-						$notnullVal = $result[$i][3];
-						$defaultVal = $result[$i][4];
-						$primarykeyVal = $result[$i][5];
+						$colVal = $tableInfo[$i][0];
+						$fieldVal = $tableInfo[$i][1];
+						$typeVal = $tableInfo[$i]['type'];
+						$notnullVal = $tableInfo[$i][3];
+						$defaultVal = $tableInfo[$i][4];
+						$primarykeyVal = $tableInfo[$i][5];
 						break;
 					}
 				}
@@ -3040,9 +3033,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo $params->getForm(array('action'=>'index_create', 'confirm'=>'1'));
 				$num = intval($_GET['numcolumns']);
-				$query = "PRAGMA table_info(".$db->quote_id($_GET['table']).")";
-
-				$result = $db->selectArray($query);
+				$tableInfo = $db->getTableInfo($_GET['table']);
 				echo "<fieldset><legend>".$lang['define_index']."</legend>";
 				echo "<label for='index_name'>".$lang['index_name'].":</label> <input type='text' name='name' id='index_name'/><br/>";
 				echo "<label for='index_duplicate'>".$lang['dup_val'].":</label>";
@@ -3059,8 +3050,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				{
 					echo "<select name='".$i."_field'>";
 					echo "<option value=''>--".$lang['ignore']."--</option>";
-					for($j=0; $j<sizeof($result); $j++)
-						echo "<option value='".htmlencode($result[$j][1])."'>".htmlencode($result[$j][1])."</option>";
+					for($j=0; $j<sizeof($tableInfo); $j++)
+						echo "<option value='".htmlencode($tableInfo[$j][1])."'>".htmlencode($tableInfo[$j][1])."</option>";
 					echo "</select> ";
 					echo "<select name='".$i."_order'>";
 					echo "<option value=''></option>";
