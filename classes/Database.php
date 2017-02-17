@@ -380,7 +380,9 @@ class Database
 				$mode = PDO::FETCH_NUM;
 			else
 				$mode = PDO::FETCH_BOTH;
-			return $result->fetch($mode);
+			$ret = $result->fetch($mode);
+			$result->closeCursor();
+			return $ret;
 		}
 		else if($this->type=="SQLite3")
 		{
@@ -390,7 +392,9 @@ class Database
 				$mode = SQLITE3_NUM;
 			else
 				$mode = SQLITE3_BOTH;
-			return $result->fetchArray($mode);
+			$ret = $result->fetchArray($mode);
+			$result->finalize();
+			return $ret;
 		}
 		else if($this->type=="SQLiteDatabase")
 		{
@@ -421,7 +425,9 @@ class Database
 				$mode = PDO::FETCH_NUM;
 			else
 				$mode = PDO::FETCH_BOTH;
-			return $result->fetchAll($mode);
+			$ret = $result->fetchAll($mode);
+			$result->closeCursor();
+			return $ret;
 		}
 		else if($this->type=="SQLite3")
 		{
@@ -438,6 +444,7 @@ class Database
 				$arr[$i] = $res;
 				$i++;
 			}
+			$result->finalize();
 			return $arr;
 		}
 		else if($this->type=="SQLiteDatabase")
