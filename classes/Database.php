@@ -1195,6 +1195,9 @@ class Database
 	public function export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row)
 	{
 		@set_time_limit(-1);
+		// we use \r\n if the _client_ OS is windows (as the exported file is downloaded to the client), \n otherwise
+		$crlf = (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'Win')!==false ? "\r\n" : "\n");
+
 		$query = "SELECT * FROM sqlite_master WHERE type='table' or type='view' ORDER BY type DESC";
 		$result = $this->selectArray($query);
 		for($i=0; $i<sizeof($result); $i++)
@@ -1220,7 +1223,7 @@ class Database
 						if($z < sizeof($cols)-1)
 							echo $field_terminate;
 					}
-					echo "\r\n";
+					echo $crlf;
 				}
 				$query = "SELECT * FROM ".$this->quote_id($result[$i]['tbl_name']);
 				$table_result = $this->query($query);
@@ -1228,7 +1231,7 @@ class Database
 				while($row = $this->fetch($table_result, "assoc"))
 				{
 					if(!$firstRow)
-						echo "\r\n";
+						echo $crlf;
 					else
 						$firstRow=false;
 
@@ -1253,7 +1256,7 @@ class Database
 					}
 				}
 				if($i<sizeof($result)-1)
-					echo "\r\n";
+					echo $crlf;
 			}
 		}
 	}
@@ -1263,20 +1266,23 @@ class Database
 	{
 		global $lang;
 		@set_time_limit(-1);
+		// we use \r\n if the _client_ OS is windows (as the exported file is downloaded to the client), \n otherwise
+		$crlf = (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'Win')!==false ? "\r\n" : "\n");
+		
 		if($comments)
 		{
-			echo "----\r\n";
-			echo "-- ".PROJECT." ".$lang['db_dump']." (".PROJECT_URL.")\r\n";
-			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION."\r\n";
-			echo "-- ".$lang['exported'].": ".date($lang['date_format'])."\r\n";
-			echo "-- ".$lang['db_f'].": ".$this->getPath()."\r\n";
-			echo "----\r\n";
+			echo "----".$crlf;
+			echo "-- ".PROJECT." ".$lang['db_dump']." (".PROJECT_URL.")".$crlf;
+			echo "-- ".PROJECT." ".$lang['ver'].": ".VERSION.$crlf;
+			echo "-- ".$lang['exported'].": ".date($lang['date_format']).$crlf;
+			echo "-- ".$lang['db_f'].": ".$this->getPath().$crlf;
+			echo "----".$crlf;
 		}
 		$query = "SELECT * FROM sqlite_master WHERE type='table' OR type='index' OR type='view' OR type='trigger' ORDER BY type='trigger', type='index', type='view', type='table'";
 		$result = $this->selectArray($query);
 
 		if($transaction)
-			echo "BEGIN TRANSACTION;\r\n";
+			echo "BEGIN TRANSACTION;".$crlf;
 
 		//iterate through each table
 		for($i=0; $i<sizeof($result); $i++)
@@ -1293,24 +1299,24 @@ class Database
 				{
 					if($comments)
 					{
-						echo "\r\n----\r\n";
-						echo "-- ".$lang['drop']." ".$result[$i]['type']." ".$lang['for']." ".$result[$i]['name']."\r\n";
-						echo "----\r\n";
+						echo "\r\n----".$crlf;
+						echo "-- ".$lang['drop']." ".$result[$i]['type']." ".$lang['for']." ".$result[$i]['name'].$crlf;
+						echo "----".$crlf;
 					}
-					echo "DROP ".strtoupper($result[$i]['type'])." IF EXISTS ".$this->quote_id($result[$i]['name']).";\r\n";
+					echo "DROP ".strtoupper($result[$i]['type'])." IF EXISTS ".$this->quote_id($result[$i]['name']).";".$crlf;
 				}
 				if($structure)
 				{
 					if($comments)
 					{
-						echo "\r\n----\r\n";
+						echo "\r\n----".$crlf;
 						if($result[$i]['type']=="table" || $result[$i]['type']=="view")
-							echo "-- ".ucfirst($result[$i]['type'])." ".$lang['struct_for']." ".$result[$i]['tbl_name']."\r\n";
+							echo "-- ".ucfirst($result[$i]['type'])." ".$lang['struct_for']." ".$result[$i]['tbl_name'].$crlf;
 						else // index or trigger
-							echo "-- ".$lang['struct_for']." ".$result[$i]['type']." ".$result[$i]['name']." ".$lang['on_tbl']." ".$result[$i]['tbl_name']."\r\n";
-						echo "----\r\n";
+							echo "-- ".$lang['struct_for']." ".$result[$i]['type']." ".$result[$i]['name']." ".$lang['on_tbl']." ".$result[$i]['tbl_name'].$crlf;
+						echo "----".$crlf;
 					}
-					echo $result[$i]['sql'].";\r\n";
+					echo $result[$i]['sql'].";".$crlf;
 				}
 				if($data && $result[$i]['type']=="table")
 				{
@@ -1320,9 +1326,9 @@ class Database
 					if($comments)
 					{
 						$numRows = $this->numRows($result[$i]['tbl_name']);
-						echo "\r\n----\r\n";
-						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], $numRows)."\r\n";
-						echo "----\r\n";
+						echo "\r\n----".$crlf;
+						echo "-- ".$lang['data_dump']." ".$result[$i]['tbl_name'].", ".sprintf($lang['total_rows'], $numRows).$crlf;
+						echo "----".$crlf;
 					}
 					$temp = $this->getTableInfo($result[$i]['tbl_name']);
 					$cols = array();
@@ -1342,12 +1348,12 @@ class Database
 							else
 								$vals[$cols[$y]] = $this->quote($row[$cols[$y]]);
 						}
-						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols_quoted).") VALUES (".implode(",", $vals).");\r\n";
+						echo "INSERT INTO ".$this->quote_id($result[$i]['tbl_name'])." (".implode(",", $cols_quoted).") VALUES (".implode(",", $vals).");".$crlf;
 					}
 				}
 			}
 		}
 		if($transaction)
-			echo "COMMIT;\r\n";
+			echo "COMMIT;".$crlf;
 	}
 }
