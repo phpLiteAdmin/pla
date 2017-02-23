@@ -42,6 +42,9 @@ define('VERSION_CHECK_URL','https://www.phpliteadmin.org/current_version.php');
 define('PROJECT_BUGTRACKER_LINK','<a href="https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open" target="_blank">https://bitbucket.org/phpliteadmin/public/issues?status=new&status=open</a>');
 define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/public/wiki/Installation" target="_blank">https://bitbucket.org/phpliteadmin/public/wiki/Installation</a>');
 
+// up here, we don't output anything. debug output might appear here which is catched by ob and thrown later
+ob_start();
+
 // Resource output (css and javascript files)
 // we get out of the main code as soon as possible, without inizializing the session
 if (isset($_GET['resource']))
@@ -515,6 +518,7 @@ if ($auth->isAuthorized())
 	//- Export (download a dump) an existing database
 	if(isset($_POST['export']))
 	{
+		ob_end_clean();
 		$export_filename = str_replace(array("\r", "\n"), '',$_POST['filename']); // against http header injection (php < 5.1.2 only)
 		if($_POST['export_type']=="sql")
 		{
@@ -583,6 +587,7 @@ if ($auth->isAuthorized())
 	//- Download (backup) a database file (as SQLite file, not as dump)
 	if(isset($_GET['download']) && isManagedDB($_GET['download'])!==false)
 	{
+		ob_end_clean();
 		header("Content-type: application/octet-stream");
 		header('Content-Disposition: attachment; filename="'.basename($_GET['download']).'";');
 		header("Pragma: no-cache");
@@ -863,24 +868,33 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
 						$null = isset($_POST[$j."_null"][$i]);
-						if(!$null)
+						$type = strtoupper($tableInfo[$j]['type']);
+						$typeAffinity = get_type_affinity($type);
+						if(!$null && isset($_POST[$i.":".$j]))
 							$value = $_POST[$i.":".$j];
 						else
 							$value = "";
-						if($value===$tableInfo[$j]['dflt_value'])
+						if($type=='BLOB')
+						{
+							if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+								$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
+							else
+								$blobFiles[$j] = null;
+						}
+						elseif($value===$tableInfo[$j]['dflt_value'])
 						{
 							// if the value is the default value, skip it
 							continue;
-						} else
-							$all_default = false;
+						}
+						$all_default = false;
 						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
 						
-						$type = $tableInfo[$j]['type'];
-						$typeAffinity = get_type_affinity($type);
 						$function = $_POST["function_".$j][$i];
 						if($function!="")
 							$query_vals .= $function."(";
-						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
+						if($type=='BLOB')
+							$query_vals .= ':blobval'.$j;
+						elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 							$query_vals .= $db->quote($value);
 						elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
 							$query_vals .= "NULL";
@@ -902,7 +916,17 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					} else {
 						$query .= " DEFAULT VALUES";
 					}
-					$result1 = $db->query($query);
+					if(isset($blobFiles))
+					{
+						// blob files need to be done using a prepared statement because the query size would be too large
+						$handle = $db->prepareQuery($query);
+						foreach($blobFiles as $j=>$filename)
+							$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
+						
+						$result1 = $db->executePrepared($handle, false);
+					}
+					else
+						$result1 = $db->query($query);
 					if($result1===false)
 						$error = true;
 					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
@@ -955,26 +979,47 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
 						$null = isset($_POST[$j."_null"][$i]);
+						$type = strtoupper($tableInfo[$j]['type']);
+						$typeAffinity = get_type_affinity($type);
 						if(!$null)
 						{
-							$value = $_POST[$j][$i];
+							if($type=='BLOB')
+							{
+								if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
+								{
+									$select = 'SELECT '.$db->quote_id($tableInfo[$j]['name']).' AS \'blob\' FROM '.$db->quote_id($target_table).' WHERE '.$db->wherePK($target_table, json_decode($pks[$i]));
+									$bl = $db->select($select);
+									$blobFiles[$j] = $bl['blob'];
+									unset($bl);
+								}
+								else
+								{
+									if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+										$blobFiles[$j] = file_get_contents($_FILES[$i.":".$j]["tmp_name"]);
+									else
+										$blobFiles[$j] = null;
+								}
+							}
+							else
+								$value = $_POST[$j][$i];
 						}
 						else
 							$value = "";
-						if($value===$tableInfo[$j]['dflt_value'])
+						if($type!='BLOB' && $value===$tableInfo[$j]['dflt_value'])
 						{
 							// if the value is the default value, skip it
 							continue;
-						} else
-							$all_default = false;
+						}
+						$all_default = false;
 						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
 						
-						$type = $tableInfo[$j]['type'];
-						$typeAffinity = get_type_affinity($type);
 						$function = $_POST["function_".$j][$i];
 						if($function!="")
 							$query_vals .= $function."(";
-						if(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
+						
+						if($type=='BLOB')
+							$query_vals .= ':blobval'.$j;
+						elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 							$query_vals .= $db->quote($value);
 						elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
 							$query_vals .= "NULL";
@@ -996,7 +1041,18 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					} else {
 						$query .= " DEFAULT VALUES";
 					}
-					$result1 = $db->query($query);
+
+					if(isset($blobFiles))
+					{
+						// blob files need to be done using a prepared statement because the query size would be too large
+						$handle = $db->prepareQuery($query);
+						foreach($blobFiles as $j=>$blobval)
+							$db->bindValue($handle, ':blobval'.$j, $blobval, 'blob');
+						
+						$result1 = $db->executePrepared($handle, false);
+					}
+					else
+						$result1 = $db->query($query);
 					if($result1===false)
 						$error = true;
 					$z++;
@@ -1006,22 +1062,49 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 					$query = "UPDATE ".$db->quote_id($target_table)." SET ";
 					for($j=0; $j<sizeof($tableInfo); $j++)
 					{
+						$type = strtoupper($tableInfo[$j]['type']);
 						$function = $_POST["function_".$j][$i];
 						$null = isset($_POST[$j."_null"][$i]);
+						// if the old BLOB value is chosen to be kept, just skip this column
+						if(!$null && $type=='BLOB' && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
+							continue;
+						if(!$null && $type=='BLOB')
+						{
+							if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+								$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
+							else
+								$blobFiles[$j] = null;
+						}
+						
 						$query .= $db->quote_id($tableInfo[$j]['name'])."=";
 						if($function!="")
 							$query .= $function."(";
 						if($null)
 							$query .= "NULL";
 						else
-							$query .= $db->quote($_POST[$j][$i]);
+						{
+							if($type=='BLOB')
+								$query .= ':blobval'.$j;
+							else
+								$query .= $db->quote($_POST[$j][$i]);
+						}
 						if($function!="")
 							$query .= ")";
 						$query .= ", ";
 					}
 					$query = substr($query, 0, sizeof($query)-3);
 					$query .= " WHERE ".$db->wherePK($target_table, json_decode($pks[$i]));
-					$result1 = $db->query($query);
+					if(isset($blobFiles))
+					{
+						// blob files need to be done using a prepared statement because the query size would be too large
+						$handle = $db->prepareQuery($query);
+						foreach($blobFiles as $j=>$filename)
+							$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
+						
+						$result1 = $db->executePrepared($handle, false);
+					}
+					else
+						$result1 = $db->query($query);
 					if($result1===false)
 					{
 						$error = true;
@@ -1035,6 +1118,37 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 			$params->redirect(array('action'=>'row_view'), $completed);
 			break;
+			
+		
+		case "row_get_blob":
+			$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode($_GET['pk'])));
+			$filename = 'download';
+			$imagesize = getimagesizefromstring($blobVal['blob']);
+			if($imagesize!==false && isset($imagesize['mime']))
+				$mimetype = $imagesize['mime'];
+			elseif(class_exists('finfo'))  // included since php 5.3.0, but might be disabled on Windows
+			{
+				$finfo    = new finfo(FILEINFO_MIME);
+				$mimetype = $finfo->buffer($blobVal['blob']);
+			}
+			else
+				$mimetype = "application/octet-stream";
+				
+			if($imagesize!==false && isset($imagesize[2]))
+				$extension = image_type_to_extension($imagesize[2]);
+			else
+				$extension = '.blob';
+			ob_end_clean();
+			header('Content-Length: '.strlen($blobVal['blob']));
+			header("Content-type: ".$mimetype);
+			if(isset($_GET['download_blob']) && $_GET['download_blob'])
+				header('Content-Disposition: attachment; filename="'.$filename.$extension.'";');
+			header("Pragma: no-cache");
+			header("Expires: 0");
+			echo $blobVal['blob'];
+			exit;
+			break;
+		
 
 	//- Column actions
 
@@ -1213,6 +1327,11 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 	}
 }
 
+// if not in debug mode, destroy all output until here
+if($debug)
+	$bufferedOutput = ob_get_contents();
+ob_end_clean();
+
 //- HTML: output starts here
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -1286,6 +1405,10 @@ if(isset($_GET['help']))
 </head>
 <body style="direction:<?php echo $lang['direction']; ?>;">
 <?php
+// if in debug mode, ouput all output that has been generated above now
+if($debug)
+	echo $bufferedOutput;
+
 if(ini_get("register_globals") == "on" || ini_get("register_globals")=="1") //check whether register_globals is turned on - if it is, we need to not continue
 {
 	echo "<div class='confirm' style='margin:20px;'>".$lang['bad_php_directive']."</div>";
@@ -2171,6 +2294,15 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "&nbsp;";
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
+							elseif(strtoupper($tableInfo[$j]['type'])=='BLOB')
+							{
+								echo "<div style='float:left; text-align: left; padding-right:2em'>";
+								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),'Download').' | ';
+								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>0),'View in Browser');
+								echo "</div><div style='float:right; text-align: right'>";
+								echo 'Size: '.number_format(strlen($row[$j])).' Bytes';
+								echo "</div>";
+							}
 							elseif(isset($search))
 								echo markSearchWords(subString($row[$j]),$tableInfo[$j]['name'], $search);
 							else
@@ -2385,7 +2517,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo " <input type='submit' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "<br/>";
-			echo $params->getForm(array('action'=>'row_create','confirm'=>'1'));
+			echo $params->getForm(array('action'=>'row_create','confirm'=>'1'), 'post', true);
 			$tableInfo = $db->getTableInfo($target_table);
 			if(isset($_GET['newRows']))
 				$num = $_GET['newRows'];
@@ -2408,7 +2540,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				for($i=0; $i<sizeof($tableInfo); $i++)
 				{
 					$field = $tableInfo[$i]['name'];
-					$type = $tableInfo[$i]['type'];
+					$type = strtoupper($tableInfo[$i]['type']);
 					$typeAffinity = get_type_affinity($type);
 					if($tableInfo[$i]['dflt_value'] === "NULL")
 						$value = NULL;
@@ -2443,6 +2575,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 						echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' value='".$value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+					elseif($type=='BLOB')
+						echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 					else
 						echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$value."</textarea>";
 					echo "</td>";
@@ -2477,7 +2611,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 				{
-					echo $params->getForm(array('action'=>'row_edit', 'confirm'=>'1', 'pk'=>json_encode($pks)));
+					echo $params->getForm(array('action'=>'row_edit', 'confirm'=>'1', 'pk'=>json_encode($pks)),'post',true);
 					$tableInfo = $db->getTableInfo($target_table);
 					$primary_key = $db->getPrimaryKey($target_table);
 					
@@ -2498,7 +2632,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						for($i=0; $i<sizeof($tableInfo); $i++)
 						{
 							$field = $tableInfo[$i]['name'];
-							$type = $tableInfo[$i]['type'];
+							$type = strtoupper($tableInfo[$i]['type']);
 							$typeAffinity = get_type_affinity($type);
 							$value = $result1[$i];
 							$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
@@ -2529,6 +2663,17 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo $tdWithClassLeft;
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 								echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$i."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"row_".$j."_field_".$i."_null\")' />";
+							elseif($type=='BLOB')
+							{
+								if($value!==NULL)
+								{
+									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='old' checked='checked'>";
+									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>1),'Download').' | ';
+									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>0),'View in Browser').'<br/>';
+									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='new' id='row_".$j."_field_".$i."_blob_new'>";
+								}
+								echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onchange='document.getElementById(\"row_".$j."_field_".$i."_blob_new\").checked=true;' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+							}
 							else
 								echo "<textarea id='row_".$j."_field_".$i."_value' name='".$i."[]' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"row_".$j."_field_".$i."_null\")'>".htmlencode($value)."</textarea>";
 							echo "</td>";
@@ -3118,7 +3263,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		
 		echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
 		echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
-		echo "<b>".$lang['db_size']."</b>: ".$db->getSize()." KB<br/>";
+		echo "<b>".$lang['db_size']."</b>: ".number_format($db->getSize())." KiB<br/>";
 		echo "<b>".$lang['db_mod']."</b>: ".$db->getDate()."<br/>";
 		echo "<b>".$lang['sqlite_v']."</b>: ".$db->getSQLiteVersion()."<br/>";
 		echo "<b>".$lang['sqlite_ext']."</b> ".helpLink($lang['help1']).": ".$db->getType()."<br/>"; 

@@ -261,7 +261,7 @@ class Database
 		}
 	}
 
-	//get the size of the database (in KB)
+	//get the size of the database (in KiB)
 	public function getSize()
 	{
 		return round(filesize($this->data["path"])*0.0009765625, 1);
@@ -1127,6 +1127,115 @@ class Database
 			return $this->getError();
 		else
 			return true;
+	}
+	
+	public function prepareQuery($query)
+	{
+		if($this->type=='PDO' || $this->type=='SQLite3')
+			return $this->db->prepare($query);
+		else
+		{
+			// here we are in trouble, SQLiteDatabase cannot prepare statements.
+			// we need to emulate prepare as best as we can
+			# todo: implement this
+			return null;
+		}
+	}
+	
+	public function bindValue($handle, $parameter, $value, $type)
+	{
+		if($this->type=='SQLite3')
+		{
+			$types = array(
+				'bool'=>SQLITE3_INTEGER,
+				'int'=>SQLITE3_INTEGER,
+				'float'=>SQLITE3_FLOAT,
+				'text'=>SQLITE3_TEXT,
+				'blob'=>SQLITE3_BLOB,
+				'null'=>SQLITE3_NULL);
+			if(!isset($types[$type]))
+				$type = 'text';
+			// there is no SQLITE_BOOL, so check value and make sure it is 0/1
+			if($type=='bool')
+			{
+				if($value===1 || $value===true)
+					$value=1;
+				elseif($value===0 || $value===false)
+					$value=0;
+				else
+					return false;
+			}
+			return $handle->bindValue($parameter, $value, $types[$type]);
+		}
+		if($this->type=='PDO')
+		{
+			$types = array(
+				'bool'=>PDO::PARAM_BOOL,
+				'int'=>PDO::PARAM_INT,
+				'float'=>PDO::PARAM_STR,
+				'text'=>PDO::PARAM_STR,
+				'blob'=>PDO::PARAM_LOB,
+				'null'=>PDO::PARAM_NULL);
+			if(!isset($types[$type]))
+				$type = 'text';
+			// there is no PDO::PARAM_FLOAT, so we check it ourself
+			if($type=='float')
+			{
+				if(is_numeric($value))
+					$value = (float) $value;
+				else
+					return false;
+			}
+			return $handle->bindValue($parameter, $value, $types[$type]);
+		}
+		else
+			# todo: workaround
+			return false;
+
+	}
+	
+	public function executePrepared($handle, $fetchResult=false)
+	{
+		if($this->type=='PDO')
+		{
+			$ok=$handle->execute();
+			if($fetchResult && $ok)
+			{
+				$res = $handle->fetchAll();
+				$handle->closeCursor();
+				return $res;
+			}
+			else
+			{
+				if($ok)
+					$handle->closeCursor();
+				return $ok;
+			}
+		}
+		elseif($this->type=='SQLite3')
+		{
+			$resultset=$handle->execute();
+			if($fetchResult && $resultset!==false)
+			{
+				$res = $resultset->fetchArray();
+				$resultset->finalize();
+				return $res;
+			}
+			else
+			{
+				if($resultset!==false)
+					$resultset->finalize();
+				if($resultset===false)
+					return false;
+				else
+					return true;
+			}
+		}
+		else
+		{
+			#todo.
+			return false;
+		}
 	}
 	
 	//import csv
