@@ -21,7 +21,7 @@ $lang = array(
 	"srch_again" => "Do Another Search",
 	"login" => "Log In",
 	"logout" => "Logout",
-	"view" => "View",
+	"view" => "View",              // here, the noun SQL view is meant, not the verb "to view"
 	"confirm" => "Confirm",
 	"cancel" => "Cancel",
 	"save_as" => "Save As",
@@ -60,6 +60,8 @@ $lang = array(
 	"none" => "None",
 	"as_defined" => "As defined",
 	"expression" => "Expression",
+	"download" => "Download",
+	"open_in_browser" => "Open in browser",
 	
 	"sqlite_ext" => "SQLite extension",
 	"sqlite_ext_support" => "It appears that none of the supported SQLite library extensions are available in your installation of PHP. You may not use %s until you install at least one of them.",

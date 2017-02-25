@@ -35,11 +35,12 @@ class GetParameters
 		return $prefix . http_build_query(array_merge($this->_fields, $assoc), '', $arg_sep);
 	}
 
-	public function getLink(array $assoc = array(), $content = '[ link ]', $class = '', $title = '')
+	public function getLink(array $assoc = array(), $content = '[ link ]', $class = '', $title = '', $target='')
 	{
 		return '<a href="' . $this->getURL($assoc) . '"'
-			. ($class != '' ? ' class="' . $class . '"' : '')
-			. ($title != '' ? ' title="' . $title . '"' : '')
+			. ($class  != '' ? ' class="'  . $class .  '"' : '')
+			. ($title  != '' ? ' title="'  . $title .  '"' : '')
+			. ($target != '' ? ' target="' . $target . '"' : '')
 			. '>' . $content . '</a>';
 	}
 

@@ -2297,8 +2297,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							elseif(strtoupper($tableInfo[$j]['type'])=='BLOB')
 							{
 								echo "<div style='float:left; text-align: left; padding-right:2em'>";
-								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),'Download').' | ';
-								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>0),'View in Browser');
+								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),$lang["download"]).' | ';
+								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>0),$lang["open_in_browser"],'','','_blank');
 								echo "</div><div style='float:right; text-align: right'>";
 								echo 'Size: '.number_format(strlen($row[$j])).' Bytes';
 								echo "</div>";
@@ -2668,11 +2668,15 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								if($value!==NULL)
 								{
 									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='old' checked='checked'>";
-									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>1),'Download').' | ';
-									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>0),'View in Browser').'<br/>';
+									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>1),$lang["download"]).' | ';
+									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>0),$lang["open_in_browser"],'','','_blank').'<br/>';
 									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='new' id='row_".$j."_field_".$i."_blob_new'>";
 								}
-								echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onchange='document.getElementById(\"row_".$j."_field_".$i."_blob_new\").checked=true;' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
+								echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' 
+									onblur='changeIgnore(this, \"row_".$j."_ignore\");' 
+									onchange='document.getElementById(\"row_".$j."_field_".$i."_blob_new\").checked=true;' 
+									onclick='notNull(\"row_".$j."_field_".$i."_null\");'
+									".($value===NULL?" disabled='disabled'":"")."/>";
 							}
 							else
 								echo "<textarea id='row_".$j."_field_".$i."_value' name='".$i."[]' rows='1' cols='60' class='".htmlencode($field)."_textarea' onblur='changeIgnore(this, \"".$j."\", \"row_".$j."_field_".$i."_null\")'>".htmlencode($value)."</textarea>";
