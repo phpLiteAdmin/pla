@@ -1,7 +1,7 @@
 <?php
 // German language file by Christopher Kramer (crazy4chrissi)
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
-// Version 1.9.6
+// Version 1.9.8
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => '\a\m d.m.Y \u\m H:i:s (T)',
@@ -57,6 +57,8 @@ $lang = array(
 	"none" => "Keiner",
 	"as_defined" => "Wie definiert",
     "expression" => "Ausdruck",
+	"download" => "Download",
+	"open_in_browser" => "Im Browser öffnen",
 	
 	"sqlite_ext" => "SQLite Erweiterung",
 	"sqlite_ext_support" => "Es erscheint so, dass keine der unterstützten SQLite Erweiterungen in Ihrer PHP-Installation verfügbar ist. Sie können %s nicht nutzen, bevor Sie mindestens eine davon installieren.",
@@ -84,7 +86,8 @@ $lang = array(
 	"db_not_writeable" => "Die Datenbank '%s' existiert nicht und kann nicht erzeugt werden, da der Ordner '%s' nicht beschreibbar ist. Die Anwendung kann nicht benutzt werden bevor Sie den Ordner beschreibbar machen.",
 	"db_setup" => "Es gab ein Problem beim Öffnen Ihrer Datenbank %s. Es wird versucht herauszufinde, was das Problem ist, damit Sie das Problem leichter lösen können",
 	"db_exists" => "Eine Datenbank, eine andere Datei oder ein Verzeichnis mit Namen '%s' existiert bereits.",
-	
+	"db_blank" => "Der Datenbankname darf nicht leer sein.",
+
 	"exported" => "Exportiert",
 	"struct" => "Struktur",
 	"struct_for" => "Struktur für",
@@ -232,6 +235,7 @@ $lang = array(
 	"edit_col" => "Bearbeite Spalte '%s'",
 	"vac" => "Vacuum",
 	"vac_desc" => "Große Datenbanken müssen manchmal geVACUUMt werden, um ihre Größe auf dem Server zu reduzieren. Klicke auf den folgenden Button um die Datenbank '%s' zu VACUUMen.",
+	"vac_on_empty"=>"Datenbank-Datei aufräumen um ungenutzen Speicherplatz freizubekommen (Vacuum)",
 	"event" => "Event",
 	"each_row" => "Für jede Zeile",
 	"define_index" => "Index-Eigenschaften angeben",
@@ -258,6 +262,7 @@ $lang = array(
 	"add_allowed_extension" => "Sie können die gewählte Dateierweiterung zur Liste erlaubter Dateierweiterungen hinzufügen, indem Sie sie \$allowed_extensions in der Konfiguration hinzufügen.",
 	"directory_not_writable" => "Die Datenbank-Datei selbst ist schreibbar, aber um darin zu schreiben, muss auch das Verzeichnis, indem sie liegt schreibbar sein. Dies liegt daran, dass SQLite eine temporäre Sperrdatei darin ablegen muss.",
 	"tbl_inexistent" => "Tabelle %s existiert nicht",
+	"col_inexistent" => "Spalte %s  existiert nicht",
 
 	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
 	"alter_failed" => "Änderung der Tabelle %s fehlgeschlagen",
@@ -290,4 +295,6 @@ $lang = array(
 	"help8_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie die Anfragen mit einer Transaktion umschließen, sodass falls ein Fehler beim Importieren der Datei auftritt, die Datenbank wieder zurück in ihren Ausgangszustand gebracht werden kann, sodass nicht nur Teile der importierten Daten in der Datenbank verbleiben.",
 	"help9" => "Füge Kommentare zu einer exportierten SQL-Datei hinzu",
 	"help9_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in die SQL-Datei Kommentare eingefügt werden, welche die einzelnen Abschnitte der Datei erklären, sodass ein Mensch den Inhalt der Datei besser nachvollziehen kann."
+	"help10" => "Partielle Indizes",
+	"help10_x" => "Partielle Indizes sind Indizes über einen Teil der Zeilen, der durch einen WHERE-Ausdruck definiert wird. Beachte, dass dies mindestens SQLite 3.8.0 erfordert and Datenbanken die partielle Indizes enthalten können nicht mehr mit älteren SQLite-Versionen geöffnet werden. Siehe <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite Dokumentation</a>."
 );
