@@ -294,7 +294,7 @@ $lang = array(
 	"help8" => "Füge TRANSACTION zu einer exportieren SQL-Datei hinzu",
 	"help8_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie die Anfragen mit einer Transaktion umschließen, sodass falls ein Fehler beim Importieren der Datei auftritt, die Datenbank wieder zurück in ihren Ausgangszustand gebracht werden kann, sodass nicht nur Teile der importierten Daten in der Datenbank verbleiben.",
 	"help9" => "Füge Kommentare zu einer exportierten SQL-Datei hinzu",
-	"help9_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in die SQL-Datei Kommentare eingefügt werden, welche die einzelnen Abschnitte der Datei erklären, sodass ein Mensch den Inhalt der Datei besser nachvollziehen kann."
+	"help9_x" => "Wenn Sie eine SQL-Datei exportieren, können Sie auswählen, dass in die SQL-Datei Kommentare eingefügt werden, welche die einzelnen Abschnitte der Datei erklären, sodass ein Mensch den Inhalt der Datei besser nachvollziehen kann.",
 	"help10" => "Partielle Indizes",
-	"help10_x" => "Partielle Indizes sind Indizes über einen Teil der Zeilen, der durch einen WHERE-Ausdruck definiert wird. Beachte, dass dies mindestens SQLite 3.8.0 erfordert and Datenbanken die partielle Indizes enthalten können nicht mehr mit älteren SQLite-Versionen geöffnet werden. Siehe <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite Dokumentation</a>."
+	"help10_x" => "Partielle Indizes sind Indizes über einen Teil der Zeilen, der durch einen WHERE-Ausdruck definiert wird. Beachte, dass dies mindestens SQLite 3.8.0 erfordert and Datenbanken die partielle Indizes enthalten können nicht mehr mit älteren SQLite-Versionen geöffnet werden. Siehe <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite Dokumentation</a>.",
 );
