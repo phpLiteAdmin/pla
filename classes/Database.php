@@ -299,7 +299,24 @@ class Database
 	{
 		return $this->selectArray("PRAGMA table_info(".$this->quote_id($table).")");
 	}
-
+	
+	// returns the list of tables (opt. incl. views) as
+	// array( Tablename => tableType ) with tableType being 'view' or 'table'
+	public function getTables($alsoViews=true, $alsoInternal=false, $orderBy='name', $orderDirection='ASC')
+	{
+		$query = "SELECT name, type FROM sqlite_master " 
+			. "WHERE (type='table'".($alsoViews?" OR type='view'":"").") "
+			. "AND name!='' ".($alsoInternal? " AND name NOT LIKE 'sqlite_%' ":"")
+			. "ORDER BY ".$this->quote_id($orderBy)." ".$orderDirection;
+		$result = $this->selectArray($query);
+		$list = array();
+		for($i=0; $i<sizeof($result); $i++)
+		{
+			$list[$result[$i]['name']] = $result[$i]['type'];
+		}
+		return $list;
+	}
+	
 	public function close()
 	{
 		if($this->type=="PDO")

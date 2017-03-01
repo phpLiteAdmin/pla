@@ -1507,23 +1507,17 @@ echo ">".htmlencode($name)."</a>";
 echo "</legend>";
 
 //- HTML: table list
-$query = "SELECT type, name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
-$result = $db->selectArray($query);
-$j=0;
-for($i=0; $i<sizeof($result); $i++)
+$tables = $db->getTables(true, false);
+foreach($tables as $tableName => $tableType)
 {
-	if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
-	{
-		echo "<span class='sidebar_table'>";
-		echo $params->getLink(array('action'=>'column_view', 'table'=>$result[$i]['name']), "[".$lang[$result[$i]['type']=='table'?'tbl':'view']."]");
-		echo "</span> ";
-		echo $params->getLink(array('action'=>'row_view', 'table'=>$result[$i]['name']), htmlencode($result[$i]['name']), 
-			($target_table == $result[$i]['name'] ? 'active_table' : '') );
-		echo "<br/>";
-		$j++;
-	}
+	echo "<span class='sidebar_table'>";
+	echo $params->getLink(array('action'=>'column_view', 'table'=>$tableName), "[".$lang[$tableType=='table'?'tbl':'view']."]");
+	echo "</span> ";
+	echo $params->getLink(array('action'=>'row_view', 'table'=>$tableName), htmlencode($tableName), 
+		($target_table == $tableName ? 'active_table' : '') );
+	echo "<br/>";
 }
-if($j==0)
+if(count($tables)==0)
 	echo $lang['no_tbl'];
 echo "</fieldset>";
 
@@ -2826,7 +2820,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if($target_table_type != 'view')
 			{
 				echo "<br/><hr/><br/>";
-				//$query = "SELECT * FROM sqlite_master WHERE type='index' AND tbl_name='".$target_table."'";
 				$query = "PRAGMA index_list(".$db->quote_id($target_table).")";
 				$result = $db->selectArray($query);
 				if(sizeof($result)>0)
@@ -3280,19 +3273,16 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			$_SESSION[COOKIENAME.'sortTables'] = $_GET['sort'];
 		if(isset($_GET['order']) && ($_GET['order']=='ASC' || $_GET['order']=='DESC'))
 			$_SESSION[COOKIENAME.'orderTables'] = $_GET['order'];
-				
-		$query = "SELECT type, name FROM sqlite_master WHERE (type='table' OR type='view') AND name!='' AND name NOT LIKE 'sqlite_%'";
-		$queryAdd = "";
-		if(isset($_SESSION[COOKIENAME.'sortTables']))
-			$queryAdd .= " ORDER BY ".$db->quote_id($_SESSION[COOKIENAME.'sortTables']);
-		else
-			$queryAdd .= " ORDER BY \"name\"";
-		if(isset($_SESSION[COOKIENAME.'orderTables']))
-			$queryAdd .= " ".$_SESSION[COOKIENAME.'orderTables'];
-		$query .= $queryAdd;
-		$result = $db->selectArray($query);
+		
+		if(!isset($_SESSION[COOKIENAME.'sortTables']))
+			$_SESSION[COOKIENAME.'sortTables'] = 'name';
+			
+		if(!isset($_SESSION[COOKIENAME.'orderTables']))
+			$_SESSION[COOKIENAME.'orderTables'] = 'ASC';
 
-		if(sizeof($result)==0)
+		$tables = $db->getTables(true, false, $_SESSION[COOKIENAME.'sortTables'], $_SESSION[COOKIENAME.'orderTables']);
+
+		if(sizeof($tables)==0)
 			echo $lang['no_tbl']."<br/><br/>";
 		else
 		{
@@ -3326,9 +3316,9 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			
 			$totalRecords = 0;
 			$skippedTables = false;
-			for($i=0; $i<sizeof($result); $i++)
+			foreach($tables as $tableName => $tableType)
 			{
-				$records = $db->numRows($result[$i]['name'], (!isset($_GET['forceCount'])));
+				$records = $db->numRows($tableName, (!isset($_GET['forceCount'])));
 				if($records == '?')
 				{
 					$skippedTables = true;
@@ -3341,43 +3331,43 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				
 				echo "<tr>";
 				echo $tdWithClassLeft;
-				echo ($result[$i]['type']=="table"? $lang['tbl'] : $lang['view']);
+				echo ($tableType=="table"? $lang['tbl'] : $lang['view']);
 				echo "</td>";
 				echo $tdWithClassLeft;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), htmlencode($result[$i]['name']));
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), htmlencode($tableName));
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_view'), $lang['browse']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), $lang['browse']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'column_view'), $lang['struct']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'column_view'), $lang['struct']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_sql'), $lang['sql']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_sql'), $lang['sql']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_search'), $lang['srch']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_search'), $lang['srch']);
 				echo "</td>";
 				echo $tdWithClass;
-				if($result[$i]['type']=="table")
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'row_create'), $lang['insert']);
+				if($tableType=="table")
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'row_create'), $lang['insert']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_export'), $lang['export']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_export'), $lang['export']);
 				echo "</td>";
 				echo $tdWithClass;
-				if($result[$i]['type']=="table")
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_import'), $lang['import']);
+				if($tableType=="table")
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_import'), $lang['import']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_rename'), $lang['rename']);
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_rename'), $lang['rename']);
 				echo "</td>";
 				echo $tdWithClass;
-				if($result[$i]['type']=="table")
-					echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_empty'), $lang['empty'], 'empty');
+				if($tableType=="table")
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_empty'), $lang['empty'], 'empty');
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$result[$i]['name'], 'action'=>'table_drop'), $lang['drop'], 'drop');
+				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_drop'), $lang['drop'], 'drop');
 				echo "</td>";
 				echo $tdWithClass;
 				echo $records;
@@ -3385,7 +3375,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo "</tr>";
 			}
 			echo "<tr>";
-			echo "<td class='tdheader' colspan='12'>".sizeof($result)." ".$lang['total']."</td>";
+			echo "<td class='tdheader' colspan='12'>".sizeof($tables)." ".$lang['total']."</td>";
 			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" ".$params->getLink(array('forceCount'=>'1'),'+ ?'):"")."</td>";
 			echo "</tr>";
 			echo "</table>";
@@ -3544,12 +3534,10 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo $params->getForm(array('view'=>'export'));
 		echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
 		echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
-		$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
-		$result = $db->selectArray($query);
-		for($i=0; $i<sizeof($result); $i++)
+		$tables = $db->getTables(true, false);
+		foreach($tables as $tableName => $tableType)
 		{
-			if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
-				echo "<option value='".htmlencode($result[$i]['name'])."' selected='selected'>".htmlencode($result[$i]['name'])."</option>";
+			echo "<option value='".htmlencode($tableName)."' selected='selected'>".htmlencode($tableName)."</option>";
 		}
 		echo "</select>";
 		echo "<br/><br/>";
@@ -3620,12 +3608,10 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<fieldset style='float:left; max-width:350px; display:none;' id='importoptions_csv'><legend><b>".$lang['options']."</b></legend>";
 		echo "<div style='float:left;'>".$lang['csv_tbl']."</div>";
 		echo "<select name='single_table' style='float:right;'>";
-		$query = "SELECT name FROM sqlite_master WHERE type='table' OR type='view' ORDER BY name";
-		$result = $db->selectArray($query);
-		for($i=0; $i<sizeof($result); $i++)
+		$tables = $db->getTables(true, false);
+		foreach($tables as  $tableName => $tableType)
 		{
-			if(substr($result[$i]['name'], 0, 7)!="sqlite_" && $result[$i]['name']!="")
-				echo "<option value='".htmlencode($result[$i]['name'])."'>".htmlencode($result[$i]['name'])."</option>";
+			echo "<option value='".htmlencode($tableName)."'>".htmlencode($tableName)."</option>";
 		}
 		echo "</select>";
 		echo "<div style='clear:both;'>";
