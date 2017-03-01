@@ -60,7 +60,7 @@ h2 {
 	margin-bottom:20px;
 }
 /* input buttons and areas for entering text */
-input, select, textarea {
+input, select, textarea, .CodeMirror {
 	font-family:Arial, Helvetica, sans-serif;
 	background-color:#eaeaea;
 	color:#03F;

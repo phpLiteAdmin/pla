@@ -77,45 +77,12 @@ function moveFields()
 		if(fields.options[i].selected)
 			selected.push(fields.options[i].value);
 	for(var i=0; i<selected.length; i++)
-		insertAtCaret("queryval", '"'+selected[i].replace(/"/g,'""')+'"');
-}
-//helper function for moveFields
-function insertAtCaret(areaId,text)
-{
-	var txtarea = document.getElementById(areaId);
-	var scrollPos = txtarea.scrollTop;
-	var strPos = 0;
-	var br = ((txtarea.selectionStart || txtarea.selectionStart == '0') ? "ff" : (document.selection ? "ie" : false ));
-	if(br=="ie")
 	{
-		txtarea.focus();
-		var range = document.selection.createRange();
-		range.moveStart ('character', -txtarea.value.length);
-		strPos = range.text.length;
+		var val = '"'+selected[i].replace(/"/g,'""')+'"';
+		if(i < selected.length-1)
+			val += ', ';
+		sqleditorInsertValue(val);
 	}
-	else if(br=="ff")
-		strPos = txtarea.selectionStart;
-
-	var front = (txtarea.value).substring(0,strPos);
-	var back = (txtarea.value).substring(strPos,txtarea.value.length);
-	txtarea.value=front+text+back;
-	strPos = strPos + text.length;
-	if(br=="ie")
-	{
-		txtarea.focus();
-		var range = document.selection.createRange();
-		range.moveStart ('character', -txtarea.value.length);
-		range.moveStart ('character', strPos);
-		range.moveEnd ('character', 0);
-		range.select();
-	}
-	else if(br=="ff")
-	{
-		txtarea.selectionStart = strPos;
-		txtarea.selectionEnd = strPos;
-		txtarea.focus();
-	}
-	txtarea.scrollTop = scrollPos;
 }
 
 function notNull(checker)
@@ -204,4 +171,56 @@ function checkVersion(installed, url)
 		}
 	};
 	xhr.send();
+}
+
+var codeEditor;
+
+function sqleditor(textarea, tableDefinitions, tableDefault)
+{
+	codeEditor = CodeMirror.fromTextArea(textarea, {
+		lineNumbers: true,
+		matchBrackets: true,
+		indentUnit: 4,
+		lineWrapping: true,
+		mode:  "text/x-sqlite",
+		extraKeys: {"Ctrl-Space": "autocomplete"},
+		hint: CodeMirror.hint.sql,
+		hintOptions: {
+			completeSingle: false,
+			completeOnSingleClick: true,
+			defaultTable: tableDefault,
+			tables: tableDefinitions
+		}
+	});
+	codeEditor.on("inputRead", codemirrorAutocompleteOnInputRead);
+}
+
+function sqleditorSetValue(text)
+{
+	codeEditor.doc.setValue(text);
+}
+
+function sqleditorInsertValue(text)
+{
+	codeEditor.doc.replaceRange(text, codeEditor.doc.getCursor("from"),codeEditor.doc.getCursor("to"));
+}
+
+/**
+ * "inputRead" event handler for CodeMirror SQL query editors for autocompletion
+ * Most of it from: https://github.com/phpmyadmin/phpmyadmin/blob/master/js/functions.js
+ */
+function codemirrorAutocompleteOnInputRead(instance) {
+	if (instance.state.completionActive) {
+		return;
+	}
+	var cur = instance.getCursor();
+	var token = instance.getTokenAt(cur);
+	var string = '';
+	if (token.string.match(/^[.`"\w@]\w*$/))
+	{
+		string = token.string;
+	}
+	if (string.length > 0) {
+		CodeMirror.commands.autocomplete(instance);
+	}
 }

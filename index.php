@@ -1402,6 +1402,14 @@ if(isset($_GET['help']))
 ?>
 <!-- JavaScript Support -->
 <script type='text/javascript' src='?resource=javascript'></script>
+<!-- SQL code editor with Syntax Highlighting etc. -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.js"></script>
+<!-- Codemirror 5.24.2 does not yet include the SQLite support that we wrote, so we fetch changed files from rawgit for the time being-->
+<script src="https://cdn.rawgit.com/codemirror/CodeMirror/c4387d6073b15ccf0f32773eb71a54f3b694f2f0/mode/sql/sql.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.js"></script>
+<script src="https://cdn.rawgit.com/codemirror/CodeMirror/65c70cf5d18ac3a0c1a3fe717d90a81ff823aa9f/addon/hint/sql-hint.js"></script>
 </head>
 <body style="direction:<?php echo $lang['direction']; ?>;">
 <?php
@@ -1818,11 +1826,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo "<b>".$lang['recent_queries']."</b><ul>";
 				foreach($_SESSION[COOKIENAME.'query_history'] as $key => $value)
-					echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
+					echo "<li><a onclick='sqleditorSetValue(this.textContent); return false;' href='#'>".htmlencode($value)."</a></li>";
 				echo "</ul><br/><br/>";
 			}
 			echo "<div style='float:left; width:70%;'>";
 			echo "<textarea style='width:97%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
+			echo "<script>sqleditor(document.getElementById('queryval'),".json_encode($db->getTableDefinitions()).",'".htmlencode($target_table)."');</script>";
 			echo "</div>";
 			echo "<div style='float:left; width:28%; padding-left:10px;'>";
 			echo $lang['fields']."<br/>";
@@ -3501,11 +3510,12 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "<b>".$lang['recent_queries']."</b><ul>";
 			foreach($_SESSION[COOKIENAME.'query_history'] as $key => $value)
 			{
-				echo "<li><a onclick='document.getElementById(\"queryval\").value = this.textContent; return false;' href='#'>".htmlencode($value)."</a></li>";
+				echo "<li><a onclick='sqleditorSetValue(this.textContent); return false;' href='#'>".htmlencode($value)."</a></li>";
 			}
 			echo "</ul><br/><br/>";
 		}
 		echo "<textarea style='width:100%; height:300px;' name='queryval' id='queryval' cols='50' rows='8'>".htmlencode($queryStr)."</textarea>";
+		echo "<script>sqleditor(document.getElementById('queryval'),".json_encode($db->getTableDefinitions()).", null);</script>";
 		echo $lang['delimit']." <input type='text' name='delimiter' value='".htmlencode($delimiter)."' style='width:50px;'/> ";
 		echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 		echo "</form>";

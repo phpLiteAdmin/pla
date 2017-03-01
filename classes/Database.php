@@ -306,7 +306,7 @@ class Database
 	{
 		$query = "SELECT name, type FROM sqlite_master " 
 			. "WHERE (type='table'".($alsoViews?" OR type='view'":"").") "
-			. "AND name!='' ".($alsoInternal? " AND name NOT LIKE 'sqlite_%' ":"")
+			. "AND name!='' ".($alsoInternal? "":" AND name NOT LIKE 'sqlite_%' ")
 			. "ORDER BY ".$this->quote_id($orderBy)." ".$orderDirection;
 		$result = $this->selectArray($query);
 		$list = array();
@@ -315,6 +315,23 @@ class Database
 			$list[$result[$i]['name']] = $result[$i]['type'];
 		}
 		return $list;
+	}
+	
+	// returns an array of all tables and their columns as
+	// array( tablename => array(columName) )
+	public function getTableDefinitions()
+	{
+		$tables = $this->getTables(true, true);
+		$result = array();
+		foreach ($tables as $tableName => $tableType)
+		{
+			$tableInfo = $this->getTableInfo($tableName);
+			$columns = array();
+			foreach($tableInfo as $column)
+				$columns[] = $column['name'];
+			$result[$tableName] = $columns;
+		}
+		return $result;
 	}
 	
 	public function close()
