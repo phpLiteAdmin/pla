@@ -247,7 +247,7 @@ $lang = array(
 	"warn0" => "Sie wurden gewarnt.",
 	"warn_passwd" => "Sie verwenden das Standard-Password, was gefährlich sein kann. Sie können es leicht im oberen Bereich von %s ändern.",
 	"counting_skipped" => "Das Zählen der Anzahl Datensätze einiger Tabellen wurde übersprungen, da die Datenbank verhältnismäßig groß ist und 
-	für einige Tabellen kein Primärschlüssel definiert ist, sodass das Zählen der Datensätze lange dauertn kann. Füge einen Primärschlüssel hinzu oder %serzwinge das Zählen%s.",
+	für einige Tabellen kein Primärschlüssel definiert ist, sodass das Zählen der Datensätze lange dauern kann. Füge einen Primärschlüssel hinzu oder %serzwinge das Zählen%s.",
 	"sel_state" => "Select-Ausdruck",
 	"delimit" => "Ausdrücke trennen mit",
 	"back_top" => "Zum Anfang",
