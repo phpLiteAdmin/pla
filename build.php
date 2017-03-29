@@ -93,7 +93,7 @@ $output = preg_replace('@(\r?\n?)^#\s*REMOVE_FROM_BUILD.*?^#\s*END\s+REMOVE_FROM
 
 // remove other comments starting with '#'
 echo "<li>Removing build comments";
-$output = preg_replace('@(\r?\n)^#.*\r?\n?$@m', '', $output);
+$output = preg_replace('@\r?\n#[^\r\n]*@m', "", $output);
 
 // save result script to file
 echo "<li>Saving code to <span>{$outputfile}</span>";
