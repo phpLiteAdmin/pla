@@ -196,6 +196,7 @@ $lang = array(
 	"import_suc" => "Import was successful.",
 	"import_into" => "Import into",
 	"import_f" => "File to import",
+	"max_file_size" => "Maximum file size",
 	"rename_tbl" => "Rename table '%s' to",
 	
 	"rows_records" => "row(s) starting from record # ",
@@ -297,6 +298,8 @@ $lang = array(
 	"help9" => "Add Comments to Exported SQL File",
 	"help9_x" => "During the process for exporting to an SQL file, you may choose to include comments that explain each step of the process so that a human can better understand what is happening.",
 	"help10" => "Partial Indexes",
-	"help10_x" => "Partial indexes are indexes over a subset of the rows of a table specified by a WHERE clause. Note this requires at least SQLite 3.8.0 and database files with partial indexes won't be readable or writable by older versions. See the <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite documentation.</a>"
+	"help10_x" => "Partial indexes are indexes over a subset of the rows of a table specified by a WHERE clause. Note this requires at least SQLite 3.8.0 and database files with partial indexes won't be readable or writable by older versions. See the <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite documentation.</a>",
+	"help11" => "Maximum size of file uploads",
+	"help11_x" => "The maximum size of file uploads is determined by three PHP settings: <em>upload_max_filesize</em>, <em>post_max_size</em> and <em>memory_limit</em>. The smallest of these three limits the maximum size for file uploads. To upload larger files, adjust these values in your <em>php.ini</em> file."
 
 );

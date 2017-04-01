@@ -319,6 +319,43 @@ function get_type_affinity($type)
 }
 
 
+// Returns a file size limit in bytes based on the PHP upload_max_filesize
+// post_max_size and memory_limit. Returns -1 in case of no limit.
+function fileUploadMaxSize()
+{
+	$max1 = parseSize(ini_get('post_max_size'));
+	$max2 = parseSize(ini_get('upload_max_filesize'));
+	$max3 = parseSize(ini_get('memory_limit'));
+	if($max1>0 && ($max1<=$max2 || $max2==0) && ($max1<=$max3 || $max3==-1))
+		return $max1;
+	elseif($max2>0 && ($max2<=$max1 || $max1==0) && ($max2<=$max3 || $max3==-1))
+		return $max2;
+	elseif($max3>-1 && ($max3<=$max1 || $max1==0) && ($max3<=$max2 || $max2==0))
+		return $max3;
+	else
+		return -1; // no limit
+}
+
+// Parses given size string like "12M" into number of bytes
+// based on https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Component%21Utility%21Bytes.php/function/Bytes%3A%3AtoInt/8.2.x
+function parseSize($size)
+{
+	// Remove the non-unit characters from the size.
+	$unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
+	// Remove the non-numeric characters from the size.
+	$size = preg_replace('/[^0-9\.]/', '', $size);
+	if ($unit)
+	{
+		// Find the position of the unit in the ordered string which is the power
+		// of magnitude to multiply a kilobyte by.
+		return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+	}
+	else {
+		return round($size);
+	}
+}
+
+
 //- Check user authentication, login and logout
 $auth = new Authorization(); //create authorization object
 
@@ -1361,12 +1398,9 @@ else
 if(isset($_GET['help']))
 {
 	//help section array
-	$help = array
-	(
-		$lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT), $lang['help2'] => $lang['help2_x'], $lang['help3'] => $lang['help3_x'], 
-		$lang['help4'] => $lang['help4_x'], $lang['help5'] => $lang['help5_x'], $lang['help6'] => $lang['help6_x'],
-		$lang['help7'] => $lang['help7_x'], $lang['help8'] => $lang['help8_x'], $lang['help9'] => $lang['help9_x'], $lang['help10'] => $lang['help10_x']
-	);
+	$help = array($lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT));
+	for($i=2; isset($lang['help'.$i]); $i++)
+		$help[$lang['help'.$i]]=$lang['help'.$i.'_x'];
 	?>
 	</head>
 	<body style="direction:<?php echo $lang['direction']; ?>;">
@@ -1972,7 +2006,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<br/><br/>";
 			
 			echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+			echo "<em>".$lang['max_file_size'].": ".number_format(fileUploadMaxSize()/1024/1024)." MiB</em> ".helpLink($lang['help11'])."<br />";
+			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 			echo "</fieldset>";
 			break;
 
@@ -3644,7 +3679,8 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<br/><br/>";
 		
 		echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
-		echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none;'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+		echo "<em>".$lang['max_file_size'].": ".number_format(fileUploadMaxSize()/1024/1024)." MiB</em> ".helpLink($lang['help11'])."<br />";
+		echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 		echo "</fieldset>";
 	}
 	else if($view=="rename")
