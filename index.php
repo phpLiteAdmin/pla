@@ -1436,6 +1436,10 @@ if(isset($_GET['help']))
 ?>
 <!-- JavaScript Support -->
 <script type='text/javascript' src='?resource=javascript'></script>
+<script type="text/javascript">
+var fileUploadMaxSize = <?php echo fileUploadMaxSize(); ?>;
+var fileUploadMaxSizeErrorMsg = '<?php echo $lang['err'].': \n'.$lang['max_file_size']; ?>';
+</script>
 <!-- SQL code editor with Syntax Highlighting etc. -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.css">
@@ -2007,7 +2011,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			
 			echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
 			echo "<em>".$lang['max_file_size'].": ".number_format(fileUploadMaxSize()/1024/1024)." MiB</em> ".helpLink($lang['help11'])."<br />";
-			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+			echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0' onchange='checkFileSize(this)'/>";
+			echo "<input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 			echo "</fieldset>";
 			break;
 
@@ -3680,7 +3685,8 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		
 		echo "<fieldset><legend><b>".$lang['import_f']."</b></legend>";
 		echo "<em>".$lang['max_file_size'].": ".number_format(fileUploadMaxSize()/1024/1024)." MiB</em> ".helpLink($lang['help11'])."<br />";
-		echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0'/> <input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
+		echo "<input type='file' value='".$lang['choose_f']."' name='file' style='background-color:transparent; border-style:none; margin:0; padding:0' onchange='checkFileSize(this)'/>";
+		echo "<input type='submit' value='".$lang['import']."' name='import' class='btn'/>";
 		echo "</fieldset>";
 	}
 	else if($view=="rename")

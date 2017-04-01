@@ -224,3 +224,16 @@ function codemirrorAutocompleteOnInputRead(instance) {
 		CodeMirror.commands.autocomplete(instance);
 	}
 }
+
+function checkFileSize(input)
+{
+	if(input.files && input.files.length == 1)
+	{
+		if (input.files[0].size > fileUploadMaxSize) 
+		{
+			alert(fileUploadMaxSizeErrorMsg + ": " + (fileUploadMaxSize/1024/1024) + " MiB");
+			return false;
+		}
+	}
+	return true;
+}
