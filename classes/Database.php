@@ -74,11 +74,11 @@ class Database
 
 		if ($this->type == 'PDO') {
 			foreach ($ids as $id) {
-				$this->db->sqliteCreateFunction($id, $id, 1);
+				$this->db->sqliteCreateFunction($id, $id, -1);
 			}
 		} else { // type is Sqlite3 or SQLiteDatabase
 			foreach ($ids as $id) {
-				$this->db->createFunction($id, $id, 1);
+				$this->db->createFunction($id, $id, -1);
 			}
 		}
 	}
