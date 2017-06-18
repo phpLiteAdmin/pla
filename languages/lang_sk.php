@@ -151,7 +151,7 @@ $lang = array(
     "update" => "Upraviť",
     "comments" => "Komentáre",
 
-    "specify_fields" => "Musíte zadat počet polí v tabulce.",
+    "specify_fields" => "Musíte zadať počet polí v tabuľke.",
     "specify_tbl" => "Musíte zadať názov tabuľky.",
     "specify_col" => "Musíte zadať stĺpec.",
 
