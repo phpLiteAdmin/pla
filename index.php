@@ -831,10 +831,9 @@ if(isset($_GET['action']) && isset($_GET['confirm']))
 			for($i=0; $i<sizeof($tableInfo); $i++)
 			{
 				$field = $tableInfo[$i][1];
-				$field_index = str_replace(" ","_",$field);
-				$operator = $_POST[$field_index.":operator"];
+				$operator = $_POST['field_'.$i.'_operator'];
 				$searchOperators[$field] = $operator;
-				$value = $_POST[$field_index];
+				$value = $_POST['field_'.$i.'_value'];
 				if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
 				{
 					if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
@@ -2066,7 +2065,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo htmlencode($type);
 					echo "</td>";
 					echo $tdWithClassLeft;
-					echo "<select name='".htmlencode($field).":operator' onchange='checkLike(\"".htmlencode($field)."_search\", this.options[this.selectedIndex].value); '>";
+					echo "<select name='field_".$i."_operator' onchange='checkLike(\"field_".$i."_value\", this.options[this.selectedIndex].value); '>";
 					
 					$operators = array('=', '>', '>=', '<', '<=', "= ''", "!= ''", '!=', 'LIKE', 'LIKE%','NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL');
 					$operatorsDisplay = array('LIKE%' => 'LIKE %...%', 'IN'=>'IN (..., ...)', 'NOT IN'=>'NOT IN (..., ...)');
@@ -2085,9 +2084,9 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</td>";
 					echo $tdWithClassLeft;
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
-						echo "<input type='text' id='".htmlencode($field)."_search' name='".htmlencode($field)."' value='".htmlencode($value)."'/>";
+						echo "<input type='text' id='field_".$i."_value' name='field_".$i."_value' value='".htmlencode($value)."'/>";
 					else
-						echo "<textarea id='".htmlencode($field)."_search' name='".htmlencode($field)."' rows='1' cols='60'>".htmlencode($value)."</textarea>";
+						echo "<textarea id='field_".$i."_value' name='field_".$i."_value' rows='1' cols='60'>".htmlencode($value)."</textarea>";
 					echo "</td>";
 					echo "</tr>";
 				}
