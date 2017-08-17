@@ -632,734 +632,734 @@ if ($auth->isAuthorized())
 		readfile($_GET['download']);
 		exit;
 	}
-}
-
-//- Select database (from session or first available)
-if(!isset($currentDB) && count($databases)>0)
-{
-	//set the current database to the first existing one in the array (default)
-	$currentDB = reset($databases);
-	$params->database = $currentDB['path']; 
-}
-
-if(isset($currentDB))
-{
-	//- Open database (creates a Database object)
-	$db = new Database($currentDB); //create the Database object
-	$db->registerUserFunction($custom_functions);
-}
-
-// collect parameters early, just once
-$target_table = isset($_GET['table']) ? $_GET['table'] : null;
-// are we working on a view? let's check once here
-$target_table_type = !is_null($target_table) ? $db->getTypeOfTable($target_table) : null;
-if(is_null($target_table_type) && !is_null($target_table))
-	$params->redirect(array('table'=>null), $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));	
-$params->table = $target_table;
-
-// initialize / change fulltexts and numrows parameter
-if(isset($_GET['fulltexts']))
-	$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
-else
-	$params->fulltexts = 0;
 	
-if(isset($_GET['numRows']))
-	$params->numRows = intval($_GET['numRows']);
-else
-	$params->numRows = $rowsNum; 
-
-//- Switch on $_GET['action'] for operations without output
-if(isset($_GET['action']) && isset($_GET['confirm']))
-{
-	switch($_GET['action'])
+	//- Select database (from session or first available)
+	if(!isset($currentDB) && count($databases)>0)
 	{
-	//- Table actions
-
-		//- Create table (=table_create)
-		case "table_create":
-			$num = intval($_POST['rows']);
-			$name = $_POST['tablename'];
-			$primary_keys = array();
-			for($i=0; $i<$num; $i++)
-			{
-				if($_POST[$i.'_field']!="" && isset($_POST[$i.'_primarykey']))
-				{
-					$primary_keys[] = $_POST[$i.'_field'];
-				}
-			}
-			$query = "CREATE TABLE ".$db->quote($name)." (";
-			for($i=0; $i<$num; $i++)
-			{
-				if($_POST[$i.'_field']!="")
-				{
-					$query .= $db->quote($_POST[$i.'_field'])." ";
-					$query .= $_POST[$i.'_type']." ";
-					if(isset($_POST[$i.'_primarykey']))
-					{
-						if(count($primary_keys)==1)
-						{
-							$query .= "PRIMARY KEY "; 
-							if(isset($_POST[$i.'_autoincrement']) && $db->getType() != "SQLiteDatabase")
-								$query .=  "AUTOINCREMENT ";
-						}
-						$query .= "NOT NULL ";
-					}
-					if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
-						$query .= "NOT NULL ";
-					if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
-						$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
-					elseif($_POST[$i.'_defaultoption']=='expr')
-						$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
-					elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
-					{
-						$typeAffinity = get_type_affinity($_POST[$i.'_type']);
-						if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
-							$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
-						else
-							$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
-					}
-					$query = substr($query, 0, sizeof($query)-2);
-					$query .= ", ";
-				}
-			}
-			if (count($primary_keys)>1)
-			{
-				$compound_key = "";
-				foreach ($primary_keys as $primary_key)
-				{
-					$compound_key .= ($compound_key=="" ? "" : ", ") . $db->quote($primary_key);
-				}
-				$query .= "PRIMARY KEY (".$compound_key."), ";
-			}
-			$query = substr($query, 0, sizeof($query)-3);
-			$query .= ")";
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$name) ), $completed);
-			break;
-
-		//- Empty table (=table_empty)
-		case "table_empty":
-			$query1 = "DELETE FROM ".$db->quote_id($_GET['table']).";";
-			$result1 = $db->query($query1);
-			if($result1 === false)
-				$completed = $db->getError(true);
-			if(isset($_POST['vacuum']) && $_POST['vacuum'])
-			{ 
-				$query2 = "VACUUM;";
-				$result2 = $db->query($query2);
-			}
-			else
-				$query2 = "";
-			if($result1 !== false)
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
-			$params->redirect(($result1===false ? array() : array('action'=>'row_view') ), $completed);
-			break;
-
-		//- Create view (=view_create)
-		case "view_create":
-			$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".$_POST['select'];
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$_POST['viewname']) ), $completed);
-			break;
-
-		//- Drop table (=table_drop)
-		case "table_drop":
-			$query1 = "DROP TABLE ".$db->quote_id($_GET['table']).";";
-			$result1=$db->query($query1);
-			if($result1 === false)
-				$completed = $db->getError(true);
-			if(isset($_POST['vacuum']) && $_POST['vacuum'])
-			{ 
-				$query2 = "VACUUM;";
-				$result2 = $db->query($query2);
-			}
-			else
-				$query2 = "";
-			if($result1 !== false)
-			{
-				$target_table = null;
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
-			}
-			$params->redirect(array('table'=>null), $completed);
-			break;
-
-		//- Drop view (=view_drop)
-		case "view_drop":
-			$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
-			$result=$db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array('table'=>null), $completed);
-			break;
-
-		//- Rename table (=table_rename)
-		case "table_rename":
-			$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." RENAME TO ".$db->quote($_POST['newname']);
-			$type = $db->getTypeOfTable($_GET['table']);
-			if($db->getVersion()==3 && $type=='table') // SQLite 3 can rename tables, not views
-				$result = $db->query($query, true);
-			else
-				$result = $db->query($query, false); // workaround can rename tables of sqlite2 and views of both sqlite versions
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-			{
-				$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$target_table = $_POST['newname'];
-			}
-			$params->redirect(array('action'=>'row_view', 'table'=>$_POST['newname']), $completed);
-			break;
-		
-		//- Search table (=table_search)
-		case "table_search":
-			$searchValues = array();
-			$searchOperators = array();
+		//set the current database to the first existing one in the array (default)
+		$currentDB = reset($databases);
+		$params->database = $currentDB['path']; 
+	}
 	
-			$tableInfo = $db->getTableInfo($target_table);
-			$j = 0;
-			$whereExpr = array();
-			for($i=0; $i<sizeof($tableInfo); $i++)
-			{
-				$field = $tableInfo[$i][1];
-				$operator = $_POST['field_'.$i.'_operator'];
-				$searchOperators[$field] = $operator;
-				$value = $_POST['field_'.$i.'_value'];
-				if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
-				{
-					if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
-						$whereExpr[$j] = $db->quote_id($field)." ".$operator;
-					else{
-						if($operator == "LIKE%"){ 
-							$operator = "LIKE";
-							if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
-							$searchValues[$field] = array($value);
-							$valueQuoted = $db->quote($value);
-						}
-						elseif($operator == 'IN' || $operator == 'NOT IN')
-						{
-							$value = trim($value, '() ');
-							$values = explode(',',$value);
-							$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
-							if($operator == 'IN')
-								$searchValues[$field] = $values;
-							$values = array_map(array($db, 'quote'), $values);
-							$valueQuoted = '(' .implode(', ', $values) . ')';
-						}
-						else
-						{
-							$searchValues[$field] = array($value);
-							$valueQuoted = $db->quote($value);
-						}
-						$whereExpr[$j] = $db->quote_id($field)." ".$operator." ".$valueQuoted;
-					}
-					$j++;
-				}
-			}
-			$searchWhere = '';
-			if(sizeof($whereExpr)>0)
-			{
-				$searchWhere .= " WHERE ".$whereExpr[0];
-				for($i=1; $i<sizeof($whereExpr); $i++)
-				{
-					$searchWhere .= " AND ".$whereExpr[$i];
-				}
-			}
-			$searchID = md5($searchWhere);
-			$_SESSION[COOKIENAME.'search'][$searchID] = array(
-				'where' => $searchWhere,
-				'values' => $searchValues,
-				'operators' => $searchOperators
-				);
-			$params->redirect(array('action'=>'table_search','search'=>$searchID));
-		break;
-
-	//- Row actions
-
-		//- Create row (=row_create)
-		case "row_create":
-			$completed = "";
-			$num = $_POST['newRows'];
-			$z = 0;
-			$error = false;
-			
-			$tableInfo = $db->getTableInfo($target_table);
-			
-			for($i=0; $i<$num; $i++)
-			{
-				if(!isset($_POST[$i.":ignore"]))
-				{
-					$query_cols = "";
-					$query_vals = "";
-					$all_default = true;
-					for($j=0; $j<sizeof($tableInfo); $j++)
-					{
-						$null = isset($_POST[$j."_null"][$i]);
-						$type = strtoupper($tableInfo[$j]['type']);
-						$typeAffinity = get_type_affinity($type);
-						if(!$null && isset($_POST[$i.":".$j]))
-							$value = $_POST[$i.":".$j];
-						else
-							$value = "";
-						if($type=='BLOB')
-						{
-							if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
-								$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
-							else
-								$blobFiles[$j] = null;
-						}
-						elseif($value===$tableInfo[$j]['dflt_value'])
-						{
-							// if the value is the default value, skip it
-							continue;
-						}
-						$all_default = false;
-						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
-						
-						$function = $_POST["function_".$j][$i];
-						if($function!="")
-							$query_vals .= $function."(";
-						if($type=='BLOB')
-							$query_vals .= ':blobval'.$j;
-						elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
-							$query_vals .= $db->quote($value);
-						elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
-							$query_vals .= "NULL";
-						elseif($null)
-							$query_vals .= "NULL";
-						else
-							$query_vals .= $db->quote($value);
-						if($function!="")
-							$query_vals .= ")";
-						$query_vals .= ",";
-					}
-					$query = "INSERT INTO ".$db->quote_id($target_table);
-					if(!$all_default)
-					{
-						$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
-						$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
-					
-						$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
-					} else {
-						$query .= " DEFAULT VALUES";
-					}
-					if(isset($blobFiles))
-					{
-						// blob files need to be done using a prepared statement because the query size would be too large
-						$handle = $db->prepareQuery($query);
-						foreach($blobFiles as $j=>$filename)
-							$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
-						
-						$result1 = $db->executePrepared($handle, false);
-					}
-					else
-						$result1 = $db->query($query);
-					if($result1===false)
-						$error = true;
-					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
-					$z++;
-				}
-			}
-			if($error)
-				$completed = $db->getError(true);
-			else
-				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-			$params->redirect(array('action'=>'row_view'), $completed);
-			break;
-
-		//- Delete row (=row_delete)
-		case "row_delete":
-			$pks = json_decode($_GET['pk']);
-			
-			$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE (".$db->wherePK($target_table,json_decode($pks[0])).")";
-			for($i=1; $i<sizeof($pks); $i++)
-			{
-				$query .= " OR (".$db->wherePK($target_table,json_decode($pks[$i])).")";
-			}
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array('action'=>'row_view'), $completed);
-			break;
-
-		//- Edit row (=row_edit)
-		case "row_edit":
-			$pks = json_decode($_GET['pk']);
-			$z = 0;
-			
-			$tableInfo = $db->getTableInfo($target_table);
-			
-			if(isset($_POST['new_row']))
-				$completed = "";
-			else
-				$completed = sizeof($pks)." ".$lang['rows']." ".$lang['affected'].".<br/><br/>";
-
-			for($i=0; $i<sizeof($pks); $i++)
-			{
-				if(isset($_POST['new_row']))
-				{
-					$query_cols = "";
-					$query_vals = "";
-					$all_default = true;
-					for($j=0; $j<sizeof($tableInfo); $j++)
-					{
-						$null = isset($_POST[$j."_null"][$i]);
-						$type = strtoupper($tableInfo[$j]['type']);
-						$typeAffinity = get_type_affinity($type);
-						if(!$null)
-						{
-							if($type=='BLOB')
-							{
-								if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
-								{
-									$select = 'SELECT '.$db->quote_id($tableInfo[$j]['name']).' AS \'blob\' FROM '.$db->quote_id($target_table).' WHERE '.$db->wherePK($target_table, json_decode($pks[$i]));
-									$bl = $db->select($select);
-									$blobFiles[$j] = $bl['blob'];
-									unset($bl);
-								}
-								else
-								{
-									if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
-										$blobFiles[$j] = file_get_contents($_FILES[$i.":".$j]["tmp_name"]);
-									else
-										$blobFiles[$j] = null;
-								}
-							}
-							else
-								$value = $_POST[$j][$i];
-						}
-						else
-							$value = "";
-						if($type!='BLOB' && $value===$tableInfo[$j]['dflt_value'])
-						{
-							// if the value is the default value, skip it
-							continue;
-						}
-						$all_default = false;
-						$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
-						
-						$function = $_POST["function_".$j][$i];
-						if($function!="")
-							$query_vals .= $function."(";
-						
-						if($type=='BLOB')
-							$query_vals .= ':blobval'.$j;
-						elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
-							$query_vals .= $db->quote($value);
-						elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
-							$query_vals .= "NULL";
-						elseif($null)
-							$query_vals .= "NULL";
-						else
-							$query_vals .= $db->quote($value);
-						if($function!="")
-							$query_vals .= ")";
-						$query_vals .= ",";
-					}
-					$query = "INSERT INTO ".$db->quote_id($target_table);
-					if(!$all_default)
-					{
-						$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
-						$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
-					
-						$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
-					} else {
-						$query .= " DEFAULT VALUES";
-					}
-
-					if(isset($blobFiles))
-					{
-						// blob files need to be done using a prepared statement because the query size would be too large
-						$handle = $db->prepareQuery($query);
-						foreach($blobFiles as $j=>$blobval)
-							$db->bindValue($handle, ':blobval'.$j, $blobval, 'blob');
-						
-						$result1 = $db->executePrepared($handle, false);
-					}
-					else
-						$result1 = $db->query($query);
-					if($result1===false)
-						$error = true;
-					$z++;
-				}
-				else
-				{
-					$query = "UPDATE ".$db->quote_id($target_table)." SET ";
-					for($j=0; $j<sizeof($tableInfo); $j++)
-					{
-						$type = strtoupper($tableInfo[$j]['type']);
-						$function = $_POST["function_".$j][$i];
-						$null = isset($_POST[$j."_null"][$i]);
-						// if the old BLOB value is chosen to be kept, just skip this column
-						if(!$null && $type=='BLOB' && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
-							continue;
-						if(!$null && $type=='BLOB')
-						{
-							if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
-								$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
-							else
-								$blobFiles[$j] = null;
-						}
-						
-						$query .= $db->quote_id($tableInfo[$j]['name'])."=";
-						if($function!="")
-							$query .= $function."(";
-						if($null)
-							$query .= "NULL";
-						else
-						{
-							if($type=='BLOB')
-								$query .= ':blobval'.$j;
-							else
-								$query .= $db->quote($_POST[$j][$i]);
-						}
-						if($function!="")
-							$query .= ")";
-						$query .= ", ";
-					}
-					$query = substr($query, 0, sizeof($query)-3);
-					$query .= " WHERE ".$db->wherePK($target_table, json_decode($pks[$i]));
-					if(isset($blobFiles))
-					{
-						// blob files need to be done using a prepared statement because the query size would be too large
-						$handle = $db->prepareQuery($query);
-						foreach($blobFiles as $j=>$filename)
-							$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
-						
-						$result1 = $db->executePrepared($handle, false);
-					}
-					else
-						$result1 = $db->query($query);
-					if($result1===false)
-					{
-						$error = true;
-					}
-				}
-				$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
-			}
-			if($error)
-				$completed = $db->getError(true);
-			elseif(isset($_POST['new_row']))
-				$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-			$params->redirect(array('action'=>'row_view'), $completed);
-			break;
-			
+	if(isset($currentDB))
+	{
+		//- Open database (creates a Database object)
+		$db = new Database($currentDB); //create the Database object
+		$db->registerUserFunction($custom_functions);
+	}
+	
+	// collect parameters early, just once
+	$target_table = isset($_GET['table']) ? $_GET['table'] : null;
+	// are we working on a view? let's check once here
+	$target_table_type = !is_null($target_table) ? $db->getTypeOfTable($target_table) : null;
+	if(is_null($target_table_type) && !is_null($target_table))
+		$params->redirect(array('table'=>null), $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));	
+	$params->table = $target_table;
+	
+	// initialize / change fulltexts and numrows parameter
+	if(isset($_GET['fulltexts']))
+		$params->fulltexts = ($_GET['fulltexts'] ? 1 : 0);
+	else
+		$params->fulltexts = 0;
 		
-		case "row_get_blob":
-			$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode($_GET['pk'])));
-			$filename = 'download';
-			$imagesize = getimagesizefromstring($blobVal['blob']);
-			if($imagesize!==false && isset($imagesize['mime']))
-				$mimetype = $imagesize['mime'];
-			elseif(class_exists('finfo'))  // included since php 5.3.0, but might be disabled on Windows
-			{
-				$finfo    = new finfo(FILEINFO_MIME);
-				$mimetype = $finfo->buffer($blobVal['blob']);
-			}
-			else
-				$mimetype = "application/octet-stream";
-				
-			if($imagesize!==false && isset($imagesize[2]))
-				$extension = image_type_to_extension($imagesize[2]);
-			else
-				$extension = '.blob';
-			ob_end_clean();
-			header('Content-Length: '.strlen($blobVal['blob']));
-			header("Content-type: ".$mimetype);
-			if(isset($_GET['download_blob']) && $_GET['download_blob'])
-				header('Content-Disposition: attachment; filename="'.$filename.$extension.'";');
-			header("Pragma: no-cache");
-			header("Expires: 0");
-			echo $blobVal['blob'];
-			exit;
-			break;
-		
-
-	//- Column actions
-
-		//- Create column (=column_create)
-		case "column_create":
-			$num = intval($_POST['rows']);
-			for($i=0; $i<$num; $i++)
-			{
-				if($_POST[$i.'_field']!="")
+	if(isset($_GET['numRows']))
+		$params->numRows = intval($_GET['numRows']);
+	else
+		$params->numRows = $rowsNum; 
+	
+	//- Switch on $_GET['action'] for operations without output
+	if(isset($_GET['action']) && isset($_GET['confirm']))
+	{
+		switch($_GET['action'])
+		{
+		//- Table actions
+	
+			//- Create table (=table_create)
+			case "table_create":
+				$num = intval($_POST['rows']);
+				$name = $_POST['tablename'];
+				$primary_keys = array();
+				for($i=0; $i<$num; $i++)
 				{
-					$query = "ALTER TABLE ".$db->quote_id($target_table)." ADD ".$db->quote($_POST[$i.'_field'])." ";
-					$query .= $_POST[$i.'_type']." ";
-					if(isset($_POST[$i.'_primarykey']))
-						$query .= "PRIMARY KEY ";
-					if(isset($_POST[$i.'_notnull']))
-						$query .= "NOT NULL ";
-					if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
-						$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
-					elseif($_POST[$i.'_defaultoption']=='expr')
-						$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
-					elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
+					if($_POST[$i.'_field']!="" && isset($_POST[$i.'_primarykey']))
 					{
-						$typeAffinity = get_type_affinity($_POST[$i.'_type']);
-						if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
-							$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
-						else
-							$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
+						$primary_keys[] = $_POST[$i.'_field'];
 					}
-					if($db->getVersion()==3 &&
-						($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL')
-						// Sqlite3 cannot add columns with default values that are not constant
-						&& !isset($_POST[$i.'_primarykey'])
-						// sqlite3 cannot add primary key columns
-						&& (!isset($_POST[$i.'_notnull']) || $_POST[$i.'_defaultoption']!='none')
-						// SQLite3 cannot add NOT NULL columns without DEFAULT even if the table is empty
-						)
-						// use SQLITE3 ALTER TABLE ADD COLUMN 
-						$result = $db->query($query, true);
-					else
-						// use ALTER TABLE workaround
-						$result = $db->query($query, false);
-					if($result===false)
-						$error = true;
 				}
-			}
-			if($error)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Delete column (=column_delete)
-		case "column_delete":
-			$pks = explode(":", $_GET['pk']);
-			$query = "ALTER TABLE ".$db->quote_id($target_table).' DROP '.$db->quote_id($pks[0]);
-			for($i=1; $i<sizeof($pks); $i++)
-			{
-				$query .= ", DROP ".$db->quote_id($pks[$i]);
-			}
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Add a primary key (=primarykey_add)
-		case "primarykey_add":
-			$pks = explode(":", $_GET['pk']);
-			$query = "ALTER TABLE ".$db->quote_id($target_table).' ADD PRIMARY KEY ('.$db->quote_id($pks[0]);
-			for($i=1; $i<sizeof($pks); $i++)
-			{
-				$query .= ", ".$db->quote_id($pks[$i]);
-			}
-			$query .= ")";
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Edit column (=column_edit)
-		case "column_edit":
-			$query = "ALTER TABLE ".$db->quote_id($target_table).' CHANGE '.$db->quote_id($_POST['oldvalue'])." ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Delete trigger (=trigger_delete)
-		case "trigger_delete":
-			$query = "DROP TRIGGER ".$db->quote_id($_GET['pk']);
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Delete index (=index_delete)
-		case "index_delete":
-			$query = "DROP INDEX ".$db->quote_id($_GET['pk']);
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Create trigger (=trigger_create)
-		case "trigger_create":
-			$str = "CREATE TRIGGER ".$db->quote($_POST['trigger_name']);
-			if($_POST['beforeafter']!="")
-				$str .= " ".$_POST['beforeafter'];
-			$str .= " ".$_POST['event']." ON ".$db->quote_id($target_table);
-			if(isset($_POST['foreachrow']))
-				$str .= " FOR EACH ROW";
-			if($_POST['whenexpression']!="")
-				$str .= " WHEN ".$_POST['whenexpression'];
-			$str .= " BEGIN";
-			$str .= " ".$_POST['triggersteps'];
-			$str .= " END";
-			$query = $str;
-			$result = $db->query($query);
-			if($result === false)
-				$completed = $db->getError(true);
-			else
-				$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
-
-		//- Create index (=index_create)
-		case "index_create":
-			$num = $_POST['num'];
-			if($_POST['name']=="")
-			{
-				$completed = $lang['blank_index'];
-			}
-			else if($_POST['0_field']=="")
-			{
-				$completed = $lang['one_index'];
-			}
-			else
-			{
-				$str = "CREATE ";
-				if($_POST['duplicate']=="no")
-					$str .= "UNIQUE ";
-				$str .= "INDEX ".$db->quote($_POST['name'])." ON ".$db->quote_id($target_table)." (";
-				$str .= $db->quote_id($_POST['0_field']).$_POST['0_order'];
-				for($i=1; $i<$num; $i++)
+				$query = "CREATE TABLE ".$db->quote($name)." (";
+				for($i=0; $i<$num; $i++)
 				{
 					if($_POST[$i.'_field']!="")
-						$str .= ", ".$db->quote_id($_POST[$i.'_field']).$_POST[$i.'_order'];
+					{
+						$query .= $db->quote($_POST[$i.'_field'])." ";
+						$query .= $_POST[$i.'_type']." ";
+						if(isset($_POST[$i.'_primarykey']))
+						{
+							if(count($primary_keys)==1)
+							{
+								$query .= "PRIMARY KEY "; 
+								if(isset($_POST[$i.'_autoincrement']) && $db->getType() != "SQLiteDatabase")
+									$query .=  "AUTOINCREMENT ";
+							}
+							$query .= "NOT NULL ";
+						}
+						if(!isset($_POST[$i.'_primarykey']) && isset($_POST[$i.'_notnull']))
+							$query .= "NOT NULL ";
+						if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
+							$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
+						elseif($_POST[$i.'_defaultoption']=='expr')
+							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
+						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
+						{
+							$typeAffinity = get_type_affinity($_POST[$i.'_type']);
+							if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
+								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
+							else
+								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
+						}
+						$query = substr($query, 0, sizeof($query)-2);
+						$query .= ", ";
+					}
 				}
-				$str .= ")";
-				if(isset($_POST['where']) && $_POST['where']!='')
-					$str.=" WHERE ".$_POST['where']; 
+				if (count($primary_keys)>1)
+				{
+					$compound_key = "";
+					foreach ($primary_keys as $primary_key)
+					{
+						$compound_key .= ($compound_key=="" ? "" : ", ") . $db->quote($primary_key);
+					}
+					$query .= "PRIMARY KEY (".$compound_key."), ";
+				}
+				$query = substr($query, 0, sizeof($query)-3);
+				$query .= ")";
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$name) ), $completed);
+				break;
+	
+			//- Empty table (=table_empty)
+			case "table_empty":
+				$query1 = "DELETE FROM ".$db->quote_id($_GET['table']).";";
+				$result1 = $db->query($query1);
+				if($result1 === false)
+					$completed = $db->getError(true);
+				if(isset($_POST['vacuum']) && $_POST['vacuum'])
+				{ 
+					$query2 = "VACUUM;";
+					$result2 = $db->query($query2);
+				}
+				else
+					$query2 = "";
+				if($result1 !== false)
+					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
+				$params->redirect(($result1===false ? array() : array('action'=>'row_view') ), $completed);
+				break;
+	
+			//- Create view (=view_create)
+			case "view_create":
+				$query = "CREATE VIEW ".$db->quote($_POST['viewname'])." AS ".$_POST['select'];
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$_POST['viewname']) ), $completed);
+				break;
+	
+			//- Drop table (=table_drop)
+			case "table_drop":
+				$query1 = "DROP TABLE ".$db->quote_id($_GET['table']).";";
+				$result1=$db->query($query1);
+				if($result1 === false)
+					$completed = $db->getError(true);
+				if(isset($_POST['vacuum']) && $_POST['vacuum'])
+				{ 
+					$query2 = "VACUUM;";
+					$result2 = $db->query($query2);
+				}
+				else
+					$query2 = "";
+				if($result1 !== false)
+				{
+					$target_table = null;
+					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
+				}
+				$params->redirect(array('table'=>null), $completed);
+				break;
+	
+			//- Drop view (=view_drop)
+			case "view_drop":
+				$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
+				$result=$db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(array('table'=>null), $completed);
+				break;
+	
+			//- Rename table (=table_rename)
+			case "table_rename":
+				$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." RENAME TO ".$db->quote($_POST['newname']);
+				$type = $db->getTypeOfTable($_GET['table']);
+				if($db->getVersion()==3 && $type=='table') // SQLite 3 can rename tables, not views
+					$result = $db->query($query, true);
+				else
+					$result = $db->query($query, false); // workaround can rename tables of sqlite2 and views of both sqlite versions
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+				{
+					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+					$target_table = $_POST['newname'];
+				}
+				$params->redirect(array('action'=>'row_view', 'table'=>$_POST['newname']), $completed);
+				break;
+			
+			//- Search table (=table_search)
+			case "table_search":
+				$searchValues = array();
+				$searchOperators = array();
+		
+				$tableInfo = $db->getTableInfo($target_table);
+				$j = 0;
+				$whereExpr = array();
+				for($i=0; $i<sizeof($tableInfo); $i++)
+				{
+					$field = $tableInfo[$i][1];
+					$operator = $_POST['field_'.$i.'_operator'];
+					$searchOperators[$field] = $operator;
+					$value = $_POST['field_'.$i.'_value'];
+					if($value!="" || $operator=="!= ''" || $operator=="= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
+					{
+						if($operator=="= ''" || $operator=="!= ''" || $operator == 'IS NULL' || $operator == 'IS NOT NULL')
+							$whereExpr[$j] = $db->quote_id($field)." ".$operator;
+						else{
+							if($operator == "LIKE%"){ 
+								$operator = "LIKE";
+								if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
+								$searchValues[$field] = array($value);
+								$valueQuoted = $db->quote($value);
+							}
+							elseif($operator == 'IN' || $operator == 'NOT IN')
+							{
+								$value = trim($value, '() ');
+								$values = explode(',',$value);
+								$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
+								if($operator == 'IN')
+									$searchValues[$field] = $values;
+								$values = array_map(array($db, 'quote'), $values);
+								$valueQuoted = '(' .implode(', ', $values) . ')';
+							}
+							else
+							{
+								$searchValues[$field] = array($value);
+								$valueQuoted = $db->quote($value);
+							}
+							$whereExpr[$j] = $db->quote_id($field)." ".$operator." ".$valueQuoted;
+						}
+						$j++;
+					}
+				}
+				$searchWhere = '';
+				if(sizeof($whereExpr)>0)
+				{
+					$searchWhere .= " WHERE ".$whereExpr[0];
+					for($i=1; $i<sizeof($whereExpr); $i++)
+					{
+						$searchWhere .= " AND ".$whereExpr[$i];
+					}
+				}
+				$searchID = md5($searchWhere);
+				$_SESSION[COOKIENAME.'search'][$searchID] = array(
+					'where' => $searchWhere,
+					'values' => $searchValues,
+					'operators' => $searchOperators
+					);
+				$params->redirect(array('action'=>'table_search','search'=>$searchID));
+			break;
+	
+		//- Row actions
+	
+			//- Create row (=row_create)
+			case "row_create":
+				$completed = "";
+				$num = $_POST['newRows'];
+				$z = 0;
+				$error = false;
+				
+				$tableInfo = $db->getTableInfo($target_table);
+				
+				for($i=0; $i<$num; $i++)
+				{
+					if(!isset($_POST[$i.":ignore"]))
+					{
+						$query_cols = "";
+						$query_vals = "";
+						$all_default = true;
+						for($j=0; $j<sizeof($tableInfo); $j++)
+						{
+							$null = isset($_POST[$j."_null"][$i]);
+							$type = strtoupper($tableInfo[$j]['type']);
+							$typeAffinity = get_type_affinity($type);
+							if(!$null && isset($_POST[$i.":".$j]))
+								$value = $_POST[$i.":".$j];
+							else
+								$value = "";
+							if($type=='BLOB')
+							{
+								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
+								else
+									$blobFiles[$j] = null;
+							}
+							elseif($value===$tableInfo[$j]['dflt_value'])
+							{
+								// if the value is the default value, skip it
+								continue;
+							}
+							$all_default = false;
+							$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
+							
+							$function = $_POST["function_".$j][$i];
+							if($function!="")
+								$query_vals .= $function."(";
+							if($type=='BLOB')
+								$query_vals .= ':blobval'.$j;
+							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
+								$query_vals .= $db->quote($value);
+							elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
+								$query_vals .= "NULL";
+							elseif($null)
+								$query_vals .= "NULL";
+							else
+								$query_vals .= $db->quote($value);
+							if($function!="")
+								$query_vals .= ")";
+							$query_vals .= ",";
+						}
+						$query = "INSERT INTO ".$db->quote_id($target_table);
+						if(!$all_default)
+						{
+							$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
+							$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
+						
+							$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
+						} else {
+							$query .= " DEFAULT VALUES";
+						}
+						if(isset($blobFiles))
+						{
+							// blob files need to be done using a prepared statement because the query size would be too large
+							$handle = $db->prepareQuery($query);
+							foreach($blobFiles as $j=>$filename)
+								$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
+							
+							$result1 = $db->executePrepared($handle, false);
+						}
+						else
+							$result1 = $db->query($query);
+						if($result1===false)
+							$error = true;
+						$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
+						$z++;
+					}
+				}
+				if($error)
+					$completed = $db->getError(true);
+				else
+					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
+				$params->redirect(array('action'=>'row_view'), $completed);
+				break;
+	
+			//- Delete row (=row_delete)
+			case "row_delete":
+				$pks = json_decode($_GET['pk']);
+				
+				$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE (".$db->wherePK($target_table,json_decode($pks[0])).")";
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$query .= " OR (".$db->wherePK($target_table,json_decode($pks[$i])).")";
+				}
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(array('action'=>'row_view'), $completed);
+				break;
+	
+			//- Edit row (=row_edit)
+			case "row_edit":
+				$pks = json_decode($_GET['pk']);
+				$z = 0;
+				
+				$tableInfo = $db->getTableInfo($target_table);
+				
+				if(isset($_POST['new_row']))
+					$completed = "";
+				else
+					$completed = sizeof($pks)." ".$lang['rows']." ".$lang['affected'].".<br/><br/>";
+	
+				for($i=0; $i<sizeof($pks); $i++)
+				{
+					if(isset($_POST['new_row']))
+					{
+						$query_cols = "";
+						$query_vals = "";
+						$all_default = true;
+						for($j=0; $j<sizeof($tableInfo); $j++)
+						{
+							$null = isset($_POST[$j."_null"][$i]);
+							$type = strtoupper($tableInfo[$j]['type']);
+							$typeAffinity = get_type_affinity($type);
+							if(!$null)
+							{
+								if($type=='BLOB')
+								{
+									if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
+									{
+										$select = 'SELECT '.$db->quote_id($tableInfo[$j]['name']).' AS \'blob\' FROM '.$db->quote_id($target_table).' WHERE '.$db->wherePK($target_table, json_decode($pks[$i]));
+										$bl = $db->select($select);
+										$blobFiles[$j] = $bl['blob'];
+										unset($bl);
+									}
+									else
+									{
+										if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+											$blobFiles[$j] = file_get_contents($_FILES[$i.":".$j]["tmp_name"]);
+										else
+											$blobFiles[$j] = null;
+									}
+								}
+								else
+									$value = $_POST[$j][$i];
+							}
+							else
+								$value = "";
+							if($type!='BLOB' && $value===$tableInfo[$j]['dflt_value'])
+							{
+								// if the value is the default value, skip it
+								continue;
+							}
+							$all_default = false;
+							$query_cols .= $db->quote_id($tableInfo[$j]['name']).",";
+							
+							$function = $_POST["function_".$j][$i];
+							if($function!="")
+								$query_vals .= $function."(";
+							
+							if($type=='BLOB')
+								$query_vals .= ':blobval'.$j;
+							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
+								$query_vals .= $db->quote($value);
+							elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
+								$query_vals .= "NULL";
+							elseif($null)
+								$query_vals .= "NULL";
+							else
+								$query_vals .= $db->quote($value);
+							if($function!="")
+								$query_vals .= ")";
+							$query_vals .= ",";
+						}
+						$query = "INSERT INTO ".$db->quote_id($target_table);
+						if(!$all_default)
+						{
+							$query_cols = substr($query_cols, 0, strlen($query_cols)-1);
+							$query_vals = substr($query_vals, 0, strlen($query_vals)-1);
+						
+							$query.=" (". $query_cols . ") VALUES (". $query_vals. ")";
+						} else {
+							$query .= " DEFAULT VALUES";
+						}
+	
+						if(isset($blobFiles))
+						{
+							// blob files need to be done using a prepared statement because the query size would be too large
+							$handle = $db->prepareQuery($query);
+							foreach($blobFiles as $j=>$blobval)
+								$db->bindValue($handle, ':blobval'.$j, $blobval, 'blob');
+							
+							$result1 = $db->executePrepared($handle, false);
+						}
+						else
+							$result1 = $db->query($query);
+						if($result1===false)
+							$error = true;
+						$z++;
+					}
+					else
+					{
+						$query = "UPDATE ".$db->quote_id($target_table)." SET ";
+						for($j=0; $j<sizeof($tableInfo); $j++)
+						{
+							$type = strtoupper($tableInfo[$j]['type']);
+							$function = $_POST["function_".$j][$i];
+							$null = isset($_POST[$j."_null"][$i]);
+							// if the old BLOB value is chosen to be kept, just skip this column
+							if(!$null && $type=='BLOB' && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
+								continue;
+							if(!$null && $type=='BLOB')
+							{
+								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
+									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
+								else
+									$blobFiles[$j] = null;
+							}
+							
+							$query .= $db->quote_id($tableInfo[$j]['name'])."=";
+							if($function!="")
+								$query .= $function."(";
+							if($null)
+								$query .= "NULL";
+							else
+							{
+								if($type=='BLOB')
+									$query .= ':blobval'.$j;
+								else
+									$query .= $db->quote($_POST[$j][$i]);
+							}
+							if($function!="")
+								$query .= ")";
+							$query .= ", ";
+						}
+						$query = substr($query, 0, sizeof($query)-3);
+						$query .= " WHERE ".$db->wherePK($target_table, json_decode($pks[$i]));
+						if(isset($blobFiles))
+						{
+							// blob files need to be done using a prepared statement because the query size would be too large
+							$handle = $db->prepareQuery($query);
+							foreach($blobFiles as $j=>$filename)
+								$db->bindValue($handle, ':blobval'.$j, file_get_contents($filename), 'blob');
+							
+							$result1 = $db->executePrepared($handle, false);
+						}
+						else
+							$result1 = $db->query($query);
+						if($result1===false)
+						{
+							$error = true;
+						}
+					}
+					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
+				}
+				if($error)
+					$completed = $db->getError(true);
+				elseif(isset($_POST['new_row']))
+					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
+				$params->redirect(array('action'=>'row_view'), $completed);
+				break;
+				
+			
+			case "row_get_blob":
+				$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode($_GET['pk'])));
+				$filename = 'download';
+				$imagesize = getimagesizefromstring($blobVal['blob']);
+				if($imagesize!==false && isset($imagesize['mime']))
+					$mimetype = $imagesize['mime'];
+				elseif(class_exists('finfo'))  // included since php 5.3.0, but might be disabled on Windows
+				{
+					$finfo    = new finfo(FILEINFO_MIME);
+					$mimetype = $finfo->buffer($blobVal['blob']);
+				}
+				else
+					$mimetype = "application/octet-stream";
+					
+				if($imagesize!==false && isset($imagesize[2]))
+					$extension = image_type_to_extension($imagesize[2]);
+				else
+					$extension = '.blob';
+				ob_end_clean();
+				header('Content-Length: '.strlen($blobVal['blob']));
+				header("Content-type: ".$mimetype);
+				if(isset($_GET['download_blob']) && $_GET['download_blob'])
+					header('Content-Disposition: attachment; filename="'.$filename.$extension.'";');
+				header("Pragma: no-cache");
+				header("Expires: 0");
+				echo $blobVal['blob'];
+				exit;
+				break;
+			
+	
+		//- Column actions
+	
+			//- Create column (=column_create)
+			case "column_create":
+				$num = intval($_POST['rows']);
+				for($i=0; $i<$num; $i++)
+				{
+					if($_POST[$i.'_field']!="")
+					{
+						$query = "ALTER TABLE ".$db->quote_id($target_table)." ADD ".$db->quote($_POST[$i.'_field'])." ";
+						$query .= $_POST[$i.'_type']." ";
+						if(isset($_POST[$i.'_primarykey']))
+							$query .= "PRIMARY KEY ";
+						if(isset($_POST[$i.'_notnull']))
+							$query .= "NOT NULL ";
+						if($_POST[$i.'_defaultoption']!='defined' && $_POST[$i.'_defaultoption']!='none' && $_POST[$i.'_defaultoption']!='expr')
+							$query .= "DEFAULT ".$_POST[$i.'_defaultoption']." ";
+						elseif($_POST[$i.'_defaultoption']=='expr')
+							$query .= "DEFAULT (".$_POST[$i.'_defaultvalue'].") ";
+						elseif(isset($_POST[$i.'_defaultvalue']) && $_POST[$i.'_defaultoption']=='defined')
+						{
+							$typeAffinity = get_type_affinity($_POST[$i.'_type']);
+							if(($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC") && is_numeric($_POST[$i.'_defaultvalue']))
+								$query .= "DEFAULT ".$_POST[$i.'_defaultvalue']."  ";
+							else
+								$query .= "DEFAULT ".$db->quote($_POST[$i.'_defaultvalue'])." ";
+						}
+						if($db->getVersion()==3 &&
+							($_POST[$i.'_defaultoption']=='defined' || $_POST[$i.'_defaultoption']=='none' || $_POST[$i.'_defaultoption']=='NULL')
+							// Sqlite3 cannot add columns with default values that are not constant
+							&& !isset($_POST[$i.'_primarykey'])
+							// sqlite3 cannot add primary key columns
+							&& (!isset($_POST[$i.'_notnull']) || $_POST[$i.'_defaultoption']!='none')
+							// SQLite3 cannot add NOT NULL columns without DEFAULT even if the table is empty
+							)
+							// use SQLITE3 ALTER TABLE ADD COLUMN 
+							$result = $db->query($query, true);
+						else
+							// use ALTER TABLE workaround
+							$result = $db->query($query, false);
+						if($result===false)
+							$error = true;
+					}
+				}
+				if($error)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Delete column (=column_delete)
+			case "column_delete":
+				$pks = explode(":", $_GET['pk']);
+				$query = "ALTER TABLE ".$db->quote_id($target_table).' DROP '.$db->quote_id($pks[0]);
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$query .= ", DROP ".$db->quote_id($pks[$i]);
+				}
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Add a primary key (=primarykey_add)
+			case "primarykey_add":
+				$pks = explode(":", $_GET['pk']);
+				$query = "ALTER TABLE ".$db->quote_id($target_table).' ADD PRIMARY KEY ('.$db->quote_id($pks[0]);
+				for($i=1; $i<sizeof($pks); $i++)
+				{
+					$query .= ", ".$db->quote_id($pks[$i]);
+				}
+				$query .= ")";
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Edit column (=column_edit)
+			case "column_edit":
+				$query = "ALTER TABLE ".$db->quote_id($target_table).' CHANGE '.$db->quote_id($_POST['oldvalue'])." ".$db->quote($_POST['0_field'])." ".$_POST['0_type'];
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Delete trigger (=trigger_delete)
+			case "trigger_delete":
+				$query = "DROP TRIGGER ".$db->quote_id($_GET['pk']);
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Delete index (=index_delete)
+			case "index_delete":
+				$query = "DROP INDEX ".$db->quote_id($_GET['pk']);
+				$result = $db->query($query);
+				if($result === false)
+					$completed = $db->getError(true);
+				else
+					$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Create trigger (=trigger_create)
+			case "trigger_create":
+				$str = "CREATE TRIGGER ".$db->quote($_POST['trigger_name']);
+				if($_POST['beforeafter']!="")
+					$str .= " ".$_POST['beforeafter'];
+				$str .= " ".$_POST['event']." ON ".$db->quote_id($target_table);
+				if(isset($_POST['foreachrow']))
+					$str .= " FOR EACH ROW";
+				if($_POST['whenexpression']!="")
+					$str .= " WHEN ".$_POST['whenexpression'];
+				$str .= " BEGIN";
+				$str .= " ".$_POST['triggersteps'];
+				$str .= " END";
 				$query = $str;
 				$result = $db->query($query);
 				if($result === false)
 					$completed = $db->getError(true);
 				else
-					$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-			}
-			$params->redirect(array('action'=>'column_view'), $completed);
-			break;
+					$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+	
+			//- Create index (=index_create)
+			case "index_create":
+				$num = $_POST['num'];
+				if($_POST['name']=="")
+				{
+					$completed = $lang['blank_index'];
+				}
+				else if($_POST['0_field']=="")
+				{
+					$completed = $lang['one_index'];
+				}
+				else
+				{
+					$str = "CREATE ";
+					if($_POST['duplicate']=="no")
+						$str .= "UNIQUE ";
+					$str .= "INDEX ".$db->quote($_POST['name'])." ON ".$db->quote_id($target_table)." (";
+					$str .= $db->quote_id($_POST['0_field']).$_POST['0_order'];
+					for($i=1; $i<$num; $i++)
+					{
+						if($_POST[$i.'_field']!="")
+							$str .= ", ".$db->quote_id($_POST[$i.'_field']).$_POST[$i.'_order'];
+					}
+					$str .= ")";
+					if(isset($_POST['where']) && $_POST['where']!='')
+						$str.=" WHERE ".$_POST['where']; 
+					$query = $str;
+					$result = $db->query($query);
+					if($result === false)
+						$completed = $db->getError(true);
+					else
+						$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
+				}
+				$params->redirect(array('action'=>'column_view'), $completed);
+				break;
+		}
 	}
 }
 
@@ -1431,22 +1431,27 @@ if(isset($_GET['help']))
 	exit();		
 }
 
-//- Javascript include
+if($auth->isAuthorized())
+{
+	//- Javascript include
+	?>
+	<!-- JavaScript Support -->
+	<script type='text/javascript' src='?resource=javascript'></script>
+	<script type="text/javascript">
+	var fileUploadMaxSize = <?php echo fileUploadMaxSize(); ?>;
+	var fileUploadMaxSizeErrorMsg = '<?php echo $lang['err'].': \n'.$lang['max_file_size']; ?>';
+	</script>
+	<!-- SQL code editor with Syntax Highlighting etc. -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.js"></script>
+	<!-- Codemirror 5.24.2 does not yet include the SQLite support that we wrote, so we fetch changed files from rawgit for the time being-->
+	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/c4387d6073b15ccf0f32773eb71a54f3b694f2f0/mode/sql/sql.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.js"></script>
+	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/65c70cf5d18ac3a0c1a3fe717d90a81ff823aa9f/addon/hint/sql-hint.js"></script>
+<?php
+}
 ?>
-<!-- JavaScript Support -->
-<script type='text/javascript' src='?resource=javascript'></script>
-<script type="text/javascript">
-var fileUploadMaxSize = <?php echo fileUploadMaxSize(); ?>;
-var fileUploadMaxSizeErrorMsg = '<?php echo $lang['err'].': \n'.$lang['max_file_size']; ?>';
-</script>
-<!-- SQL code editor with Syntax Highlighting etc. -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.js"></script>
-<!-- Codemirror 5.24.2 does not yet include the SQLite support that we wrote, so we fetch changed files from rawgit for the time being-->
-<script src="https://cdn.rawgit.com/codemirror/CodeMirror/c4387d6073b15ccf0f32773eb71a54f3b694f2f0/mode/sql/sql.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.js"></script>
-<script src="https://cdn.rawgit.com/codemirror/CodeMirror/65c70cf5d18ac3a0c1a3fe717d90a81ff823aa9f/addon/hint/sql-hint.js"></script>
 </head>
 <body style="direction:<?php echo $lang['direction']; ?>;">
 <?php
