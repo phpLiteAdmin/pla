@@ -15,6 +15,8 @@ interface, and user experience is comparable to that of phpMyAdmin.
 
 ## News
 
+**17.08.2017: [Security alert: phpLiteAdmin 1.9.8-dev](https://www.phpliteadmin.org/2017/08/17/security-alert-1-9-8-dev/) (stable versions not affected)
+
 **14.12.2016: Just released phpLiteAdmin 1.9.7.1 as 1.9.7 was built incorrectly [Download now](https://www.phpliteadmin.org/download/)**
 
 **13.12.2016: Just released phpLiteAdmin 1.9.7! [Download now](https://www.phpliteadmin.org/download/)**
