@@ -143,7 +143,7 @@ class Database
 			printf($lang['sqlite_ext_support'], PROJECT);
 		else
 		{
-			if(!$classPDO && !$classSQLite3 && $this->getVersion()==3)
+			if(!$PDOSqliteDriver && !$classSQLite3 && $this->getVersion()==3)
 				printf($lang['sqlite_v_error'], 3, PROJECT, 2);
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
 				printf($lang['sqlite_v_error'], 2, PROJECT, 3);
