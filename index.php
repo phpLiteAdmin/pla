@@ -909,7 +909,7 @@ if ($auth->isAuthorized())
 								$value = $_POST[$i.":".$j];
 							else
 								$value = "";
-							if($type=='BLOB')
+							if(preg_match('/^BLOB/', $type))
 							{
 								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
 									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
@@ -927,7 +927,7 @@ if ($auth->isAuthorized())
 							$function = $_POST["function_".$j][$i];
 							if($function!="")
 								$query_vals .= $function."(";
-							if($type=='BLOB')
+							if(preg_match('/^BLOB/', $type))
 								$query_vals .= ':blobval'.$j;
 							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 								$query_vals .= $db->quote($value);
@@ -1018,7 +1018,7 @@ if ($auth->isAuthorized())
 							$typeAffinity = get_type_affinity($type);
 							if(!$null)
 							{
-								if($type=='BLOB')
+								if(preg_match('/^BLOB/', $type))
 								{
 									if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
 									{
@@ -1040,7 +1040,7 @@ if ($auth->isAuthorized())
 							}
 							else
 								$value = "";
-							if($type!='BLOB' && $value===$tableInfo[$j]['dflt_value'])
+							if(!preg_match('/^BLOB/', $type) && $value===$tableInfo[$j]['dflt_value'])
 							{
 								// if the value is the default value, skip it
 								continue;
@@ -1052,7 +1052,7 @@ if ($auth->isAuthorized())
 							if($function!="")
 								$query_vals .= $function."(";
 							
-							if($type=='BLOB')
+							if(preg_match('/^BLOB/', $type))
 								$query_vals .= ':blobval'.$j;
 							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 								$query_vals .= $db->quote($value);
@@ -1101,9 +1101,9 @@ if ($auth->isAuthorized())
 							$function = $_POST["function_".$j][$i];
 							$null = isset($_POST[$j."_null"][$i]);
 							// if the old BLOB value is chosen to be kept, just skip this column
-							if(!$null && $type=='BLOB' && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
+							if(!$null && preg_match('/^BLOB/', $type) && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
 								continue;
-							if(!$null && $type=='BLOB')
+							if(!$null && preg_match('/^BLOB/', $type))
 							{
 								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
 									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
@@ -1118,7 +1118,7 @@ if ($auth->isAuthorized())
 								$query .= "NULL";
 							else
 							{
-								if($type=='BLOB')
+								if(preg_match('/^BLOB/', $type))
 									$query .= ':blobval'.$j;
 								else
 									$query .= $db->quote($_POST[$j][$i]);
@@ -2341,7 +2341,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "&nbsp;";
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
-							elseif(strtoupper($tableInfo[$j]['type'])=='BLOB')
+							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']))
 							{
 								echo "<div style='float:left; text-align: left; padding-right:2em'>";
 								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),$lang["download"]).' | ';
@@ -2622,7 +2622,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 						echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' value='".$value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
-					elseif($type=='BLOB')
+					elseif(preg_match('/^BLOB/', $type))
 						echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 					else
 						echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$value."</textarea>";
@@ -2710,7 +2710,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo $tdWithClassLeft;
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 								echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$i."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"row_".$j."_field_".$i."_null\")' />";
-							elseif($type=='BLOB')
+							elseif(preg_match('/^BLOB/', $type))
 							{
 								if($value!==NULL)
 								{
