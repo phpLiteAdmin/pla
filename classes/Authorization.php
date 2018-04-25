@@ -2,6 +2,24 @@
 // Authorization class
 // Maintains user's logged-in state and security of application
 //
+
+// for php < 5.6.0
+if(!function_exists('hash_equals'))
+{
+	function hash_equals($str1, $str2)
+	{
+		if(strlen($str1) != strlen($str2))
+			return false;
+		else {
+			$res = $str1 ^ $str2;
+			$ret = 0;
+			for($i = strlen($res) - 1; $i >= 0; $i--)
+				$ret |= ord($res[$i]);
+			return !$ret;
+		}
+	}
+}
+
 class Authorization
 {
 	private $authorized;
@@ -35,14 +53,15 @@ class Authorization
 			// no password
 			SYSTEMPASSWORD == ''
 			// correct password stored in session
-			|| isset($_SESSION[COOKIENAME.'password']) && $_SESSION[COOKIENAME.'password'] === $this->system_password_encrypted 
+			|| isset($_SESSION[COOKIENAME.'password']) && hash_equals($_SESSION[COOKIENAME.'password'], $this->system_password_encrypted) 
 			// correct password stored in cookie
-			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && md5(SYSTEMPASSWORD."_".$_COOKIE[COOKIENAME.'_salt']) === $_COOKIE[COOKIENAME];
+			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && hash_equals(md5(SYSTEMPASSWORD."_".$_COOKIE[COOKIENAME.'_salt']), $_COOKIE[COOKIENAME]);
 	}
 
 	public function attemptGrant($password, $remember)
 	{
-		if ($password === SYSTEMPASSWORD) {
+		$hashed_password = crypt(SYSTEMPASSWORD);
+		if (hash_equals($hashed_password, crypt($password, $hashed_password))) {
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
 				$expire = time()+60*60*24*30; //set expiration to 1 month from now
@@ -141,8 +160,7 @@ class Authorization
 			{
 				die("CSRF token missing");
 			}
-			elseif	((function_exists('hash_equals') && !hash_equals($_SESSION[COOKIENAME.'token'], $check_token)) ||
-					 (!function_exists('hash_equals') && $_SESSION[COOKIENAME.'token']!==$check_token) )   // yes, timing attacks might be possible here. update your php ;)
+			elseif(!hash_equals($_SESSION[COOKIENAME.'token'], $check_token))
 			{
 				die("CSRF token is wrong - please try to login again");
 			}
