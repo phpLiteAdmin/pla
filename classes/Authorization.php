@@ -60,7 +60,7 @@ class Authorization
 
 	public function attemptGrant($password, $remember)
 	{
-		$hashed_password = crypt(SYSTEMPASSWORD);
+		$hashed_password = crypt(SYSTEMPASSWORD, '$2a$07$'.self::generateSalt(20).'$');
 		if (hash_equals($hashed_password, crypt($password, $hashed_password))) {
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
