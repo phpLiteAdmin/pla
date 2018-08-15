@@ -169,8 +169,8 @@ class Database
 			{
 				$i++;
 				$name = $database['name'];
-				if(strlen($name)>25)
-					$name = "...".substr($name, strlen($name)-22, 22); 
+				if(mb_strlen($name)>25)
+					$name = "...".mb_substr($name, mb_strlen($name)-22, 22); 
 				echo '[' . ($database['readable'] ? 'r':' ' ) . ($database['writable'] && $database['writable_dir'] ? 'w':' ' ) . ']&nbsp;';
 				
 				echo $params->getLink(array('database'=>$database['path'], 'table'=>null), htmlencode($name), ($database == $currentDB? 'active_db': '') );

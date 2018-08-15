@@ -219,9 +219,9 @@ function htmlencode($value, $flags=ENT_QUOTES, $encoding ="UTF-8")
 function subString($str)
 {
 	global $charsNum, $params;
-	if($charsNum > 10 && (!isset($params->fulltexts) || !$params->fulltexts) && strlen($str)>$charsNum)
+	if($charsNum > 10 && (!isset($params->fulltexts) || !$params->fulltexts) && mb_strlen($str)>$charsNum)
 	{
-		$str = substr($str, 0, $charsNum).'...';
+		$str = mb_substr($str, 0, $charsNum).'...';
 	}
 	return $str;
 }
@@ -245,7 +245,7 @@ function markSearchWords($input, $field, $search)
 			if($vali++<count($search['values'][$field]))
 				$regex .= '|';    // there is another search value, so we add a |
 		}
-		$regex .= '/';
+		$regex .= '/u';
 		// LIKE operator is not case sensitive, others are
 		if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
 			$regex.= 'i';
@@ -291,7 +291,7 @@ function isManagedDB($path)
 	global $databases;
 	foreach($databases as $db_key => $database)
 	{
-		if($path == $database['path'])
+		if($path === $database['path'])
 		{
 			// a db we manage. Thats okay.
 			// return the key.
@@ -380,7 +380,7 @@ if ($auth->isAuthorized())
 			$params->redirect(array('table'=>null), $lang['err'].': '.$lang['db_blank']);
 		else
 		{
-			$str = preg_replace('@[^\w-.]@','', $_POST['new_dbname']);
+			$str = preg_replace('@[^\w-.]@u','', $_POST['new_dbname']);
 			$dbname = $str;
 			$dbpath = $str;
 			if(checkDbName($dbname))
@@ -444,7 +444,7 @@ if ($auth->isAuthorized())
 			{
 				foreach($databases as $db_id => $database)
 				{
-					if($database['path'] == $tdata['path'])
+					if($database['path'] === $tdata['path'])
 					{
 						$currentDB = $database;
 						$params->database = $database['path'];
@@ -2299,7 +2299,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					}
 					echo "</tr>";
 
-					for($i=0; $row = $db->fetch($table_result); $i++)
+					for($i=0; $row = $db->fetch($table_result, 'num'); $i++)
 					{
 						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
 						$pk_arr = array();
@@ -2665,7 +2665,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					for($j=0; $j<sizeof($pks); $j++)
 					{
 						$query = "SELECT * FROM ".$db->quote_id($target_table)." WHERE " . $db->wherePK($target_table, json_decode($pks[$j]));
-						$result1 = $db->select($query);
+						$result1 = $db->select($query, 'num');
 
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
