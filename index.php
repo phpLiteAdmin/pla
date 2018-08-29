@@ -2856,7 +2856,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				echo "<br/>";
 				echo $params->getForm(array('action'=>'column_create'), 'get');
-				echo $lang['add']." <input type='text' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
+				echo $lang['add']." <input type='text'  onkeypress='return isNumber(event)' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
 				echo "</form>";
 			}
 
@@ -3440,7 +3440,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
 		echo $params->getForm(array('action'=>'table_create'), 'get');
 		echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
-		echo $lang['fld_num'].": <input type='text' name='tablefields' style='width:90px;'/> ";
+		echo $lang['fld_num'].": <input type='text'  onkeypress='return isNumber(event)' name='tablefields' style='width:90px;'/> ";
 		echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
 		echo "</form>";
 		echo "</fieldset>";
