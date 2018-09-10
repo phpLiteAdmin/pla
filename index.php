@@ -805,10 +805,15 @@ if ($auth->isAuthorized())
 			case "table_rename":
 				$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." RENAME TO ".$db->quote($_POST['newname']);
 				$type = $db->getTypeOfTable($_GET['table']);
-				if($db->getVersion()==3 && $type=='table') // SQLite 3 can rename tables, not views
+				if($db->getVersion()==3 && $type=='table' // SQLite 3 can rename tables, not views 
+					// In SQL(ite) table names are case-insensitve, so changing is not supported by SQLite.
+					// But table names are stored and displayed case sensitive, so we use the workaround for case sensitive renaming.
+					&& !($_GET['table'] !== $_POST['newname'] && strtolower($_GET['table']) === strtolower($_POST['newname']))
+					)
 					$result = $db->query($query, true);
 				else
-					$result = $db->query($query, false); // workaround can rename tables of sqlite2 and views of both sqlite versions
+					// Workaround can rename tables of sqlite2 and views of both sqlite versions. Can also do case sensitive renames. 
+					$result = $db->query($query, false); 
 				if($result === false)
 					$completed = $db->getError(true);
 				else
