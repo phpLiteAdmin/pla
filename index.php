@@ -1626,28 +1626,29 @@ if($target_table)
 		'oldSearch' => (isset($_GET['search'])?$_GET['search']:null)
 		), $lang['srch'], ($_GET['action']=="table_search" ? 'tab_pressed' : 'tab'));
 
-	if($target_table_type == 'table')
+	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 		echo $params->getLink(array('action'=>'row_create'), $lang['insert'],
 			($_GET['action']=="row_create" ? 'tab_pressed' : 'tab'));
 
 	echo $params->getLink(array('action'=>'table_export'), $lang['export'],
 		($_GET['action']=="table_export" ? 'tab_pressed' : 'tab'));
 
-	if($target_table_type == 'table')
+	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 		echo $params->getLink(array('action'=>'table_import'), $lang['import'],
 			($_GET['action']=="table_import" ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array('action'=>'table_rename'), $lang['rename'],
-		($_GET['action']=="table_rename" ? 'tab_pressed' : 'tab'));
+	if($db->isWritable() && $db->isDirWritable())
+		echo $params->getLink(array('action'=>'table_rename'), $lang['rename'],
+			($_GET['action']=="table_rename" ? 'tab_pressed' : 'tab'));
 
-	if($target_table_type == 'table')
+	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 	{
 		echo $params->getLink(array('action'=>'table_empty'), $lang['empty'],
 			($_GET['action']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
 		echo $params->getLink(array('action'=>'table_drop'), $lang['drop'],
 			($_GET['action']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
-	} else {
+	} elseif($db->isWritable() && $db->isDirWritable()) {
 		echo $params->getLink(array('action'=>'view_drop'), $lang['drop'],
 			($_GET['action']=="view_drop" ? 'tab_pressed drop' : 'tab drop'));
 	}
@@ -1663,9 +1664,11 @@ else
 
 	echo $params->getLink(array('view'=>'export'), $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
 
-	echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
+	if($db->isWritable() && $db->isDirWritable())
+		echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
 
-	echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
+	if($db->isWritable() && $db->isDirWritable())
+		echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
 
 	if($directory!==false && is_writable($directory))
 	{
@@ -2282,13 +2285,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo $params->getForm(array('action'=>'row_editordelete'), 'post', false, 'checkForm');
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
-					if($target_table_type == 'table')
-					{
-						echo "<td colspan='3' class='tdheader' style='text-align:center'>";
-						echo "<a href='".$params->getURL(array('action'=>$_GET['action'], 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
-						echo "<b>&".($params->fulltexts?'r':'l')."arr;</b> T <b>&".($params->fulltexts?'l':'r')."arr;</b></a>";
-						echo "</td>";
-					}
+					echo "<td colspan='3' class='tdheader' style='text-align:center'>";
+					echo "<a href='".$params->getURL(array('action'=>$_GET['action'], 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
+					echo "<b>&".($params->fulltexts?'r':'l')."arr;</b>&nbsp;T&nbsp;<b>&".($params->fulltexts?'l':'r')."arr;</b></a>";
+					echo "</td>";
 
 					for($i=0; $i<sizeof($tableInfo); $i++)
 					{
@@ -2322,7 +2322,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 						echo "<tr>";
-						if($target_table_type == 'table')
+						if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 						{
 							echo $tdWithClass;
 							echo "<input type='checkbox' name='check[]' value='".htmlencode($pk)."' id='check_".htmlencode($i)."'/>";
@@ -2334,6 +2334,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo $tdWithClass;
 							echo $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'delete'),"<span>".$lang['del']."</span>",'delete', $lang['del']);
 							echo "</td>";
+						} else {
+							echo "<td class='td".($i%2 ? "1" : "2")."' colspan='3'></td>";
 						}
 						for($j=0; $j<sizeof($tableInfo); $j++)
 						{
@@ -2364,7 +2366,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						echo "</tr>";
 					}
 					echo "</table>";
-					if($target_table_type == 'table')
+					if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 					{
 						echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 						echo "<select name='type'>";
@@ -2770,7 +2772,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo $params->getForm(array('action'=>'column_confirm'), 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 			echo "<tr>";
-			if($target_table_type == 'table')
+			if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 				echo "<td colspan='3'></td>";
 			echo "<td class='tdheader'>".$lang['col']." #</td>";
 			echo "<td class='tdheader'>".$lang['fld']."</td>";
@@ -2806,7 +2808,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 				$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 				echo "<tr>";
-				if($target_table_type == 'table')
+				if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 				{
 					echo $tdWithClass;
 					echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal)."' id='check_".$i."'/>";
@@ -2845,7 +2847,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 
 			echo "</table>";
-			if($target_table_type == 'table')
+			if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 			{
 				echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
 				echo "<select name='action2'>";
@@ -2857,7 +2859,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<input type='submit' value='".$lang['go']."' name='massGo' class='btn'/>";
 			}
 			echo "</form>";
-			if($target_table_type == 'table')
+			if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 			{
 				echo "<br/>";
 				echo $params->getForm(array('action'=>'column_create'), 'get');
@@ -2967,17 +2969,20 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "</table><br/><br/>";
 				}
 
-				echo $params->getForm(array('action'=>'index_create'),'get');
-				echo "<br/><div class='tdheader'>";
-				echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
-				echo "</div>";
-				echo "</form>";
-
-				echo $params->getForm(array('action'=>'trigger_create'),'get');
-				echo "<br/><div class='tdheader'>";
-				echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
-				echo "</div>";
-				echo "</form>";
+				if($db->isWritable() && $db->isDirWritable())
+				{
+					echo $params->getForm(array('action'=>'index_create'),'get');
+					echo "<br/><div class='tdheader'>";
+					echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
+					echo "</div>";
+					echo "</form>";
+	
+					echo $params->getForm(array('action'=>'trigger_create'),'get');
+					echo "<br/><div class='tdheader'>";
+					echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
+					echo "</div>";
+					echo "</form>";
+				}
 			}
 			break;
 
@@ -3304,8 +3309,14 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 
 		if($db->isWritable() && !$db->isDirWritable())
 		{
-			echo "<div class='confirm' style='margin:10px 20px;'>";
+			echo "<div class='confirm' style='margin:10px 0'>";
 			echo $lang['attention'].': '.$lang['directory_not_writable'];
+			echo "</div><br/>";
+		}
+		elseif(!$db->isWritable())
+		{
+			echo "<div class='confirm' style='margin:10px 0;'>";
+			echo $lang['attention'].': '.$lang['database_not_writable'];
 			echo "</div><br/>";
 		}
 
@@ -3407,25 +3418,37 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_search'), $lang['srch']);
 				echo "</td>";
 				echo $tdWithClass;
-				if($tableType=="table")
+				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
 					echo $params->getLink(array('table'=>$tableName, 'action'=>'row_create'), $lang['insert']);
+				else
+					echo $lang['insert'];
 				echo "</td>";
 				echo $tdWithClass;
 				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_export'), $lang['export']);
 				echo "</td>";
 				echo $tdWithClass;
-				if($tableType=="table")
+				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
 					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_import'), $lang['import']);
+				else
+					echo $lang['import'];
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_rename'), $lang['rename']);
+				if($db->isWritable() && $db->isDirWritable())
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_rename'), $lang['rename']);
+				else
+					echo $lang['rename'];
 				echo "</td>";
 				echo $tdWithClass;
-				if($tableType=="table")
+				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
 					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_empty'), $lang['empty'], 'empty');
+				else
+					echo $lang['empty'];
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_drop'), $lang['drop'], 'drop');
+				if($db->isWritable() && $db->isDirWritable())
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_drop'), $lang['drop'], 'drop');
+				else
+					echo $lang['drop'];
 				echo "</td>";
 				echo $tdWithClass;
 				echo $records;
@@ -3441,23 +3464,26 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			if($skippedTables)
 				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='".$params->getURL(array('forceCount'=>'1'))."'>","</a>")."</div>";
 		}
-		echo "<fieldset>";
-		echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
-		echo $params->getForm(array('action'=>'table_create'), 'get');
-		echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
-		echo $lang['fld_num'].": <input type='text' name='tablefields' style='width:90px;'/> ";
-		echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
-		echo "</form>";
-		echo "</fieldset>";
-		echo "<br/>";
-		echo "<fieldset>";
-		echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
-		echo $params->getForm(array('action'=>'view_create', 'confirm'=>'1'));
-		echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
-		echo $lang['sel_state']." ".helpLink($lang['help4']).": <input type='text' name='select' style='width:400px;'/> ";
-		echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
-		echo "</form>";
-		echo "</fieldset>";
+		if($db->isWritable() && $db->isDirWritable())
+		{
+			echo "<fieldset>";
+			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
+			echo $params->getForm(array('action'=>'table_create'), 'get');
+			echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
+			echo $lang['fld_num'].": <input type='text' name='tablefields' style='width:90px;'/> ";
+			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
+			echo "</form>";
+			echo "</fieldset>";
+			echo "<br/>";
+			echo "<fieldset>";
+			echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
+			echo $params->getForm(array('action'=>'view_create', 'confirm'=>'1'));
+			echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
+			echo $lang['sel_state']." ".helpLink($lang['help4']).": <input type='text' name='select' style='width:400px;'/> ";
+			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
+			echo "</form>";
+			echo "</fieldset>";
+		}
 	}
 	else if($view=="sql")
 	{

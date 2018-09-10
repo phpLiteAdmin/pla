@@ -262,6 +262,7 @@ $lang = array(
 	"db_moved_outside" => "You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.",
 	"extension_not_allowed" => "The extension you provided is not within the list of allowed extensions. Please use one of the following extensions",
 	"add_allowed_extension" => "You can add extensions to this list by adding your extension to \$allowed_extensions in the configuration.",
+	"database_not_writable" => "The database-file is not writable, so its content cannot be changed in any way.",
 	"directory_not_writable" => "The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.",
 	"tbl_inexistent" => "Table %s does not exist",
 	"col_inexistent" => "Column %s does not exist",
