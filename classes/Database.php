@@ -532,6 +532,26 @@ class Database
 			return $result->fetch($mode);
 		}
 	}
+	
+	public function getColumnName($result, $colNum)
+	{
+		//make sure the result is valid
+		if($result=== false || $result===NULL || !is_object($result)) 
+			return "";		// error or no rows returned
+		if($this->type=="PDO")
+		{
+			$meta = $result->getColumnMeta($colNum);
+			return $meta['name'];
+		}
+		else if($this->type=="SQLite3")
+		{
+			return $result->columnName($colNum);
+		}
+		else if($this->type=="SQLiteDatabase")
+		{
+			return $result->fieldName($colNum);
+		}
+	}
 
 	
 	// SQlite supports multiple ways of surrounding names in quotes:

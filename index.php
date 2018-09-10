@@ -1809,9 +1809,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo "<br /><b>".$lang['err'].": ".htmlencode($db->getError())."</b></div>";
 						}
 						echo "</div><br/>";
-						if($row = $db->fetch($table_result, 'assoc'))
+						if($row = $db->fetch($table_result, 'num'))
 						{
-							$headers = array_keys($row);
+							for($j=0; $j<sizeof($row);$j++)
+								$headers[$j] = $db->getColumnName($table_result,$j);
 							echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 							echo "<tr>";
 							for($j=0; $j<sizeof($headers); $j++)
@@ -1822,19 +1823,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							}
 							echo "</tr>";
 							$rowCount = 0;
-							for(; $rowCount==0 || $row = $db->fetch($table_result, 'assoc'); $rowCount++)
+							for(; $rowCount==0 || $row = $db->fetch($table_result, 'num'); $rowCount++)
 							{
 								$tdWithClass = "<td class='td".($rowCount%2 ? "1" : "2")."'>";
 								echo "<tr>";
 								for($z=0; $z<sizeof($headers); $z++)
 								{
 									echo $tdWithClass;
-									if($row[$headers[$z]]==="")
+									if($row[$z]==="")
 										echo "&nbsp;";
-									elseif($row[$headers[$z]]===NULL)
+									elseif($row[$z]===NULL)
 										echo "<i class='null'>NULL</i>";
 									else
-										echo htmlencode(subString($row[$headers[$z]]));
+										echo htmlencode(subString($row[$z]));
 									echo "</td>";
 								}
 								echo "</tr>";
@@ -3517,9 +3518,10 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 						echo "<br /><b>".$lang['err'].": ".htmlencode($db->getError())."</b></div>";
 					}
 					echo "</div><br/>";
-					if($row = $db->fetch($table_result, 'assoc'))
+					if($row = $db->fetch($table_result, 'num'))
 					{
-						$headers = array_keys($row);
+						for($j=0; $j<sizeof($row);$j++)
+							$headers[$j] = $db->getColumnName($table_result,$j);
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 						echo "<tr>";
 						for($j=0; $j<sizeof($headers); $j++)
@@ -3530,19 +3532,19 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 						}
 						echo "</tr>";
 						$rowCount = 0;
-						for(; $rowCount==0 || $row = $db->fetch($table_result, 'assoc'); $rowCount++)
+						for(; $rowCount==0 || $row = $db->fetch($table_result, 'num'); $rowCount++)
 						{
 							$tdWithClass = "<td class='td".($rowCount%2 ? "1" : "2")."'>";
 							echo "<tr>";
 							for($z=0; $z<sizeof($headers); $z++)
 							{
 								echo $tdWithClass;
-								if($row[$headers[$z]]==="")
+								if($row[$z]==="")
 									echo "&nbsp;";
-								elseif($row[$headers[$z]]===NULL)
+								elseif($row[$z]===NULL)
 									echo "<i class='null'>NULL</i>";
 								else
-									echo htmlencode(subString($row[$headers[$z]]));
+									echo htmlencode(subString($row[$z]));
 								echo "</td>";
 							}
 							echo "</tr>";
