@@ -108,8 +108,13 @@ class Database
 		}
 		
 		if($complete_msg)
-			$error = $lang['err'].": ".htmlencode($error)."<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
-		
+		{
+			$error = $lang['err'].": ".htmlencode($error);
+			// do not suggest to report a bug when constraints fail
+			if(strpos($error, 'constraint failed')===false)
+				$error.="<br/>".$lang['bug_report'].' '.PROJECT_BUGTRACKER_LINK;
+		}
+
 		if($debug)
 			$error .= $this->getDebugOutput();
 		
