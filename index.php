@@ -1573,7 +1573,7 @@ echo "</div>";
 //- HTML: database list
 $db->print_db_list();
 echo "<fieldset style='margin:15px;'><legend>";
-echo "<a href='".$params->getURL()."'";
+echo "<a href='".$params->getURL(array('table'=>null))."'";
 if (!$target_table)
 	echo " class='active_table'";
 $name = $currentDB['name'];
