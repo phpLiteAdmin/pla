@@ -618,7 +618,22 @@ if ($auth->isAuthorized())
 			$field_escaped = $_POST['import_csv_fieldsescaped'];
 			$null = $_POST['import_csv_replacenull'];
 			$fields_in_first_row = isset($_POST['import_csv_fieldnames']);
-			$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $_POST['single_table'], $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
+			if(isset($_POST['single_table']) && $_POST['single_table']!='')
+				$table = $_POST['single_table'];
+			else
+			{
+				$table = basename($_FILES["file"]["name"],".csv");
+				$i="";
+				while($db->getTypeOfTable($table.$i)!="")
+				{
+					if($i=="")
+						$i=2;
+					else
+						$i++;
+				}
+				$table = $table.$i;
+			}
+			$importSuccess = $db->import_csv($_FILES["file"]["tmp_name"], $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row);
 		}
 	}
 	//- Download (backup) a database file (as SQLite file, not as dump)
@@ -3696,6 +3711,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<div style='float:left;'>".$lang['csv_tbl']."</div>";
 		echo "<select name='single_table' style='float:right;'>";
 		$tables = $db->getTables(true, false);
+		echo "<option value=''>(".$lang['create_tbl'].")</option>";
 		foreach($tables as  $tableName => $tableType)
 		{
 			echo "<option value='".htmlencode($tableName)."'>".htmlencode($tableName)."</option>";

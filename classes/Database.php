@@ -1301,7 +1301,6 @@ class Database
 	//returns true on success, error message otherwise
 	public function import_csv($filename, $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row)
 	{
-		$number_of_cols = count($this->getTableInfo($table));
 		$csv_handle = fopen($filename,'r');
 		$csv_insert = "BEGIN;\n";
 		$csv_number_of_rows = 0;
@@ -1315,8 +1314,30 @@ class Database
 			if($csv_data[0] != NULL || count($csv_data)>1)
 			{
 				$csv_number_of_rows++;
-				if($fields_in_first_row && $csv_number_of_rows==1)
-					continue; 
+				if($csv_number_of_rows==1)
+				{
+					if($this->getTypeOfTable($table)!="table")
+					{
+						// First,Create a new table
+						$csv_insert .="CREATE TABLE ".$this->quote($table)." (";
+						$number_of_cols = count($csv_data);
+						foreach($csv_data as $csv_col => $csv_cell)
+						{
+							if($fields_in_first_row)
+								$csv_insert .= $this->quote($csv_cell);
+							else
+								$csv_insert.= $this->quote("col{$csv_col}");
+							if($csv_col < $number_of_cols-1)
+								$csv_insert .= ", ";
+						}
+						$csv_insert .=");";
+						
+					} else {
+						$number_of_cols = count($this->getTableInfo($table));
+					}
+					if($fields_in_first_row)
+						continue;
+				} 
 				$csv_insert .= "INSERT INTO ".$this->quote_id($table)." VALUES (";
 				for($csv_col = 0; $csv_col < $number_of_cols; $csv_col++)
 				{
