@@ -677,7 +677,7 @@ if ($auth->isAuthorized())
 	else
 		$params->fulltexts = 0;
 
-	if(isset($_GET['numRows']))
+	if(isset($_GET['numRows']) && intval($_GET['numRows'])>0)
 		$params->numRows = intval($_GET['numRows']);
 	else
 		$params->numRows = $rowsNum;
