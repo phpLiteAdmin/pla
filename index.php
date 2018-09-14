@@ -1543,6 +1543,12 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 		echo "</form>";
 		echo "</fieldset>";
 	}
+	elseif(($directory!==false && !is_executable($directory)))
+	{
+		echo "<div class='confirm' style='margin:20px;'>";
+		echo $lang['err'].": ".sprintf($lang['dir_not_executable'], PROJECT, $directory);
+		echo "</div><br/>";
+	}
 	else
 	{
 		echo "<div class='confirm' style='margin:20px;'>";
