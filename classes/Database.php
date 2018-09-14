@@ -1301,7 +1301,7 @@ class Database
 	//returns true on success, error message otherwise
 	public function import_csv($filename, $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row)
 	{
-		// CSV import implemented by Christopher Kramer - http://www.christosoft.de
+		$number_of_cols = count($this->getTableInfo($table));
 		$csv_handle = fopen($filename,'r');
 		$csv_insert = "BEGIN;\n";
 		$csv_number_of_rows = 0;
@@ -1316,25 +1316,20 @@ class Database
 			{
 				$csv_number_of_rows++;
 				if($fields_in_first_row && $csv_number_of_rows==1)
-				{
-					$fields_in_first_row = false;
 					continue; 
-				}
-				$csv_col_number = count($csv_data);
 				$csv_insert .= "INSERT INTO ".$this->quote_id($table)." VALUES (";
-				foreach($csv_data as $csv_col => $csv_cell)
+				for($csv_col = 0; $csv_col < $number_of_cols; $csv_col++)
 				{
-					if($csv_cell == $null) $csv_insert .= "NULL";
+					if(isset($csv_data[$csv_col]))
+						$csv_cell = $csv_data[$csv_col];
 					else
-					{
+						$csv_cell = $null;
+					if($csv_cell == $null)
+						$csv_insert .= "NULL";
+					else
 						$csv_insert.= $this->quote($csv_cell);
-					}
-					if($csv_col == $csv_col_number-2 && $csv_data[$csv_col+1]=='')
-					{
-						// the CSV row ends with the separator (like old phpliteadmin exported)
-						break;
-					} 
-					if($csv_col < $csv_col_number-1) $csv_insert .= ",";
+					if($csv_col < $number_of_cols-1)
+						$csv_insert .= ",";
 				}
 				$csv_insert .= ");\n";
 				
