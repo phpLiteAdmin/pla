@@ -1301,6 +1301,7 @@ class Database
 	//returns true on success, error message otherwise
 	public function import_csv($filename, $table, $field_terminate, $field_enclosed, $field_escaped, $null, $fields_in_first_row)
 	{
+		@set_time_limit(-1);
 		$csv_handle = fopen($filename,'r');
 		$csv_insert = "BEGIN;\n";
 		$csv_number_of_rows = 0;
