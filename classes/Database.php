@@ -1312,7 +1312,7 @@ class Database
 		while($csv_handle!==false && !feof($csv_handle))
 		{
 			$csv_data = fgetcsv($csv_handle, 0, $field_terminate, $field_enclosed, $field_escaped); 
-			if($csv_data[0] != NULL || count($csv_data)>1)
+			if(is_array($csv_data) && ($csv_data[0] != NULL || count($csv_data)>1))
 			{
 				$csv_number_of_rows++;
 				if($csv_number_of_rows==1)
