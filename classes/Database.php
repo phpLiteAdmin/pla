@@ -1309,6 +1309,8 @@ class Database
 		if($field_enclosed=="") $field_enclosed='"';
 		// PHP requires escaper defined
 		if($field_escaped=="") $field_escaped='\\';
+		// support tab delimiters
+		if($field_terminate=='\t') $field_terminate = "\t";
 		while($csv_handle!==false && !feof($csv_handle))
 		{
 			$csv_data = fgetcsv($csv_handle, 0, $field_terminate, $field_enclosed, $field_escaped); 
