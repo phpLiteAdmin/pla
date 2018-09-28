@@ -1355,10 +1355,9 @@ class Database
 				}
 				$csv_insert .= ");\n";
 				
-				if($csv_number_of_rows > 5000)
+				if($csv_number_of_rows % 5000 == 0)
 				{
 					$csv_insert .= "COMMIT;\nBEGIN;\n";
-					$csv_number_of_rows = 0;
 				}
 			}
 		}
