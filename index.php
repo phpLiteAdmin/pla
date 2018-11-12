@@ -1495,7 +1495,7 @@ if(!$auth->isAuthorized())
 	if (isset($_GET['failed']))
 		echo "<span class='warning'>".$lang['passwd_incorrect']."</span><br/><br/>";
 	echo $params->getForm();
-	echo $lang['passwd'].": <input type='password' name='password'/><br/>";
+	echo $lang['passwd'].": <input type='password' name='password' autofocus='autofocus'/><br/>";
 	echo "<label><input type='checkbox' name='remember' value='yes' checked='checked'/> ".$lang['remember']."</label><br/><br/>";
 	echo "<input type='submit' value='".$lang['login']."' class='btn'/>";
 	echo "<input type='hidden' name='login' value='true' />";
