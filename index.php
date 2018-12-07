@@ -380,7 +380,7 @@ if ($auth->isAuthorized())
 			$params->redirect(array('table'=>null), $lang['err'].': '.$lang['db_blank']);
 		else
 		{
-			$str = preg_replace('@[^\w-.]@u','', $_POST['new_dbname']);
+			$str = preg_replace('@[^\w\-.]@u','', $_POST['new_dbname']);
 			$dbname = $str;
 			$dbpath = $str;
 			if(checkDbName($dbname))
