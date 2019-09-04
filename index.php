@@ -1195,8 +1195,9 @@ if ($auth->isAuthorized())
 			case "row_get_blob":
 				$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode($_GET['pk'])));
 				$filename = 'download';
-				$imagesize = getimagesizefromstring($blobVal['blob']);
-				if($imagesize!==false && isset($imagesize['mime']))
+				if(function_exists('getimagesizefromstring'))     // introduced in PHP 5.4.0
+					$imagesize = getimagesizefromstring($blobVal['blob']);
+				if(isset($imagesize) && $imagesize!==false && isset($imagesize['mime']))
 					$mimetype = $imagesize['mime'];
 				elseif(class_exists('finfo'))  // included since php 5.3.0, but might be disabled on Windows
 				{
@@ -1206,7 +1207,7 @@ if ($auth->isAuthorized())
 				else
 					$mimetype = "application/octet-stream";
 
-				if($imagesize!==false && isset($imagesize[2]))
+				if(isset($imagesize) && $imagesize!==false && isset($imagesize[2]))
 					$extension = image_type_to_extension($imagesize[2]);
 				else
 					$extension = '.blob';
