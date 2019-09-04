@@ -21,7 +21,7 @@ class Authorization
 		if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
 		{
 			// create a random salt for this session if a cookie doesn't already exist for it
-			$_SESSION[COOKIENAME.'_salt'] = self::generateSalt(20);
+			$_SESSION[COOKIENAME.'_salt'] = self::generateSalt(22);
 		}
 		else if(!isset($_SESSION[COOKIENAME.'_salt']) && isset($_COOKIE[COOKIENAME.'_salt']))
 		{
@@ -43,7 +43,7 @@ class Authorization
 
 	public function attemptGrant($password, $remember)
 	{
-		$hashed_password = crypt(SYSTEMPASSWORD, '$2a$07$'.self::generateSalt(20).'$');
+		$hashed_password = crypt(SYSTEMPASSWORD, '$2a$07$'.self::generateSalt(22).'$');
 		if (hash_equals($hashed_password, crypt($password, $hashed_password))) {
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
