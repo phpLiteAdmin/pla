@@ -33,7 +33,7 @@ interface, and user experience is comparable to that of phpMyAdmin.
 
 -   Lightweight - consists of a single 200KB source file for portability
 -   Supports SQLite3 and SQLite2 databases
--   Translated and available in over 10 languages - and counting
+-   Translated and available in [15 languages](https://bitbucket.org/phpliteadmin/public/wiki/Localization) - and counting
 -   Specify and manage an unlimited number of databases
 -   Specify a directory and optionally its subdirectories to scan for databases
 -   Create and delete databases
@@ -48,7 +48,7 @@ interface, and user experience is comparable to that of phpMyAdmin.
 -   Create and run your own custom SQL queries in the free-form query editor/builder
 -   Easily apply core SQLite functions to column values using the GUI
 -   Write your own PHP functions to be available to apply to column values
--   Design your own theme using CSS or install a pre-made theme from the community
+-   Design your own theme using CSS or install a pre-made [theme from the community](https://bitbucket.org/phpliteadmin/public/wiki/Themes)
 -   All presented in an intuitive, easy-to-use GUI that allows non-technical, SQL-illiterate users to fully manage databases 
 -   Allows multiple installations on the same server, each with a different password
 -   Secure password-protected interface with login screen and cookies
