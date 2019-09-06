@@ -1,0 +1,8 @@
+The current maintainer of phpLiteAdmin is not the author of these graphics.
+They had been shared in our old SVN repository by Dane Iracleous.
+They seem to be based on this graphic: 
+
+https://icon-icons.com/icon/dbs-sqlite/50904
+Author: pictonic.co 
+License: CC Attribution 2.5 https://creativecommons.org/licenses/by/2.5/
+
