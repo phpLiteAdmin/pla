@@ -1,0 +1,1 @@
+See https://bitbucket.org/phpliteadmin/public/wiki/Themes for instructions.
