@@ -131,6 +131,23 @@ if(!function_exists('hash_equals'))
 	}
 }
 
+// workaround if mbsting extension is missing. Sure this means no multibyte support.
+if(!function_exists('mb_strlen'))
+{
+	function mb_strlen($s)
+	{
+		return strlen($s);
+	}
+}
+if(!function_exists('mb_substr'))
+{
+	function mb_substr($s, $start, $length=null, $encoding=null)
+	{
+		return substr($s, $start, null === $length ? 2147483647 : $length);
+	}
+}
+// no other mbstring functions used so far
+
 //function that allows SQL delimiter to be ignored inside comments or strings
 function explode_sql($delimiter, $sql)
 {
@@ -3367,6 +3384,12 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "</div>";
 		}
 
+		if (!extension_loaded('mbstring'))
+		{
+			echo "<div class='confirm' style='margin:20px 0px;'>";
+			echo $lang['warn_mbstring'];
+			echo "</div>";
+		}
 		echo "<b>".$lang['db_name']."</b>: ".htmlencode($db->getName())."<br/>";
 		echo "<b>".$lang['db_path']."</b>: ".htmlencode($db->getPath())."<br/>";
 		echo "<b>".$lang['db_size']."</b>: ".number_format($db->getSize())." KiB<br/>";

@@ -250,6 +250,7 @@ $lang = array(
 	"desc" => "Descending",
 	"warn0" => "You have been warned.",
 	"warn_passwd" => "You are using the default password, which can be dangerous. You can change it easily at the top of %s.",
+	"warn_mbstring" =>"The mbstring extension is not installed or not enabled in your PHP. As long as you stick to ASCII characters, everything will work, but you may experience strange bugs with multibyte characters. Better install and enable mbstring!",
 	"counting_skipped" => "Counting of records has been skipped for some tables because your database is comparably big and some tables don't have primary keys assigned to them so counting might be slow. Add a primary key to these tables or %sforce counting%s.",
 	"sel_state" => "Select Statement",
 	"delimit" => "Delimiter",
