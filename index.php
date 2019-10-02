@@ -612,7 +612,7 @@ if ($auth->isAuthorized())
 			$transaction = isset($_POST['transaction']);
 			$comments = isset($_POST['comments']);
 			$db = new Database($currentDB);
-			echo $db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
+			$db->export_sql($tables, $drop, $structure, $data, $transaction, $comments);
 		}
 		else if($_POST['export_type']=="csv")
 		{
@@ -634,7 +634,7 @@ if ($auth->isAuthorized())
 			$crlf = isset($_POST['export_csv_crlf']);
 			$fields_in_first_row = isset($_POST['export_csv_fieldnames']);
 			$db = new Database($currentDB);
-			echo $db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
+			$db->export_csv($tables, $field_terminate, $field_enclosed, $field_escaped, $null, $crlf, $fields_in_first_row);
 		}
 		exit();
 	}
@@ -2928,14 +2928,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "</form>";
 			}
 
-			$query = "SELECT sql FROM sqlite_master WHERE name=".$db->quote($target_table);
-			$master = $db->selectArray($query);
-
 			echo "<br/>";
 			echo "<br/>";
 			echo "<div class='confirm'>";
 			echo "<b>".$lang['query_used_'.$target_table_type]."</b><br/>";
-			echo "<span style='font-size:11px;'>".htmlencode($master[0]['sql'])."</span>";
+			echo "<span style='font-size:11px;'>";
+			echo nl2br(htmlencode($db->export_sql(array($target_table),false,true,false,false,false,false)));
+			echo "</span>";
 			echo "</div>";
 			echo "<br/>";
 			if($target_table_type != 'view')

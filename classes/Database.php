@@ -1448,12 +1448,15 @@ class Database
 	}
 	
 	//export sql
-	public function export_sql($tables, $drop, $structure, $data, $transaction, $comments)
+	public function export_sql($tables, $drop, $structure, $data, $transaction, $comments, $echo=true)
 	{
 		global $lang;
 		@set_time_limit(-1);
 		// we use \r\n if the _client_ OS is windows (as the exported file is downloaded to the client), \n otherwise
 		$crlf = (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'Win')!==false ? "\r\n" : "\n");
+		
+		if(!$echo)
+			ob_start();
 		
 		if($comments)
 		{
@@ -1541,5 +1544,12 @@ class Database
 		}
 		if($transaction)
 			echo "COMMIT;".$crlf;
+			
+		if(!$echo) {
+			$o = ob_get_contents();
+			ob_end_clean();
+			return $o;
+		}
+
 	}
 }
