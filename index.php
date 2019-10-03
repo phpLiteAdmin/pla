@@ -967,7 +967,7 @@ if ($auth->isAuthorized())
 								$value = $_POST[$i.":".$j];
 							else
 								$value = "";
-							if(preg_match('/^BLOB/', $type))
+							if(preg_match('/^BLOB/', $type) && !$hexblobs)
 							{
 								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
 									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
@@ -985,8 +985,10 @@ if ($auth->isAuthorized())
 							$function = $_POST["function_".$j][$i];
 							if($function!="")
 								$query_vals .= $function."(";
-							if(preg_match('/^BLOB/', $type))
+							if(preg_match('/^BLOB/', $type) && !$hexblobs)
 								$query_vals .= ':blobval'.$j;
+							elseif(preg_match('/^BLOB/', $type) &&  $hexblobs)
+								$query_vals .= 'X'.$db->quote($value);
 							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 								$query_vals .= $db->quote($value);
 							elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
@@ -1027,7 +1029,7 @@ if ($auth->isAuthorized())
 					}
 				}
 				if($error)
-					$completed = $db->getError(true);
+					$completed = $db->getError(true) . $completed;
 				else
 					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 				$params->redirect(array('action'=>'row_view'), $completed);
@@ -1076,7 +1078,7 @@ if ($auth->isAuthorized())
 							$typeAffinity = get_type_affinity($type);
 							if(!$null)
 							{
-								if(preg_match('/^BLOB/', $type))
+								if(preg_match('/^BLOB/', $type) && !$hexblobs)
 								{
 									if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
 									{
@@ -1109,9 +1111,10 @@ if ($auth->isAuthorized())
 							$function = $_POST["function_".$j][$i];
 							if($function!="")
 								$query_vals .= $function."(";
-
-							if(preg_match('/^BLOB/', $type))
+							if(preg_match('/^BLOB/', $type) && !$hexblobs)
 								$query_vals .= ':blobval'.$j;
+							elseif(preg_match('/^BLOB/', $type) && $hexblobs)
+								$query_vals .= 'X'.$db->quote($value);
 							elseif(($typeAffinity=="TEXT" || $typeAffinity=="NONE") && !$null)
 								$query_vals .= $db->quote($value);
 							elseif(($typeAffinity=="INTEGER" || $typeAffinity=="REAL"|| $typeAffinity=="NUMERIC") && $value=="")
@@ -1161,7 +1164,7 @@ if ($auth->isAuthorized())
 							// if the old BLOB value is chosen to be kept, just skip this column
 							if(!$null && preg_match('/^BLOB/', $type) && isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
 								continue;
-							if(!$null && preg_match('/^BLOB/', $type))
+							if(!$null && preg_match('/^BLOB/', $type) && !$hexblobs)
 							{
 								if($_FILES[$i.":".$j]["error"] == UPLOAD_ERR_OK && is_file($_FILES[$i.":".$j]["tmp_name"]))
 									$blobFiles[$j] = $_FILES[$i.":".$j]["tmp_name"];
@@ -1176,8 +1179,10 @@ if ($auth->isAuthorized())
 								$query .= "NULL";
 							else
 							{
-								if(preg_match('/^BLOB/', $type))
+								if(preg_match('/^BLOB/', $type) && !$hexblobs)
 									$query .= ':blobval'.$j;
+								elseif(preg_match('/^BLOB/', $type) && $hexblobs)
+									$query .= 'X'.$db->quote($_POST[$j][$i]);
 								else
 									$query .= $db->quote($_POST[$j][$i]);
 							}
@@ -1206,7 +1211,7 @@ if ($auth->isAuthorized())
 					$completed .= "<span style='font-size:11px;'>".htmlencode($query)."</span><br/>";
 				}
 				if($error)
-					$completed = $db->getError(true);
+					$completed = $db->getError(true) . $completed;
 				elseif(isset($_POST['new_row']))
 					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
 				$params->redirect(array('action'=>'row_view'), $completed);
@@ -2409,7 +2414,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "&nbsp;";
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
-							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']))
+							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']) && !$hexblobs)
 							{
 								echo "<div style='float:left; text-align: left; padding-right:2em'>";
 								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),$lang["download"]).' | ';
@@ -2417,6 +2422,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "</div><div style='float:right; text-align: right'>";
 								echo 'Size: '.number_format(strlen($row[$j])).' Bytes';
 								echo "</div>";
+							}
+							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']) && $hexblobs)
+							{
+								echo htmlencode(subString(bin2hex($row[$j])));
 							}
 							elseif(isset($search))
 								echo markSearchWords(subString($row[$j]),$tableInfo[$j]['name'], $search);
@@ -2659,6 +2668,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$typeAffinity = get_type_affinity($type);
 					if($tableInfo[$i]['dflt_value'] === "NULL")
 						$value = NULL;
+					elseif(preg_match('/^BLOB/', $type) && $hexblobs)
+						$value = htmlencode(bin2hex(trim(trim($tableInfo[$i]['dflt_value']), "'")));
 					else
 						$value = htmlencode(trim(trim($tableInfo[$i]['dflt_value']), "'"));
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
@@ -2690,7 +2701,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 					if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 						echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' value='".$value."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
-					elseif(preg_match('/^BLOB/', $type))
+					elseif(preg_match('/^BLOB/', $type) && !$hexblobs)
 						echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' onblur='changeIgnore(this, \"row_".$j."_ignore\");' onclick='notNull(\"row_".$j."_field_".$i."_null\");'/>";
 					else
 						echo "<textarea id='row_".$j."_field_".$i."_value' name='".$j.":".$i."' rows='5' cols='60' onclick='notNull(\"row_".$j."_field_".$i."_null\");' onblur='changeIgnore(this, \"row_".$j."_ignore\");'>".$value."</textarea>";
@@ -2750,6 +2761,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							$type = strtoupper($tableInfo[$i]['type']);
 							$typeAffinity = get_type_affinity($type);
 							$value = $result1[$i];
+							if(preg_match('/^BLOB/', $type) && $hexblobs)
+								$value = bin2hex($value);
 							$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 							echo "<tr>";
 							echo $tdWithClassLeft;
@@ -2778,7 +2791,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo $tdWithClassLeft;
 							if($typeAffinity=="INTEGER" || $typeAffinity=="REAL" || $typeAffinity=="NUMERIC")
 								echo "<input type='text' id='row_".$j."_field_".$i."_value' name='".$i."[]' value='".htmlencode($value)."' onblur='changeIgnore(this, \"".$j."\", \"row_".$j."_field_".$i."_null\")' />";
-							elseif(preg_match('/^BLOB/', $type))
+							elseif(preg_match('/^BLOB/', $type) && !$hexblobs)
 							{
 								if($value!==NULL)
 								{
