@@ -38,7 +38,7 @@ function toggleNull(i)
 	}
 }
 //finds and checks all checkboxes for all rows on the Browse or Structure tab for a table
-function checkAll(field)
+function checkAll()
 {
 	var i=0;
 	while(document.getElementById('check_'+i)!=undefined)
@@ -48,7 +48,7 @@ function checkAll(field)
 	}
 }
 //finds and unchecks all checkboxes for all rows on the Browse or Structure tab for a table
-function uncheckAll(field)
+function uncheckAll()
 {
 	var i=0;
 	while(document.getElementById('check_'+i)!=undefined)
