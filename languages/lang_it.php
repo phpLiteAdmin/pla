@@ -161,14 +161,13 @@ $lang = array(
 	"syntax_err" => "C'è un problema con la sintassi della tua query (La query non è stata eseguita)",
 	"run_sql" => "Esegui la(e) query SQL sul database '%s'",
 	
-	"ques_empty" => "Sei sicuro di voler svuotare la tabella '%s'?",
-	"ques_drop" => "Sei sicuro di voler eliminare la tabella '%s'?",
-	"ques_drop_view" => "Sei sicuro di voler eliminare la view '%s'?",
-	"ques_del_rows" => "Sei sicuro di voler cancellare la(e) riga(e) %s dalla tabella '%s'?",
-	"ques_del_db" => "Sei sicuro di voler cancellare il database '%s'?",
+	"ques_table_empty" => "Sei sicuro di voler svuotare la(e) tabella(e) '%s'?",
+	"ques_table_drop" => "Sei sicuro di voler eliminare la(e) tabella(e) / view '%s'?",
+	"ques_row_delete" => "Sei sicuro di voler cancellare la(e) riga(e) %s dalla tabella '%s'?",
+	"ques_database_delete" => "Sei sicuro di voler cancellare il database '%s'?",
 	"ques_column_delete" => "Sei sicuro di voler cancellare la(e) coonna(e) \"%s\" dalla tabella '%s'?",
-	"ques_del_index" => "Sei sicuro di vole cancellare l'indice '%s'?",
-	"ques_del_trigger" => "Sei sicuro di voler cancellare il trigger '%s'?",
+	"ques_index_delete" => "Sei sicuro di vole cancellare l'indice '%s'?",
+	"ques_trigger_delete" => "Sei sicuro di voler cancellare il trigger '%s'?",
 	#todo: translate
 	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	

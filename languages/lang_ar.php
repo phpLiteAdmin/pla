@@ -158,14 +158,16 @@ $lang = array(
 	"syntax_err" => "هناك مشكلة بالتعبير الذي كتبته (العملية لم تنجح)",
 	"run_sql" => "نفذ أمر أس-كيو-أل التالي في بنك المعلومات هذا: '%s'",
 	
-	"ques_empty" => "هل أنت متأكد من إفراغ جدول '%s' ؟",        
-	"ques_drop" => "هل أنت متأكد من محي جدول '%s' ؟",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "هل أنت متأكد من إفراغ جدول '%s' ؟",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "هل أنت متأكد من محي جدول '%s' ؟",
 	"ques_drop_view" => "هل أنت متأكد من محي عرض '%s' ؟",
-	"ques_del_rows" => "هل أنت متأكد من محي السطر/السطور %s من جدول '%s' ؟",
-	"ques_del_db" => "هل أنت متأكد من محي بنك المعلومات '%s' ؟",
+	"ques_row_delete" => "هل أنت متأكد من محي السطر/السطور %s من جدول '%s' ؟",
+	"ques_database_delete" => "هل أنت متأكد من محي بنك المعلومات '%s' ؟",
 	"ques_column_delete" => "هل أنت متأكد من محي العامود/العواميج %s من جدول '%s' ؟",
-	"ques_del_index" => "هل أنت متأكد من محي الفهرس '%s' ؟",
-	"ques_del_trigger" => "هل أنت متأكد من محي المؤثر '%s' ؟",
+	"ques_index_delete" => "هل أنت متأكد من محي الفهرس '%s' ؟",
+	"ques_trigger_delete" => "هل أنت متأكد من محي المؤثر '%s' ؟",
 	#todo: translate
 	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 

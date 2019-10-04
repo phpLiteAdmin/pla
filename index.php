@@ -795,8 +795,18 @@ if ($auth->isAuthorized())
 
 			//- Empty table (=table_empty)
 			case "table_empty":
-				$query1 = "DELETE FROM ".$db->quote_id($_GET['table']).";";
-				$result1 = $db->query($query1);
+				if(isset($_GET['pk']))
+					$tables = json_decode($_GET['pk']);
+				else 
+					$tables=array($_GET['table']);
+				$query1 = "BEGIN; ";
+				foreach($tables as $table)
+				{
+					if($db->getTypeOfTable($table)=='table')
+						$query1 .= "DELETE FROM ".$db->quote_id($table)."; ";
+				}
+				$query1 .= "COMMIT; ";
+				$result1=$db->multiQuery($query1);
 				if($result1 === false)
 					$completed = $db->getError(true);
 				if(isset($_POST['vacuum']) && $_POST['vacuum'])
@@ -807,8 +817,12 @@ if ($auth->isAuthorized())
 				else
 					$query2 = "";
 				if($result1 !== false)
-					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
-				$params->redirect(($result1===false ? array() : array('action'=>'row_view') ), $completed);
+					$completed = $lang['tbl']." '".htmlencode(implode(', ',$tables))."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
+				if(count($tables)==1)
+					$action = array('action'=>'row_view');
+				else
+					$action = array();
+				$params->redirect(($result1===false ? array() : $action ), $completed);
 				break;
 
 			//- Create view (=view_create)
@@ -822,10 +836,22 @@ if ($auth->isAuthorized())
 				$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$_POST['viewname']) ), $completed);
 				break;
 
-			//- Drop table (=table_drop)
+			//- Drop table (or view) (=table_drop)
 			case "table_drop":
-				$query1 = "DROP TABLE ".$db->quote_id($_GET['table']).";";
-				$result1=$db->query($query1);
+				if(isset($_GET['pk']))
+					$tables = json_decode($_GET['pk']);
+				else 
+					$tables=array($_GET['table']);
+				$query1 = "BEGIN; ";
+				foreach($tables as $table)
+				{
+					if($db->getTypeOfTable($table)=='table')
+						$query1 .= "DROP TABLE ".$db->quote_id($table)."; ";
+					else
+						$query1 .= "DROP VIEW ".$db->quote_id($table)."; ";
+				}
+				$query1 .= "COMMIT; ";
+				$result1=$db->multiQuery($query1);
 				if($result1 === false)
 					$completed = $db->getError(true);
 				if(isset($_POST['vacuum']) && $_POST['vacuum'])
@@ -838,19 +864,8 @@ if ($auth->isAuthorized())
 				if($result1 !== false)
 				{
 					$target_table = null;
-					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
+					$completed = $lang['tbl'].' / '.$lang['view']." '".htmlencode(implode(', ',$tables))."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
 				}
-				$params->redirect(array('table'=>null), $completed);
-				break;
-
-			//- Drop view (=view_drop)
-			case "view_drop":
-				$query = "DROP VIEW ".$db->quote_id($_POST['viewname']);
-				$result=$db->query($query);
-				if($result === false)
-					$completed = $db->getError(true);
-				else
-					$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				$params->redirect(array('table'=>null), $completed);
 				break;
 
@@ -1708,14 +1723,14 @@ if($target_table)
 
 	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 	{
-		echo $params->getLink(array('action'=>'table_empty'), $lang['empty'],
-			($_GET['action']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
+		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_empty'), $lang['empty'],
+			($_GET['action2']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
-		echo $params->getLink(array('action'=>'table_drop'), $lang['drop'],
-			($_GET['action']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
+		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
+			($_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	} elseif($db->isWritable() && $db->isDirWritable()) {
-		echo $params->getLink(array('action'=>'view_drop'), $lang['drop'],
-			($_GET['action']=="view_drop" ? 'tab_pressed drop' : 'tab drop'));
+		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
+			($_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	}
 }
 else
@@ -1764,6 +1779,39 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 	switch($_GET['action'])
 	{
 	//- Table actions
+	
+		//- Confirm table action (=table_confirm)
+		case "table_confirm":
+			if(isset($_GET['check']))
+				$pks = $_GET['check'];
+			elseif(isset($_GET['table']))
+				$pks = array($_GET['table']);
+			else $pks = array();
+
+			if(sizeof($pks)==0) //nothing was selected so show an error
+			{
+				echo "<div class='confirm'>";
+				echo $lang['err'].": ".$lang['no_sel'];
+				echo "</div>";
+				echo "<br/><br/>";
+				echo $params->getLink(array(), $lang['return']);
+			}
+			else
+			{
+				echo $params->getForm(array('action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>json_encode($pks)));
+				echo "<div class='confirm'>";
+				printf($lang['ques_'.$_GET['action2']], htmlencode(implode(', ',$pks)), htmlencode($target_table));
+				echo "<br/><br/>";
+				echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
+				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
+				if(count($pks)==1)
+					$action = array('action'=>'row_view');
+				else
+					$action = array('table'=>null);
+				echo $params->getLink($action, $lang['cancel']);
+				echo "</div>";
+			}
+			break;
 
 		//- Create table (=table_create)
 		case "table_create":
@@ -1965,39 +2013,6 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<input type='submit' name='query' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "</fieldset>";
-			break;
-
-		//- Empty table (=table_empty)
-		case "table_empty":
-			echo $params->getForm(array('action'=>'table_empty','confirm'=>'1'));
-			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_empty'], htmlencode($target_table))."<br/><br/>";
-			echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
-			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array('table'=>null), $lang['cancel']);
-			echo "</div>";
-			break;
-
-		//- Drop table (=table_drop)
-		case "table_drop":
-			echo $params->getForm(array('action'=>'table_drop','confirm'=>'1'));
-			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_drop'], htmlencode($target_table))."<br/><br/>";
-			echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
-			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array('table'=>null), $lang['cancel']);
-			echo "</div>";
-			break;
-
-		//- Drop view (=view_drop)
-		case "view_drop":
-			echo $params->getForm(array('action'=>'view_drop','confirm'=>'1'));
-			echo "<input type='hidden' name='viewname' value='".htmlencode($target_table)."'/>";
-			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_drop_view'], htmlencode($target_table))."<br/><br/>";
-			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array('table'=>null), $lang['cancel']);
-			echo "</div>";
 			break;
 
 		//- Export table (=table_export)
@@ -2828,7 +2843,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				{
 					echo $params->getForm(array('action'=>'row_delete', 'confirm'=>'1', 'pk'=>json_encode($pks)));
 					echo "<div class='confirm'>";
-					printf($lang['ques_del_rows'], htmlencode($str), htmlencode($target_table));
+					printf($lang['ques_row_delete'], htmlencode($str), htmlencode($target_table));
 					echo "<br/><br/>";
 					echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 					echo $params->getLink(array('action'=>'row_view'), $lang['cancel']);
@@ -3128,7 +3143,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			}
 			break;
 
-		//- Delete column (=column_confirm)
+		//- Confirm column action (=column_confirm)
 		case "column_confirm":
 			if(isset($_GET['check']))
 				$pks = $_GET['check'];
@@ -3265,7 +3280,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		case "index_delete":
 			echo $params->getForm(array('action'=>'index_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1'));
 			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_del_index'], htmlencode($_GET['pk']))."<br/><br/>";
+			echo sprintf($lang['ques_index_delete'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 			echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
 			echo "</div>";
@@ -3276,7 +3291,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		case "trigger_delete":
 			echo $params->getForm(array('action'=>'trigger_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1'));
 			echo "<div class='confirm'>";
-			echo sprintf($lang['ques_del_trigger'], htmlencode($_GET['pk']))."<br/><br/>";
+			echo sprintf($lang['ques_trigger_delete'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 			echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
 			echo "</div>";
@@ -3372,7 +3387,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 }
 
 //- HMTL: views for databases
-if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create"))) //the absence of these fields means we are viewing the database homepage
+if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (isset($_GET['action']) && $_GET['action']!="table_create" && $_GET['action']!="table_confirm"))) //the absence of these fields means we are viewing the database homepage
 {
   //- Switch on $view (actually a series of if-else)
 
@@ -3434,8 +3449,19 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo $lang['no_tbl']."<br/><br/>";
 		else
 		{
+			echo $params->getForm(array('action'=>'table_confirm',), 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 			echo "<tr>";
+
+			echo "<td class='tdheader' colspan='2'>";
+			if(isset($_SESSION[COOKIENAME.'sortTables']))
+				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="name" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
+			else
+				$orderTag = "ASC";
+			echo $params->getLink(array('sort'=>'name', 'order'=>$orderTag), $lang['name']);
+			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="name")
+				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
+			echo "</td>";
 
 			echo "<td class='tdheader'>";
 			if(isset($_SESSION[COOKIENAME.'sortTables']))
@@ -3448,22 +3474,13 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 			echo "</td>";
 
-			echo "<td class='tdheader'>";
-			if(isset($_SESSION[COOKIENAME.'sortTables']))
-				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="name" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
-			else
-				$orderTag = "ASC";
-			echo $params->getLink(array('sort'=>'name', 'order'=>$orderTag), $lang['name']);
-			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="name")
-				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
-			echo "</td>";
-
 			echo "<td class='tdheader' colspan='10'>".$lang['act']."</td>";
 			echo "<td class='tdheader'>".$lang['rec']."</td>";
 			echo "</tr>";
 
 			$totalRecords = 0;
 			$skippedTables = false;
+			$tableId = 0;
 			foreach($tables as $tableName => $tableType)
 			{
 				$records = $db->numRows($tableName, (!isset($_GET['forceCount'])));
@@ -3478,11 +3495,14 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 
 				echo "<tr>";
-				echo $tdWithClassLeft;
-				echo ($tableType=="table"? $lang['tbl'] : $lang['view']);
+				echo $tdWithClass;
+				echo "<input type='checkbox' name='check[]' value='".htmlencode($tableName)."' id='check_".htmlencode($tableId)."'/>";
 				echo "</td>";
 				echo $tdWithClassLeft;
 				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), htmlencode($tableName));
+				echo "</td>";
+				echo $tdWithClassLeft;
+				echo ($tableType=="table"? $lang['tbl'] : $lang['view']);
 				echo "</td>";
 				echo $tdWithClass;
 				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), $lang['browse']);
@@ -3519,13 +3539,13 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo "</td>";
 				echo $tdWithClass;
 				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_empty'), $lang['empty'], 'empty');
+					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_confirm', 'action2'=>'table_empty'), $lang['empty'], 'empty');
 				else
 					echo $lang['empty'];
 				echo "</td>";
 				echo $tdWithClass;
 				if($db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_drop'), $lang['drop'], 'drop');
+					echo $params->getLink(array('table'=>$tableName,'action'=>'table_confirm', 'action2'=>'table_drop'), $lang['drop'], 'drop');
 				else
 					echo $lang['drop'];
 				echo "</td>";
@@ -3533,19 +3553,30 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo $records;
 				echo "</td>";
 				echo "</tr>";
+				$tableId++;
 			}
 			echo "<tr>";
-			echo "<td class='tdheader' colspan='12'>".sizeof($tables)." ".$lang['total']."</td>";
+			echo "<td class='tdheader' colspan='13'>".sizeof($tables)." ".$lang['total']."</td>";
 			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" ".$params->getLink(array('forceCount'=>'1'),'+ ?'):"")."</td>";
 			echo "</tr>";
 			echo "</table>";
+			echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
+			echo "<select name='action2'>";
+			if($db->isWritable() && $db->isDirWritable()) {
+				echo "<option value='table_drop'>".$lang['drop']."</option>";
+				echo "<option value='table_empty'>".$lang['empty']."</option>";
+			}
+//			echo "<option value='table_export'>".$lang['export']."</option>";
+			echo "</select> ";
+			echo "<input type='submit' value='".$lang['go']."' name='massGo' class='btn'/>";
+			echo "</form>";
 			echo "<br/>";
 			if($skippedTables)
 				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='".$params->getURL(array('forceCount'=>'1'))."'>","</a>")."</div>";
 		}
 		if($db->isWritable() && $db->isDirWritable())
 		{
-			echo "<fieldset>";
+			echo "<fieldset style='margin-top:2em'>";
 			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
 			echo $params->getForm(array('action'=>'table_create'), 'get');
 			echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
@@ -3818,7 +3849,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		//- Delete database confirmation (=delete)
 		echo $params->getForm(array('database_delete'=>'1'));
 		echo "<div class='confirm'>";
-		echo sprintf($lang['ques_del_db'],htmlencode($db->getPath()))."<br/><br/>";
+		echo sprintf($lang['ques_database_delete'],htmlencode($db->getPath()))."<br/><br/>";
 		echo "<input name='database_delete' value='".htmlencode($db->getPath())."' type='hidden'/>";
 		echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 		echo $params->getLink(array(), $lang['cancel']);

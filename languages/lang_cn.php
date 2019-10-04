@@ -157,14 +157,16 @@ $lang = array(
 	"syntax_err" => "你查询的语法有出现问题 (查询未被执行)",
 	"run_sql" => "在数据库 '%s' 中执行查询",
 	
-	"ques_empty" => "你确定要清空表 '%s'?",
-	"ques_drop" => "你确定要删除表 '%s'?",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "你确定要清空表 '%s'?",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "你确定要删除表 '%s'?",
 	"ques_drop_view" => "你确定要删除视图 '%s'?",
-	"ques_del_rows" => "你确定要删除行 %s 从表 '%s'?",
-	"ques_del_db" => "你确定要删除数据库 '%s'?",
+	"ques_row_delete" => "你确定要删除行 %s 从表 '%s'?",
+	"ques_database_delete" => "你确定要删除数据库 '%s'?",
 	"ques_column_delete" => "你确定要删除列 %s 从表 '%s'?",
-	"ques_del_index" => "你确定要删除索引 '%s'?",
-	"ques_del_trigger" => "你确定要删除触发器 '%s'?",
+	"ques_index_delete" => "你确定要删除索引 '%s'?",
+	"ques_trigger_delete" => "你确定要删除触发器 '%s'?",
 	#todo: translate
 	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	

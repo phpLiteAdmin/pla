@@ -1,8 +1,7 @@
 <?php
 // Polish translation by Maciek Dmytrow (https://www.facebook.com/maciek.dmytrow)
-// Last modified 4 October 2016
-// Version 1.9.6
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Version 1.9.8
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'G:i\, j-m-Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
@@ -166,14 +165,16 @@ $lang = array(
 	"full_texts" => "Pokaż długi tekst",
 	"no_full_texts" => "Skróć długi tekst",
 	
-	"ques_empty" => "Czy na pewno chcesz opróżnić tabelę '%s'? Utracisz zawarte w niej dane.",
-	"ques_drop" => "Czy na pewno chcesz usunąć tabelę '%s'? Utracisz zawarte w niej dane.",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "Czy na pewno chcesz opróżnić tabelę '%s'? Utracisz zawarte w niej dane.",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "Czy na pewno chcesz usunąć tabelę '%s'? Utracisz zawarte w niej dane.",
 	"ques_drop_view" => "Czy na pewno chcesz usunąć widok '%s'?",
-	"ques_del_rows" => "Czy na pewno chcesz usunąć wiersze %s z tabeli '%s'?",
-	"ques_del_db" => "Czy na pewno chcesz usunąć bazę danych '%s'? Utracisz zawarte w niej dane.",
+	"ques_row_delete" => "Czy na pewno chcesz usunąć wiersze %s z tabeli '%s'?",
+	"ques_database_delete" => "Czy na pewno chcesz usunąć bazę danych '%s'? Utracisz zawarte w niej dane.",
 	"ques_column_delete" => "Czy na pewno chcesz usunąć kolumny %s z tabeli '%s'?",
-	"ques_del_index" => "Czy na pewno chcesz usunąć indeks '%s'?",
-	"ques_del_trigger" => "Czy na pewno chcesz usunąć wyzwalacz '%s'?",
+	"ques_index_delete" => "Czy na pewno chcesz usunąć indeks '%s'?",
+	"ques_trigger_delete" => "Czy na pewno chcesz usunąć wyzwalacz '%s'?",
 	"ques_primarykey_add" => "Czy na pewno chcesz dodać klucz główny do kolumn %s w tabeli '%s'?",
 	
 	"export_struct" => "Eksport ze strukturą",

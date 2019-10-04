@@ -1,7 +1,7 @@
 <?php
 // English language-texts.
 # REMOVE_FROM_BUILD
-// Version 1.9.6
+// Version 1.9.8
 // This file is only meant as a basis for you to do your own translation!
 # END REMOVE_FROM_BUILD
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
@@ -172,14 +172,13 @@ $lang = array(
 	"full_texts" => "Show full texts",
 	"no_full_texts" => "Shorten long texts",
 	
-	"ques_empty" => "Are you sure you want to empty the table '%s'?",
-	"ques_drop" => "Are you sure you want to drop the table '%s'?",
-	"ques_drop_view" => "Are you sure you want to drop the view '%s'?",
-	"ques_del_rows" => "Are you sure you want to delete row(s) %s from table '%s'?",
-	"ques_del_db" => "Are you sure you want to delete the database '%s'?",
+	"ques_table_empty" => "Are you sure you want to empty the table(s) '%s'?",
+	"ques_table_drop" => "Are you sure you want to drop the table(s) / view(s) '%s'?",
+	"ques_row_delete" => "Are you sure you want to delete row(s) %s from table '%s'?",
+	"ques_database_delete" => "Are you sure you want to delete the database '%s'?",
 	"ques_column_delete" => "Are you sure you want to delete column(s) %s from table '%s'?",
-	"ques_del_index" => "Are you sure you want to delete index '%s'?",
-	"ques_del_trigger" => "Are you sure you want to delete trigger '%s'?",
+	"ques_index_delete" => "Are you sure you want to delete index '%s'?",
+	"ques_trigger_delete" => "Are you sure you want to delete trigger '%s'?",
 	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	
 	"export_struct" => "Export with structure",

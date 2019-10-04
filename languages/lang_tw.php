@@ -1,6 +1,6 @@
 <?php
 // Chinese language-texts for phpLiteAdmin
-// Read our wiki on how to translate: http://code.google.com/p/phpliteadmin/wiki/Localization
+// Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
         "please_donate" => "請捐款",
         "free_software" => "本工具為自由軟體",
@@ -156,14 +156,16 @@ $lang = array(
 	"syntax_err" => "你查詢的語法有出現問題 (查詢未被執行)",
 	"run_sql" => "在資料庫 '%s' 中執行查詢",
 	
-	"ques_empty" => "你確定要清空表格 '%s'?",
-	"ques_drop" => "你確定要刪除表格 '%s'?",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "你確定要清空表格 '%s'?",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "你確定要刪除表格 '%s'?",
 	"ques_drop_view" => "你確定要刪除視圖 '%s'?",
-	"ques_del_rows" => "你確定要刪除行 %s 從表格 '%s'?",
-	"ques_del_db" => "你確定要刪除資料庫 '%s'?",
+	"ques_row_delete" => "你確定要刪除行 %s 從表格 '%s'?",
+	"ques_database_delete" => "你確定要刪除資料庫 '%s'?",
 	"ques_del_col" => "你確定要刪除列 %s 從表格 '%s'?",
-	"ques_del_index" => "你確定要刪除索引 '%s'?",
-	"ques_del_trigger" => "你確定要刪除觸發器 '%s'?",
+	"ques_index_delete" => "你確定要刪除索引 '%s'?",
+	"ques_trigger_delete" => "你確定要刪除觸發器 '%s'?",
 	
 	"export_struct" => "匯出結構",
 	"export_data" => "匯出資料",

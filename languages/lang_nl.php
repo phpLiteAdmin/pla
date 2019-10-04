@@ -1,7 +1,7 @@
 <?php
 // Dutch (Flemish) language-texts By Leo Van Nieuwenhuyse.
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
-// Version 1.9.6
+// Version 1.9.8
 $lang = array(
 	"direction" => "LTR",
 	"date_format" => 'j/n/Y \o\m G\ui (e)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
@@ -166,14 +166,16 @@ $lang = array(
 	"full_texts" => "Toon volledige teksten",
 	"no_full_texts" => "Verkort lange teksten",
 	
-	"ques_empty" => "Bent u zeker dat u de tabel '%s' wenst leeg te maken?",
-	"ques_drop" => "Bent u zeker dat u de tabel '%s' wenst te verwijderen?",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "Bent u zeker dat u de tabel '%s' wenst leeg te maken?",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "Bent u zeker dat u de tabel '%s' wenst te verwijderen?",
 	"ques_drop_view" => "Bent u zeker dat u de view '%s' wenst te verwijderen?",
-	"ques_del_rows" => "Bent u zeker dat u '%s' rij(en) van tabel '%s' wenst te verwijderen?",
-	"ques_del_db" => "Bent u zeker dat u de databank '%s' wenst te verwijderen?",
+	"ques_row_delete" => "Bent u zeker dat u '%s' rij(en) van tabel '%s' wenst te verwijderen?",
+	"ques_database_delete" => "Bent u zeker dat u de databank '%s' wenst te verwijderen?",
 	"ques_column_delete" => "Bent u zeker dat u %s kolomm(en) van tabel '%s' wenst te verwijderen?",
-	"ques_del_index" => "Bent u zeker dat u de index '%s' wenst te verwijderen?",
-	"ques_del_trigger" => "Bent u zeker dat u de trigger '%s' wenst te verwijderen?",
+	"ques_index_delete" => "Bent u zeker dat u de index '%s' wenst te verwijderen?",
+	"ques_trigger_delete" => "Bent u zeker dat u de trigger '%s' wenst te verwijderen?",
 	"ques_primarykey_add" => "Bent u zeker dat u een primaire sleutel voor kolom(men) %s wenst toe te voegen in tabel '%s'?",
 	
 	"export_struct" => "Exporteren met structuur",

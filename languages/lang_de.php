@@ -169,14 +169,13 @@ $lang = array(
 	"no_full_texts" => "Kürze lange Texte",
 
 	
-	"ques_empty" => "Sind Sie sicher, dass Sie die Tabelle '%s' leeren möchten?",        
-	"ques_drop" => "Sind Sie sicher, dass Sie die Tabelle '%s' löschen möchten?",
-	"ques_drop_view" => "Sind Sie sicher, dass Sie die Sicht '%s' löschen möchten?",
-	"ques_del_rows" => "Sind Sie sicher, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
-	"ques_del_db" => "Sind Sie sicher, dass Sie die Datenbank '%s' löschen möchten?",
+	"ques_table_empty" => "Sind Sie sicher, dass Sie die Tabelle(n) '%s' leeren möchten?",
+	"ques_table_drop" => "Sind Sie sicher, dass Sie die Tabelle(n) / Sicht(en) '%s' löschen möchten?",
+	"ques_row_delete" => "Sind Sie sicher, dass Sie die Zeile(n) %s aus der Tabelle '%s' löschen möchten?",
+	"ques_database_delete" => "Sind Sie sicher, dass Sie die Datenbank '%s' löschen möchten?",
 	"ques_column_delete" => "Sie Sie sicher, dass Sie die Spalten %s aus der Tabelle '%s' löschen möchten?",
-	"ques_del_index" => "Sind Sie sicher, dass Sie den Index '%s' löschen möchten?",
-	"ques_del_trigger" => "Sind Sie sicher, dass Sie den Trigger '%s' löschen möchten?",
+	"ques_index_delete" => "Sind Sie sicher, dass Sie den Index '%s' löschen möchten?",
+	"ques_trigger_delete" => "Sind Sie sicher, dass Sie den Trigger '%s' löschen möchten?",
  	"ques_primarykey_add" => "Sind Sie sicher, dass Sie einen Primärschlüssel für die Spalte(n) %s in der Tabelle '%s' anlegen möchten?",
 
 	"export_struct" => "Mit Struktur exportieren",

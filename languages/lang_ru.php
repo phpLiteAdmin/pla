@@ -157,14 +157,16 @@ $lang = array(
 	"syntax_err" => "В синтаксисе запроса ошибка (Запрос не был выполнен)",
 	"run_sql" => "Выполнить SQL запрос(ы) в базе данных '%s'",
 	
-	"empty" => "Вы уверены, что хотите очистить таблицу '%s'?",
-	"ques_drop" => "Вы уверены, что хотите удалить таблицу '%s'?",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "Вы уверены, что хотите очистить таблицу '%s'?",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "Вы уверены, что хотите удалить таблицу '%s'?",
 	"ques_drop_view" => "Вы уверены, что хотите удалить представление '%s'?",
-	"ques_del_rows" => "Вы уверены, что хотите удалить строку(и) %s из таблицы '%s'?",
-	"ques_del_db" => "Вы уверены, что хотите удалить базу данных '%s'?",
+	"ques_row_delete" => "Вы уверены, что хотите удалить строку(и) %s из таблицы '%s'?",
+	"ques_database_delete" => "Вы уверены, что хотите удалить базу данных '%s'?",
 	"ques_column_delete" => "Вы уверены, что хотите удалить поле(я) %s из таблицы '%s'?",
-	"ques_del_index" => "Вы уверены, что хотите удалить индекс '%s'?",
-	"ques_del_trigger" => "Вы уверены, что хотите удалить триггер '%s'?",
+	"ques_index_delete" => "Вы уверены, что хотите удалить индекс '%s'?",
+	"ques_trigger_delete" => "Вы уверены, что хотите удалить триггер '%s'?",
 	#todo: translate
 	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
 	

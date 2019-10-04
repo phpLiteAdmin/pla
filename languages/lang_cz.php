@@ -158,14 +158,16 @@ $lang = array(
 	"syntax_err" => "Váš dotaz obsahuje syntaktickou chybu (nebyl proveden)",
 	"run_sql" => "Spustit SQL dotaz/dotazy na databázi '%s'",
 	
-	"ques_empty" => "Opravdu chcete vyprázdnit tabulku '%s'?",
-	"ques_drop" => "Opravdu chcete odstranit tabulku '%s'?",
+	// requires adjustment: multiple tables may get emptied
+	"ques_table_empty" => "Opravdu chcete vyprázdnit tabulku '%s'?",
+	// requires adjustment: multiple tables may get emptied and it may also be views
+	"ques_table_drop" => "Opravdu chcete odstranit tabulku '%s'?",
 	"ques_drop_view" => "Opravdu chcete odstranit pohled '%s'?",
-	"ques_del_rows" => "Opravdu chcete smazad řádky %s z tabulky '%s'?",
-	"ques_del_db" => "Opravdu chcete to smazat databázi '%s'?",
+	"ques_row_delete" => "Opravdu chcete smazad řádky %s z tabulky '%s'?",
+	"ques_database_delete" => "Opravdu chcete to smazat databázi '%s'?",
 	"ques_column_delete" => "Opravdu chcete to odstranit sloupce %s z tabulky '%s'?",
-	"ques_del_index" => "Opravdu chcete smazat index '%s'?",
-	"ques_del_trigger" => "Opravdu chcete smazat spoušť '%s'?",
+	"ques_index_delete" => "Opravdu chcete smazat index '%s'?",
+	"ques_trigger_delete" => "Opravdu chcete smazat spoušť '%s'?",
 	"ques_primarykey_add" => "Opravdu chcete přidat primární klíč na sloupec/sloupce %s v tabulce '%s'?",
 	
 	"export_struct" => "Exportovat se strukturou",
