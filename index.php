@@ -1724,13 +1724,13 @@ if($target_table)
 	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 	{
 		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_empty'), $lang['empty'],
-			($_GET['action2']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
+			(isset($_GET['action2']) && $_GET['action2']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
 		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
-			($_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
+			(isset($_GET['action2']) && $_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	} elseif($db->isWritable() && $db->isDirWritable()) {
 		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
-			($_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
+			(isset($_GET['action2']) && $_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	}
 }
 else
