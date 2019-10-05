@@ -1,5 +1,6 @@
 <?php
 // Czech translation by Jan Turoň
+// version 1.9.8
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
 	"direction" => "LTR",
@@ -56,6 +57,8 @@ $lang = array(
 	"none" => "None",
 	"as_defined" => "Je zadána",
 	"expression" => "Výraz",
+	"download" => "Stažení",
+	"open_in_browser" => "Otevřít v prohlížeči",
 
 	"sqlite_ext" => "SQLite rozšíření",
 	"sqlite_ext_support" => "Zdá se, že žádné z podporovaných rozšíření SQLite knihovny není k dispozici ve vaší instalaci PHP. Nemůžete používat %s, dokud alespoň jednu nenainstalujete.",
@@ -65,7 +68,8 @@ $lang = array(
 	"sqlite_limit" => "Díky omezení SQLite může být změněn pouze název pole a datový typ.",
 	
 	"php_v" => "PHP verze",
-	
+	"new_version" => "Existuje nová verze!",
+
 	"db_dump" => "Databázový výpis",
 	"db_f" => "Databázový soubor",
 	"db_ch" => "Změnit databázi",
@@ -80,9 +84,11 @@ $lang = array(
 	"db_create" => "Vytvořit novou databázi",
 	"db_vac" => "Databáze, '%s', byla vysáta.",
 	"db_not_writeable" => "Databáze '%s' neexistuje a nemůže být vytvořena, protože nadřazený adresář '%s' nemá právo zápisu. Aplikace je nepoužitelná, dokud toto oprávnění nepovolíte.",
+	"db_not_writable" => "Databázový soubor nemá právo zápisu, jeho obsah tedy nemůže být žádným způsobem změněn."
 	"db_setup" => "Vyskytl se problém při nastavování vaší databáze %s. Pokusíme se zjistit, o co jde, abyste problém mohl snáze opravit.",
 	"db_exists" => "Databáze, jiný soubor nebo adresář jménem '%s' už existuje.",
-	
+	"db_blank" => "Název databáze nemůže být prázdný.",
+
 	"exported" => "Exportováno",
 	"struct" => "Struktura",
 	"struct_for" => "structura pro",
@@ -96,10 +102,13 @@ $lang = array(
 	"bad_php_directive" => "Zdá se, že PHP direktiva, 'register_globals' je zapnuta. To je špatně. Před pokračováním ji musíte zakázat.",
 	"page_gen" => "Stránka vytvořena během %s sekund.",
 	"powered" => "Běží na",
+	"free_software" => "Toto je svobodný software.",
+	"please_donate" => "Prosím přispějte.",
 	"remember" => "Zapamatuj si mě",
 	"no_db" => "Vítente v %s. Zdá se, že jste nastavili prohledávání adresáře na databáze ke správě. Nicméně %s nemohl nalézt žádné platné SQLite databáze. Pro vytvoření první databáze použijte nížeuvedený formulář.",
 	"no_db2" => "Adresář, který jste zadali, neobsahuje žádné existující databáze ke správě a nemá oprávnění zápisu. To znamená, že pomocí %s nelze vytvořit žádné databáze. Buď povolte právo zápisu, nebo ručně nahrajte databáze do adresáře.",
-	
+	"dir_not_executable" => "V zadaném adresáři nelze vyhledat žádné databáze, protože %s nemá nastaveno právo přístupu. Na Linuxu lze toto právo nastavit příkazem 'chmod +x %s'.",
+
 	"create" => "Vytvořit",
 	"created" => "vyla vytvořena",
 	"create_tbl" => "Vytvořit novou tabulku",
@@ -157,7 +166,10 @@ $lang = array(
 	"query_time" => "(Dotaz zabral %s s)",
 	"syntax_err" => "Váš dotaz obsahuje syntaktickou chybu (nebyl proveden)",
 	"run_sql" => "Spustit SQL dotaz/dotazy na databázi '%s'",
-	
+	"recent_queries" => "Poslední dotazy",
+	"full_texts" => "Ukaž celé texty",
+	"no_full_texts" => "Zkrať dlouhé texty",
+
 	// requires adjustment: multiple tables may get emptied
 	"ques_table_empty" => "Opravdu chcete vyprázdnit tabulku '%s'?",
 	// requires adjustment: multiple tables may get emptied and it may also be views
@@ -185,6 +197,7 @@ $lang = array(
 	"import_suc" => "Import byl úspěšný.",
 	"import_into" => "Importovat do",
 	"import_f" => "Importovat soubor",
+	"max_file_size" => "Maximální velikost souboru",
 	"rename_tbl" => "Přejmenovat tabulku '%s' na",
 	
 	"rows_records" => "řádků počínaje záznamem # ",
@@ -226,6 +239,7 @@ $lang = array(
 	"edit_col" => "Editace sloupce '%s'",
 	"vac" => "Vysavač",
 	"vac_desc" => "Velké databáze občas potřebují vysát, aby se zmenšilo místo, které zabírají na serveru. Klikněte na následující tlačítko pro vysátí databáze '%s'.",
+	"vac_on_empty" => "Znovu sestavit databázový soubor pro zmenšení nepoužívaného místa (Vacuum)",
 	"event" => "Událost",
 	"each_row" => "Pro každou řádku",
 	"define_index" => "Definovat vlastnosti indexu",
@@ -250,6 +264,7 @@ $lang = array(
 	"add_allowed_extension" => "Do tohoto seznamu lze přidat rozšíření přidáním rozšíření do \$allowed_extensions v konfiguraci.",
 	"directory_not_writable" => "Databázový soubor je zapisovatelný, ale pro zápis musí být povoleno oprávnění zápisu i na nadřazený adresář, protože SQLite sem umísťuje dočasné soubory kvůli zamykání.",
 	"tbl_inexistent" => "Tabulka %s neexistuje",
+	"col_inexistent" => "Sloupec %s neexistuje",
 
 	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
 	"alter_failed" => "Změna tabulky %s selhala",
@@ -282,5 +297,9 @@ $lang = array(
 	"help8_x" => "V dialogu exportu do SQL souboru lze zvolit obalení dotazů příkazem TRANSACTION, tedy pokud dojde při importu z exportovaného souboru kdykoliv k chybě, databáze bude vrácena do původního stavu, částečně aktualizovaná data se do databáze nezapíší.",
 	"help9" => "Přidání komentářů do exportovaného SQL souboru",
 	"help9_x" => "V dialogu exportu do SQL souboru lze zvolit vložení komentářů vysvětlujících každý krok procesu, aby člověk lépe porozuměl, co provádí."
+	"help10" => "Částečné indexy",
+	"help10_x" => "Částečné indexy jsou indexy nad podmnožinou sloupců tabulky používané v části WHERE. K tomu je zapotřebí verze SQLite 3.8.0 a novější, databázové soubory s částečnými indexy nebudou čitelné ani zapisovatelné ve starších verzích. Viz též <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite dokumentaci.</a>",
+	"help11" => "Maximální velikost nahrávaných souborů",
+	"help11_x" => "Maximální velikost nahrávaných souborů je určena třemi nastaveními PHP: <em>upload_max_filesize</em>, <em>post_max_size</em> a <em>memory_limit</em>. Nejmenší z těchto tří limitů je maximální velikostí nahrávaných souborů. Pro nahrávání větších souborů upravte tyto hodnoty ve vašem <em>php.ini</em> souboru."
 	);
 ?>
