@@ -298,7 +298,7 @@ $lang = array(
 	"help9" => "Přidání komentářů do exportovaného SQL souboru",
 	"help9_x" => "V dialogu exportu do SQL souboru lze zvolit vložení komentářů vysvětlujících každý krok procesu, aby člověk lépe porozuměl, co provádí."
 	"help10" => "Částečné indexy",
-	"help10_x" => "Částečné indexy jsou indexy nad podmnožinou sloupců tabulky používané v části WHERE. K tomu je zapotřebí verze SQLite 3.8.0 a novější, databázové soubory s částečnými indexy nebudou čitelné ani zapisovatelné ve starších verzích. Viz též <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite dokumentaci.</a>",
+	"help10_x" => "Částečné indexy jsou indexy nad podmnožinou řádků tabulky používané v části WHERE. K tomu je zapotřebí verze SQLite 3.8.0 a novější, databázové soubory s částečnými indexy nebudou čitelné ani zapisovatelné ve starších verzích. Viz též <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite dokumentaci.</a>",
 	"help11" => "Maximální velikost nahrávaných souborů",
 	"help11_x" => "Maximální velikost nahrávaných souborů je určena třemi nastaveními PHP: <em>upload_max_filesize</em>, <em>post_max_size</em> a <em>memory_limit</em>. Nejmenší z těchto tří limitů je maximální velikostí nahrávaných souborů. Pro nahrávání větších souborů upravte tyto hodnoty ve vašem <em>php.ini</em> souboru."
 	);
