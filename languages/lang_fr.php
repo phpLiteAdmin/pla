@@ -47,14 +47,14 @@ $lang = array(
 	"before" => "Avant",
 	"after" => "Après",
 	"passwd" => "Mot de passe",
-	"passwd_incorrect" => "Mot de passe incorrecte.",
+	"passwd_incorrect" => "Mot de passe incorrect.",
 	"chk_ext" => "Vérification des extensions PHP SQLite supportées",
 	"autoincrement" => "Auto-incrémentation",
 	"not_null" => "Non NULL",
 	"attention" => "Attention",
 	
 	"sqlite_ext" => "Extension SQLite",
-	"sqlite_ext_support" => "Il semble qu'aucune des extensions de la bibliothèque SQLite supportées n'est disponible dans votre installation de PHP. Vous ne pourrez pas utiliser %s tant que vous n'aurez pas installé l'une d'entre elles.",
+	"sqlite_ext_support" => "Il semble qu'aucune des extensions de la bibliothèque SQLite supportées ne soit disponible dans votre installation de PHP. Vous ne pourrez pas utiliser %s tant que vous n'aurez pas installé l'une d'entre elles.",
 	"sqlite_v" => "Version de SQLite",
 	"sqlite_v_error" => "Il semble que votre base est en version %s de SQLite mais que votre installation de PHP ne contient pas l'extension nécessaire pour gérer cette version. Pour régler le problème, vous pouvez soit effacer la base et autoriser  %s à la créer automatiquement, soit la recréer manuellement en version %s de SQLite.",
 	"report_issue" => "Le problème ne peut être diagnostiqué correctement. Merci d'ouvrir une rapport d'incident à",
@@ -75,7 +75,7 @@ $lang = array(
 	"db_mod" => "Dernière modification de la base",
 	"db_create" => "Créer une nouvelle base",
 	"db_vac" => "La base, '%s', a été VACUUMed.",
-	"db_not_writeable" => "La base, '%s', n'existe pas et n'a pu être créer car le répertoire cible, '%s', n'est pas inscriptible. L'application ne peut être utilisée tant que vous ne l'aurez pas rendu inscriptible.",
+	"db_not_writeable" => "La base, '%s', n'existe pas et n'a pu être créée car le répertoire cible, '%s', n'est pas inscriptible. L'application ne peut être utilisée tant que vous ne l'aurez pas rendu inscriptible.",
 	"db_setup" => "Il y a un problème pour paramétrer votre base, %s. Une tentative pour trouver l'origine du problème va être lancée, cela devrait vous aider à le réparer",
 	"db_exists" => "Une base, un fichier ou répertoire portant ce nom (%s) existe déjà.",
 	
@@ -89,7 +89,7 @@ $lang = array(
 	"total_rows" => "un total de %s lignes",
 	"total" => "Total",
 	"not_dir" => "Le répertoire pour la recherche de bases que vous avez spécifié n'existe pas ou n'est pas un répertoire.",
-	"bad_php_directive" => "Il semble que la directive PHP, 'register_globals' est activée. C'est mal. Vous devez la désactiver avant de continuer.",
+	"bad_php_directive" => "Il semble que la directive PHP, 'register_globals' est activée. Vous devez la désactiver avant de continuer.",
 	"page_gen" => "Page générée en %s seconds.",
 	"powered" => "Propulsé par",
 	"remember" => "Se souvenir de moi",
@@ -154,15 +154,15 @@ $lang = array(
 	"syntax_err" => "Il y a un problème dans la syntaxe de votre requête, elle n'a pas été exécutée.",
 	"run_sql" => "Exécuter une ou des requêtes SQL sur la base '%s'",
 	
-	"ques_table_empty" => "Êtes-vous sûr de vouloir vider la ous les table(s) '%s' ?",
-	"ques_table_drop" => "Êtes-vous sûr de vouloir supprimer la ous les table(s) / vue(s) '%s' ?",
+	"ques_table_empty" => "Êtes-vous sûr de vouloir vider la ou les table(s) '%s' ?",
+	"ques_table_drop" => "Êtes-vous sûr de vouloir supprimer la ou les table(s) / vue(s) '%s' ?",
 	"ques_row_delete" => "Êtes-vous sûr de vouloir supprimer la ou les ligne(s) %s de la table '%s' ?",
 	"ques_database_delete" => "Êtes-vous sûr de vouloir effacer la base '%s'?",
 	"ques_column_delete" => "Êtes-vous sûr de vouloir effacer la ou les colonne(s) %s de la table '%s' ?",
 	"ques_index_delete" => "Êtes-vous sûr de vouloir effacer l'index '%s' ?",
 	"ques_trigger_delete" => "Êtes-vous sûr de vouloir effacer le déclencheur '%s' ?",
 	#todo: translate
-	"ques_primarykey_add" => "Are you sure you want to add a primary key for the column(s) %s in table '%s'?",
+	"ques_primarykey_add" => "Êtes-vous sûr de vouloir ajouter une clé primaire pour la ou les colonnes %s de la table '%s'?",
 	
 	"export_struct" => "Exporter avec la structure",
 	"export_data" => "Exporter avec les données",
@@ -191,8 +191,8 @@ $lang = array(
 	"with_sel" => "avec la sélection",
 	
 	"no_tbl" => "Pas de table dans la base.",
-	"no_chart" => "Si vous lisez cela, c'est que le graphique n'a pu être généré. Les données que vous essayez de visualiser ne sont peut être pas approprié pour un graphique.",
-	"no_rows" => "Il n'y a pas d'enregistrements dans la table pour la plage que vous avez sélectionné.",
+	"no_chart" => "Si vous lisez cela, le graphique n'a pu être généré. Les données que vous essayez de visualiser ne sont peut être pas appropriées pour un graphique.",
+	"no_rows" => "Il n'y a aucun enregistrement dans la table pour la plage que vous avez sélectionné.",
 	"no_sel" => "Vous n'avez rien sélectionné.",
 	
 	"chart_type" => "Type de graphique",
@@ -211,15 +211,15 @@ $lang = array(
 	"def_val" => "Valeur par défaut",
 	"prim_key" => "Clé primaire",
 	"tbl_end" => "champ(s) à la fin de la table",
-	"query_used_table" => "Requête utiliser pour créer cette table",
-	"query_used_view" => "Requête utiliser pour créer cette Vue",
+	"query_used_table" => "Requête utilisée pour créer cette table",
+	"query_used_view" => "Requête utilisée pour créer cette Vue",
 	"create_index2" => "Créer un index sur",
 	"create_trigger2" => "Créer un nouveau déclencheur",
 	"new_fld" => "Ajout de nouveau champ(s) sur la table '%s'",
 	"add_flds" => "Ajouter des champs",
 	"edit_col" => "Édition de la colonne '%s'",
 	"vac" => "Nettoyer",
-	"vac_desc" => "Les bases de grande taille ont parfois besoin d'être nettoyer (VACUUMed) pour réduire leur empreinte sur le serveur. Cliquer sur le bouton ci-dessous pour nettoyer la base '%s'.",
+	"vac_desc" => "Les bases de grande taille ont parfois besoin d'être nettoyées (VACUUMed) pour réduire leur empreinte sur le serveur. Cliquer sur le bouton ci-dessous pour nettoyer la base '%s'.",
 	"event" => "Evénement",
 	"each_row" => "Pour chaque ligne",
 	"define_index" => "Définir les propriétés de l'Index",
@@ -266,7 +266,7 @@ $lang = array(
 	"help3" => "Tables comparées aux Vues",
 	"help3_x" => "Sur la page principale de la base est présente une liste de tables et de Vues. Les Vues étant en lecture seules, certaines opérations seront désactivées. Celles-ci n'apparaitront donc pas là où elles devraient être dans la ligne d'une Vue. Si vous souhaitez modifier les données d'une Vue, vous devrez supprimer cette Vue et en créer une nouvelle avec la déclaration SELECT appropriée pour interroger d'autres tables. Pour plus d'information, voir <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
 	"help4" => "Écrire une déclaration SELECT pour une nouvelle Vue",
-	"help4_x" => "À la création d'une nouvelle Vue, vous devez écrire une déclaration SQL SELECT qui permettra d'en utiliser ses données. Une Vue est tout simplement une table en lecture seul qui peut être accédée et lue comme une table standard, excepté qu'elle ne peur pas être modifiée via une insertion, une modification de colonne ou de ligne. Elle fournie juste un moyen pratique de lire des données.",
+	"help4_x" => "À la création d'une nouvelle Vue, vous devez écrire une déclaration SQL SELECT qui permettra d'en utiliser ses données. Une Vue est tout simplement une table en lecture seule qui peut être accédée et lue comme une table standard, excepté qu'elle ne peut pas être modifiée via une insertion, une modification de colonne ou de ligne. Elle fournit juste un moyen pratique de lire des données.",
 	"help5" => "Export de la structure dans un fichier SQL",
 	"help5_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure les requêtes responsables de la création de la table et ses colonnes.",
 	"help6" => "Export des données dans un fichier SQL",
@@ -276,7 +276,7 @@ $lang = array(
 	"help8" => "Ajout de Transaction au fichier d'export SQL",
 	"help8_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix de placer les requêtes dans des TRANSACTION, ainsi en cas d'erreur lors de l'import du fichier, la base pourra être rétablie dans son état précédent, empêchant des données partiellement à jour d'être inscrite dans la base.",
 	"help9" => "Ajout des commentaires au fichier d'export SQL",
-	"help9_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez faire le choix d'inclure des commentaires expliquant chaque étape de celui-ci, donnant ainsi une meilleur compréhension à un utilisateur de ce qui se passe."
+	"help9_x" => "Au cours du processus d'export vers un fichier SQL, vous pouvez inclure des commentaires expliquant chaque étape de celui-ci, donnant ainsi une meilleur compréhension à un utilisateur de ce qui se passe."
 	
 	);
 ?>
