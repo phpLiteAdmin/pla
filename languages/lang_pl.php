@@ -1,5 +1,6 @@
 <?php
 // Polish translation by Maciek Dmytrow (https://www.facebook.com/maciek.dmytrow)
+// Last modified 31 January 2020 by Piotr Lenart (https://piotrlenart.pl)
 // Version 1.9.8
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
 $lang = array(
@@ -57,6 +58,8 @@ $lang = array(
 	"none" => "Brak",
 	"as_defined" => "Definiowana jako",
 	"expression" => "Wyrażenie",
+	"download" => "Pobierz",
+	"open_in_browser" => "Otwórz w przeglądarce",
 	
 	"sqlite_ext" => "SQLite interfejs",
 	"sqlite_ext_support" => "Wygląda na to, że żadne z rozszerzeń PHP, obsługujących SQLite, nie jest dostępne w twojej instalacji PHP. Nie można korzystać z %s dopóki przynajmniej jedeno z nich nie będzie dostępne.",
@@ -84,6 +87,7 @@ $lang = array(
 	"db_not_writeable" => "Baza danych '%s' nie istnieje i nie może zostać utworzona w katalogu '%s' ze względu na brak praw do zapisu. Aplikacja pozostanie bezużyteczna dopóki to się nie zmieni.",
 	"db_setup" => "Wystąpił problem podczas tworzenia bazy danych %s. Odpowiednie działania zostaną podjęte, aby ustalić przyczynę problemu i ułatwić jego rozwiązanie.",
 	"db_exists" => "Baza danych, inny plik lub katalog o nazwie '%s' już istnieje.",
+	"db_blank" => "Nazwa bazy danych nie może być pusta.",
 	
 	"exported" => "Eksportowano",
 	"struct" => "Struktura",
@@ -103,6 +107,7 @@ $lang = array(
 	"remember" => "Zapamiętaj mnie",
 	"no_db" => "Witaj w %s. Wygląda na to, że wskazany został katalog do przeszukania. Jednak %s nie odnalazł w nim żadnych prawidłowych baz danych SQLite. Możesz wykorzystać poniższy formularz, aby utworzyć nową bazę danych.",
 	"no_db2" => "We wskazanym katalogu nie odnalaziono żadnych istniejących baz danych do zarządzania, katalog zaś nie posiada praw do zapisu. Oznacza to, że nie możesz utworzyć żadnej nowej bazy danych za pomocą %s. Musisz nadać katalogowi prawa do zapisu lub samodzielnie umieścić w nim bazy danych.",
+	"dir_not_executable" => "Podany katalog nie może być przeglądany w poszukiwaniu baz danych, gdyż %s ma brak pozwolenia na wykonanie operacji. W systemie Linux ustaw 'chmod +x %s', aby to zmienić.",
 	
 	"create" => "Utwórz",
 	"created" => "utworzono",
@@ -165,16 +170,14 @@ $lang = array(
 	"full_texts" => "Pokaż długi tekst",
 	"no_full_texts" => "Skróć długi tekst",
 	
-	// requires adjustment: multiple tables may get emptied
-	"ques_table_empty" => "Czy na pewno chcesz opróżnić tabelę '%s'? Utracisz zawarte w niej dane.",
-	// requires adjustment: multiple tables may get emptied and it may also be views
-	"ques_table_drop" => "Czy na pewno chcesz usunąć tabelę '%s'? Utracisz zawarte w niej dane.",
+	"ques_empty" => "Czy na pewno chcesz opróżnić tabelę '%s'? Utracisz zawarte w niej dane.",
+	"ques_drop" => "Czy na pewno chcesz usunąć tabelę '%s'? Utracisz zawarte w niej dane.",
 	"ques_drop_view" => "Czy na pewno chcesz usunąć widok '%s'?",
-	"ques_row_delete" => "Czy na pewno chcesz usunąć wiersze %s z tabeli '%s'?",
-	"ques_database_delete" => "Czy na pewno chcesz usunąć bazę danych '%s'? Utracisz zawarte w niej dane.",
+	"ques_del_rows" => "Czy na pewno chcesz usunąć wiersze %s z tabeli '%s'?",
+	"ques_del_db" => "Czy na pewno chcesz usunąć bazę danych '%s'? Utracisz zawarte w niej dane.",
 	"ques_column_delete" => "Czy na pewno chcesz usunąć kolumny %s z tabeli '%s'?",
-	"ques_index_delete" => "Czy na pewno chcesz usunąć indeks '%s'?",
-	"ques_trigger_delete" => "Czy na pewno chcesz usunąć wyzwalacz '%s'?",
+	"ques_del_index" => "Czy na pewno chcesz usunąć indeks '%s'?",
+	"ques_del_trigger" => "Czy na pewno chcesz usunąć wyzwalacz '%s'?",
 	"ques_primarykey_add" => "Czy na pewno chcesz dodać klucz główny do kolumn %s w tabeli '%s'?",
 	
 	"export_struct" => "Eksport ze strukturą",
@@ -193,6 +196,7 @@ $lang = array(
 	"import_into" => "Import do",
 	"import_f" => "Plik do importowania",
 	"rename_tbl" => "Zmień nazwę tabeli '%s' na",
+	"max_file_size" => "Maksymalny rozmiar pliku",
 	
 	"rows_records" => "wierszy zaczynając od rekordu # ",
 	"rows_aff" => "wierszy uwzględnionych.",
@@ -233,6 +237,7 @@ $lang = array(
 	"edit_col" => "Edycja kolumny '%s'",
 	"vac" => "Oczyść",
 	"vac_desc" => "Duże bazy danych wymagają czasami oczyszczenia, aby mniej obciążały serwer. Kliknij przycisk poniżej, aby oczyścić bazę danych '%s'.",
+	"vac_on_empty"=>"Odśwież plik bazy danych, aby odzyskać nieużywane miejsce (Vacuum)",
 	"event" => "Zdarzenie",
 	"each_row" => "Dla każdego wiersza",
 	"define_index" => "Definiuj właściwości indeksu",
@@ -256,8 +261,10 @@ $lang = array(
 	"db_moved_outside" => "You either tried to move the database into a directory where it cannot be managed anylonger, or the check if you did this failed because of missing rights.",
 	"extension_not_allowed" => "The extension you provided is not within the list of allowed extensions. Please use one of the following extensions",
 	"add_allowed_extension" => "You can add extensions to this list by adding your extension to \$allowed_extensions in the configuration.",
+	"database_not_writable" => "Plik bazy danych jest zabezpieczony przed zapisem, dlatego jego zawartość w żaden sposób nie może być zmieniona.",
 	"directory_not_writable" => "The database-file itself is writable, but to write into it, the containing directory needs to be writable as well. This is because SQLite puts temporary files in there for locking.",
-	"tbl_inexistent" => "Table %s does not exist",
+	"tbl_inexistent" => "Tabela %s nie istnieje",
+	"col_inexistent" => "Kolumna %s nie istnieje",
 
 	// errors that can happen when ALTER TABLE fails. You don't necessarily have to translate these.
 	"alter_failed" => "Wprowadzanie zmian w tabeli %s nie powiodło się",
@@ -274,28 +281,25 @@ $lang = array(
 	"help_doc" => "– pomoc",
 	"help1" => "Rozszerzenia obsługujące SQLite",
 	"help1_x" => "%s wykorzystuje rozszerzenia PHP, które pozwalają na komunikację z bazami danych SQLite. Obecnie %s obsługuje PDO, SQLite3 i SQLiteDatabase. Zarówno PDO, jak też SQLite3 dotyczą wersji 3 SQLite, natomiast  SQLiteDatabase dotyczy wersji 2. Jeśli twoja instalacja PHP zawiera więcej niż jedno rozszerzenie do obsługi SQLite, do komunikacji wykorzystane zostaną w pierwszej kolejności PDO i SQLite3, aby wykorzystać najlepszą technologię. Jeśli jednak posiadasz istniejące bazy danych SQLite w wersji 2, %s wykorzysta SQLiteDatabase do obsługi wyłącznie tych baz danych. Nie wszystkie bazy danych muszą być w tej samej wersji. Jednak podczas tworzenia nowej bazy danych wykorzystane zostanie najbardziej zaawansowane rozszerzenie.",
-	
-	"help2" => "Tworzenie bazy danych",
+	"help2" => "Tworzenie nowej bazy danych",
 	"help2_x" => "Podczas tworzenia nowej bazy danych, do jej nazwy dołączone zostanie odpowiednie rozszerzenie pliku (.db, .db3, .sqlite, etc.) jeśli nie zrobi tego użytkownik. Baza danych zostanie utworzona w katalogu, który został wskazany w zmiennej \$directory.",
-	
 	"help3" => "Tabele i widoki",
 	"help3_x" => "Na głównej stronie bazy danych znajduje się lista tabeli i widoków. Ponieważ widoki są tylko do odczytu, niektóre czynności będą dla nich niedostępne. Aby zmienić dane dla widoku, konieczne jest usunięcie widoku oraz jego ponowne utworzenie i zdefiniowanie odpowiedniej kwerendy SELECT do istniejących tabel. Więcej informacji na ten temat można uzyskać na stronie <a href='http://en.wikipedia.org/wiki/View_(database)' target='_blank'>http://en.wikipedia.org/wiki/View_(database)</a>",
-	
 	"help4" => "Tworzenie kwerendy SELECT dla nowego widoku",
 	"help4_x" => "Utworzenie nowego widoku wymaga stworzenia wyrażenia SQL SELECT. Krótko mówiąc, widok to tabela tylko do odczytu, do którego można uzyskać dostęp i wysyłać kwerendy jak do zwykłej tabeli z tą różnicą, że nie może być ona zmieniona przez wstawienie, edycję kolumn lub wierszy. Widok jest używany tylko do wygodnego uzyskiwania wybranych danych.",
-	
 	"help5" => "Eksport struktury do pliku SQL",
 	"help5_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL, załączone zostały do niego również kwerendy, których zadaniem jest odtworzenie struktury tabel wraz z nagłówkami podczas importu.",
-	
 	"help6" => "Eksport danych do pliku SQL",
 	"help6_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL, załączone zostały do niego również kwerendy, których zadaniem jest zasilenie tabel rekordami podczas importu.",
-	
 	"help7" => "Dodawanie DROP TABLE do wyeksportowanego pliku SQL",
 	"help7_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL, załączone zostały do niego również kwerendy, których zadaniem jest usunięcie istniejących tabel przed importem, co pozwala uniknąć problemów przy próbie utworzenia podczas importu tabel, które już istnieją.",
-	
 	"help8" => "Dodawanie TRANSACTION do wyeksportowanego pliku SQL",
 	"help8_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL wstawione zostały do niego znaczniki TRANSACTION. Dzięki nim import odbywać się będzie w trybie transakcji. Jeśli w którymkolwiek momencie importu pliku SQL wystąpi błąd, będzie możliwość cofnięcia zmian w bazie danych i zapobiegnięcia częściowego zasilenia bazy danych nowymi danymi.",
-	
 	"help9" => "Dodawanie komentarzy do wyeksportowanego pliku SQL",
-	"help9_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL, załączone zostały do niego również komentarze objaśniające poszczególne etapy procesu importu pliku SQL."
+	"help9_x" => "Istnieje możliwość, aby podczas eksportu do pliku SQL, załączone zostały do niego również komentarze objaśniające poszczególne etapy procesu importu pliku SQL.",
+	"help10" => "Partial Indexes",
+	"help10_x" => "Partial indexes are indexes over a subset of the rows of a table specified by a WHERE clause. Note this requires at least SQLite 3.8.0 and database files with partial indexes won't be readable or writable by older versions. Zobacz <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite documentation.</a>",
+	"help11" => "Maksymalny rozmiar przesyłanego pliku",
+	"help11_x" => "Maksymalny rozmiar przesyłanego pliku jest określony przez trzy ustawienia PHP: <em>upload_max_filesize</em>, <em>post_max_size</em> oraz <em>memory_limit</em>. Najmniejszy z nich trzech określa maksymalny rozmiar przesyłanych plików.. Aby przesyłać większe pliki, dostosuj te wartości w pliku <em>php.ini</em>."
+
 );
