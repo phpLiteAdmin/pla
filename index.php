@@ -1,7 +1,4 @@
 <?php
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//there is no reason for the average user to edit anything below this comment
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 if (version_compare(phpversion(), '5.2.4', '<')) {
 	die('Your PHP version is PHP '.phpversion().', which is too old. You need at least PHP 5.2.4.');
