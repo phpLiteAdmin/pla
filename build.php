@@ -117,7 +117,7 @@ function minify_js($js)
 	include 'support/Minifier.php';
 	// enforce \r\n. The problem with \n is that people editing phpliteadmin.php may
 	// replace all \n with \r\n (by editor config) and thus the length of the JS increases
-	return preg_replace("/(?<!\r)\n/","\r\n", Minifier::minify($js));
+	return preg_replace("/(?<!\r)\n/","\r\n", \JShrink\Minifier::minify($js));
 }
 
 function comment_lines($text)
