@@ -18,6 +18,9 @@ $directory = '.';
 //whether or not to scan the subdirectories of the above directory infinitely deep
 $subdirectories = false;
 
+//whether or not embedd css/js content directly into HTML head
+$inline_resources = false;
+
 //if the above $directory variable is set to false, you must specify the databases manually in an array as the next variable
 //if any of the databases do not exist as they are referenced by their path, they will be created automatically
 $databases = array(

@@ -1467,10 +1467,10 @@ if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
 
 if (file_exists($theme))
 	// an external stylesheet exists - import it
-	echo "<link href='{$theme}' rel='stylesheet' type='text/css' />", PHP_EOL;
+	echo ($inline_resources ? '<style>'.Resources::output('css', false).'</style>' : "<link href='{$theme}' rel='stylesheet' type='text/css' />". PHP_EOL);
 else
 	// only use the default stylesheet if an external one does not exist
-	echo "<link href='?resource=css' rel='stylesheet' type='text/css' />", PHP_EOL;
+	echo ($inline_resources ? '<style>'.Resources::output('css', false).'</style>' : "<link href='?resource=css' rel='stylesheet' type='text/css' />". PHP_EOL);
 
 // HTML: output help text, then exit
 if(isset($_GET['help']))
@@ -1514,8 +1514,12 @@ if($auth->isAuthorized())
 {
 	//- Javascript include
 	?>
-	<!-- JavaScript Support -->
+	<!-- JavaScript Support -->	
+		<?php if ($inline_resources) { ?>
+	<script type='text/javascript'><?php echo Resources::output('javascript', false);?></script>
+		<?php } else { ?>
 	<script type='text/javascript' src='?resource=javascript'></script>
+		<?php } ?>
 	<script type="text/javascript">
 	var fileUploadMaxSize = <?php echo fileUploadMaxSize(); ?>;
 	var fileUploadMaxSizeErrorMsg = '<?php echo $lang['err'].': \n'.$lang['max_file_size']; ?>';
