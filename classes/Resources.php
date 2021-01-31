@@ -27,7 +27,7 @@ class Resources {
 
 	// outputs the specified resource, if defined in this class.
 	// the main script should do no further output after calling this function.
-	public static function output($resource)
+	public static function output($resource, $echo=true)
 	{
 		if (isset(self::$_resources[$resource])) {
 			$res =& self::$_resources[$resource];
@@ -40,30 +40,38 @@ class Resources {
 
 			// use last-modified time as etag; etag must be quoted
 			$etag = '"' . filemtime($filename) . '"';
+			if ($echo)
+			{
+				// check headers for matching etag; if etag hasn't changed, use the cached version
+				if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag) {
+					header('HTTP/1.0 304 Not Modified');
+					return;
+				}
 
-			// check headers for matching etag; if etag hasn't changed, use the cached version
-			if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $etag) {
-				header('HTTP/1.0 304 Not Modified');
-				return;
+				header('Etag: ' . $etag);
+
+				// cache file for at most 30 days
+				header('Cache-control: max-age=2592000');
+
+				// output resource
+				header('Content-type: ' . $res['mime']);
 			}
-
-			header('Etag: ' . $etag);
-
-			// cache file for at most 30 days
-			header('Cache-control: max-age=2592000');
-
-			// output resource
-			header('Content-type: ' . $res['mime']);
-
+			
+			$result = '';
 			if (isset($data)) {
 				if (isset($res['base64'])) {
-					echo base64_decode($data);
+					$result = base64_decode($data);
 				} else {
-					echo $data;
+					$result = $data;
 				}
 			} else {
-				readfile($filename);
+				$result = file_get_contents($filename);
 			}
+			
+			if ($echo) 
+				echo $result;
+			else 
+				return $result;
 		}
 	}
 
