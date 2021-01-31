@@ -1455,7 +1455,7 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
 <!-- Copyright <?php echo date("Y").' '.PROJECT.' ('.PROJECT_URL.')'; ?> -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-<link rel="shortcut icon" href="?resource=favicon" />
+<link rel="shortcut icon" href="<?php echo $inline_resources ? 'data:image/png;base64,'.base64_encode(Resources::output('favicon', false)) :  '?resource=favicon';?>" />
 <title><?php echo PROJECT ?></title>
 
 <?php
