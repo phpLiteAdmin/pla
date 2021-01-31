@@ -49,6 +49,9 @@ define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/publi
 // up here, we don't output anything. debug output might appear here which is catched by ob and thrown later
 ob_start();
 
+// if inline_resources set
+$inline_resources = isset($inline_resources) ? $inline_resources : false;
+
 // Resource output (css and javascript files)
 // we get out of the main code as soon as possible, without inizializing the session
 if (isset($_GET['resource']))
