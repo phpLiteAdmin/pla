@@ -95,7 +95,7 @@ if($language != 'en') {
 // This code is from http://php.net/manual/en/security.magicquotes.disabling.php
 if (is_callable('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
 	$process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
-	while (list($key, $val) = each($process)) {
+	foreach($process as $key => $val) {
 		foreach ($val as $k => $v) {
 			unset($process[$key][$k]);
 			if (is_array($v)) {

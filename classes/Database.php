@@ -716,7 +716,7 @@ class Database
 					$newcolumns = '';
 					$oldcolumns = '';
 					reset($newcols);
-					while(list($key, $val) = each($newcols))
+					foreach($newcols as $key => $val)
 					{
 						$newcolumns .= ($newcolumns?', ':'').$this->quote_id($val);
 						$oldcolumns .= ($oldcolumns?', ':'').$this->quote_id($key);
@@ -985,7 +985,7 @@ class Database
 					$newcolumns = '';
 					$oldcolumns = '';
 					reset($newcols);
-					while(list($key,$val) = each($newcols))
+					foreach($newcols as $key => $val)
 					{
 						$newcolumns .= ($newcolumns?', ':'').$this->quote_id($val);
 						$oldcolumns .= ($oldcolumns?', ':'').$this->quote_id($key);
