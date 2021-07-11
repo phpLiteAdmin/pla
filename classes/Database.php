@@ -691,7 +691,7 @@ class Database
 					$createtemptableSQL = "CREATE TABLE ".$this->quote($tmpname)." ".$origsql_no_create;
 					if($debug) $this->debugOutput .= "createtemptableSQL=($createtemptableSQL)<br />";
 					$createindexsql = array();
-					$preg_alter_part = "/(?:DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // the ALTER command
+					$preg_alter_part = "/(?:DROP(?! PRIMARY KEY)(?: COLUMN)?|ADD(?! PRIMARY KEY)(?: COLUMN)?|CHANGE(?: COLUMN)?|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // the ALTER command
 						."(?:"
 							."\s+\(".$this->sqlite_surroundings_preg("+",false,"\"'\[`)")."+\)"	// stuff in brackets (in case of ADD PRIMARY KEY)
 						."|"																	// or
@@ -734,7 +734,7 @@ class Database
 					{
 						if($debug) $this->debugOutput .= "<hr />def=$def<br />";
 						$preg_parse_def =
-							"/^(DROP(?! PRIMARY KEY)|ADD(?! PRIMARY KEY)|CHANGE|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // $matches[1]: command
+							"/^(DROP(?! PRIMARY KEY)(?: COLUMN)?|ADD(?! PRIMARY KEY)(?: COLUMN)?|CHANGE(?: COLUMN)?|RENAME TO|ADD PRIMARY KEY|DROP PRIMARY KEY)" // $matches[1]: command
 							."(?:"												// this is either
 								."(?:\s+\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
 																				// then $matches[2] is what there is in brackets
@@ -766,7 +766,7 @@ class Database
 							if($debug) $this->debugOutput .= "ERROR: !isset(matches[1])<hr /><br />";
 							return false;
 						}
-						$action = strtolower($matches[1]);
+						$action = str_replace(' column','',strtolower($matches[1]));
 						if(($action == 'add' || $action == 'rename to') && isset($matches[4]) && $matches[4]!='')	
 							$column = str_replace("''","'",$matches[4]);		// enclosed in ''
 						elseif($action == 'add primary key' && isset($matches[2]) && $matches[2]!='')
@@ -839,7 +839,6 @@ class Database
 								$createtesttableSQL = $newSQL;
 								break;
 							case 'change':
-								var_dump($matches);
 								if(!isset($matches[6]))
 								{
 									$this->alterError = $errormsg . ' (change) - '.$lang['alter_col_not_recognized'];
