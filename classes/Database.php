@@ -371,13 +371,13 @@ class Database
 		global $debug;
 		if(strtolower(substr(ltrim($query),0,5))=='alter' && $ignoreAlterCase==false) //this query is an ALTER query - call the necessary function
 		{
-			preg_match("/^\s*ALTER\s+TABLE\s+\"((?:[^\"]|\"\")+)\"\s+(.*)$/i",$query,$matches);
+			preg_match("/^\s*ALTER\s+TABLE\s+(".$this->sqlite_surroundings_preg("+",false,",' \"\[`").")\s+(.*)$/i",$query,$matches);
 			if(!isset($matches[1]) || !isset($matches[2]))
 			{
 				if($debug) echo "<span title='".htmlencode($query)."' onclick='this.innerHTML=\"".htmlencode(str_replace('"','\"',$query))."\"' style='cursor:pointer'>SQL?</span><br />";
 				return false;
 			}
-			$tablename = str_replace('""','"',$matches[1]);
+			$tablename = $this->sqliteUnquote($matches[1]);
 			$alterdefs = $matches[2];
 			if($debug) echo "ALTER TABLE QUERY=(".htmlencode($query)."), tablename=($tablename), alterdefs=($alterdefs)<br />";
 			$result = $this->alterTable($tablename, $alterdefs);
@@ -601,6 +601,26 @@ class Database
 				"`".$nameBacktick."`|".    // backtick surrounded (MySQL-Style)
 				"\[".$nameSquare."\])";    // square-bracket surrounded (MS Access/SQL server-Style)
 		return $preg;
+	}
+
+	private function sqliteUnquote($quotedName)
+	{
+		$firstChar = $quotedName[0];
+		$withoutFirstAndLastChar = substr($quotedName,1,-1);
+		switch($firstChar)
+		{
+			case "'":
+			case '"':
+			case '`':
+				$name = str_replace($firstChar.$firstChar,$firstChar,$withoutFirstAndLastChar);
+				break;
+			case '[':
+				$name = str_replace("]]","]",$withoutFirstAndLastChar);
+				break;
+			default:
+				$name = $quotedName;
+		}
+		return $name;
 	}
 	
 	// Returns the last PREG error as a string, '' if no error occured
