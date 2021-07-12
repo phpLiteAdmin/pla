@@ -759,15 +759,14 @@ class Database
 								."(?:\s+\((.+)\)\s*$)"							// anything in brackets (for ADD PRIMARY KEY)
 																				// then $matches[2] is what there is in brackets
 							."|"												// OR: 
-								."(?:\s+\"((?:[^\"]|\"\")+)\"|\s+'((?:[^']|'')+)')"// (first) column name, either in single or double quotes
+								."\s+(".$this->sqlite_surroundings_preg("+",false," \"'\[`").")"//  $matches[3]: (first) column name, possibly including quotes
+																				// (may be quoted in any type of quotes)
 																				// in case of RENAME TO, it is the new a table name
-																				// $matches[3] will be the column/table name without the quotes if double quoted
-																				// $matches[4] will be the column/table name without the quotes if single quoted
-								."("											// $matches[5]: anything after the column name
-									."(?:\s+'((?:[^']|'')+)')?"					// $matches[6] (optional): a second column name surrounded with single quotes
-																				//		(the match does not contain the quotes) 
+								."("											// $matches[4]: anything after the column name
+									."(?:\s+(".$this->sqlite_surroundings_preg("+",false," \"'\[`")."))?"	// $matches[5] (optional): a second column name possibly including quotes 
+																				//		(may be quoted in any type of quotes)
 									."\s*"
-									."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)?\s*"	// $matches[7] (optional): a type name
+									."((?:[A-Z]+\s*)+(?:\(\s*[+-]?\s*[0-9]+(?:\s*,\s*[+-]?\s*[0-9]+)?\s*\))?)?\s*"	// $matches[6] (optional): a type name
 									.".*".
 								")"
 								."?\s*$"
@@ -787,14 +786,12 @@ class Database
 							return false;
 						}
 						$action = str_replace(' column','',strtolower($matches[1]));
-						if(($action == 'add' || $action == 'rename to') && isset($matches[4]) && $matches[4]!='')	
-							$column = str_replace("''","'",$matches[4]);		// enclosed in ''
-						elseif($action == 'add primary key' && isset($matches[2]) && $matches[2]!='')
+						if($action == 'add primary key' && isset($matches[2]) && $matches[2]!='')
 							$column = $matches[2];	
 						elseif($action == 'drop primary key')
 							$column = '';	// DROP PRIMARY KEY has no column definition
 						elseif(isset($matches[3]) && $matches[3]!='')
-							$column = str_replace('""','"',$matches[3]);		// enclosed in ""
+							$column = $this->sqliteUnquote($matches[3]);
 						else
 							$column = '';
 
@@ -838,7 +835,7 @@ class Database
 									$this->alterError = $errormsg . ' (add) - '. $lang['alter_no_add_col'];
 									return false;
 								}
-								$new_col_definition = "'$column_escaped' ".(isset($matches[5])?$matches[5]:'');
+								$new_col_definition = "'$column_escaped' ".(isset($matches[4])?$matches[4]:'');
 								$preg_pattern_add = "/^".$preg_create_table.   // the CREATE TABLE statement ($1)
 									"((?:(?!,\s*(?:PRIMARY\s+KEY\s*\(|CONSTRAINT\s|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()).)*)". // column definitions ($2)
 									"(.*)\\)\s*$/si"; // table-constraints like PRIMARY KEY(a,b) ($3) and the closing bracket
@@ -859,17 +856,17 @@ class Database
 								$createtesttableSQL = $newSQL;
 								break;
 							case 'change':
-								if(!isset($matches[6]))
+								if(!isset($matches[5]))
 								{
 									$this->alterError = $errormsg . ' (change) - '.$lang['alter_col_not_recognized'];
 									return false;
 								}
-								$new_col_name = $matches[6];
-								if(!isset($matches[7]))
+								$new_col_name = $matches[5];
+								if(!isset($matches[6]))
 									$new_col_type = '';
 								else
-									$new_col_type = $matches[7];
-								$new_col_definition = "'$new_col_name' $new_col_type";
+									$new_col_type = $matches[6];
+								$new_col_definition = "$new_col_name $new_col_type";
 								$preg_column_to_change = "\s*".$this->sqlite_surroundings_preg($column)."(?:\s+".preg_quote($coltypes[$column]).")?(\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"`\[").")+)?";
 												// replace this part (we want to change this column)
 												// group $3 contains the column constraints (keep!). the name & data type is replaced.
@@ -883,7 +880,7 @@ class Database
 								$newSQL = preg_replace("/^\s*(CREATE\s+TABLE\s+".preg_quote($this->quote($tmpname),"/")."\s+\(),\s*/",'$1',$newSQL);
 								if($debug)
 								{
-									$this->debugOutput .= "preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
+									$this->debugOutput .= "new_col_name=(".$new_col_name."), new_col_type=(".$new_col_type."), preg_column_to_change=(".$preg_column_to_change.")<hr /><br />";
 									$this->debugOutput .= $createtesttableSQL."<hr /><br />";
 									$this->debugOutput .= $newSQL."<hr /><br />";
 
@@ -895,7 +892,7 @@ class Database
 									return false;
 								}
 								$createtesttableSQL = $newSQL;
-								$newcols[$column] = str_replace("''","'",$new_col_name);
+								$newcols[$column] = $this->sqliteUnquote($new_col_name);
 								break;
 							case 'drop':
 								$preg_column_to_drop = "\s*".$this->sqlite_surroundings_preg($column)."\s+(?:".$this->sqlite_surroundings_preg("*",false,",'\"\[`").")+";      // delete this part (we want to drop this column)
