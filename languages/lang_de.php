@@ -106,7 +106,8 @@ $lang = array(
 	"remember" => "Eingeloggt bleiben",
 	"no_db" => "Willkommen zu %s. Es erscheint so, als ob Sie konfiguriert haben, dass in einem Verzeichnis nach zu verwaltenden Datenbanken gesucht wird. Allerdings konnte %s in dem angegebenen Verzeichnis keine SQLite Datenbank gefunden werden. Sie können das folgende Formular nutzen um Ihre erste Datenbank anzulegen.",
 	"no_db2" => "Das von Ihnen angegebene Verzeichnis enthält keine SQLite Datenbanken und ist darüber hinaus nicht schreibbar. Aus diesem Grund können Sie mit %s keine neuen Datenbanken in diesem Verzeichnis anlegen. Machen Sie entweder das Verzeichnis beschreibbar oder laden Sie manuell Datenbanken in das angegebene Verzeichnis.",
-	
+	"filesystem_permission_denied" => "Zugriff verweigert. Prüfen Sie die Zugriffsrechte des Dateisystems.",
+
 	"create" => "Erzeugen",
 	"created" => "wurde erzeugt",
 	"create_tbl" => "Erzeuge neue Tabelle",

@@ -153,7 +153,19 @@ class Database
 			else if(!$classSQLiteDatabase && $this->getVersion()==2)
 				printf($lang['sqlite_v_error'], 2, PROJECT, 3);
 			else
-				echo $lang['report_issue'].' '.PROJECT_BUGTRACKER_LINK.'.';
+			{
+				if(!file_exists($this->getPath()))
+				{
+					if(touch($this->getPath()))
+					{
+						echo $lang['report_issue'].' '.PROJECT_BUGTRACKER_LINK.'.';
+					}
+					else
+					{
+						echo "<strong>".$lang['filesystem_permission_denied']."</strong>";
+					}
+				}
+			}
 		}
 		echo "<p>See ".PROJECT_INSTALL_LINK." for help.</p>";
 		

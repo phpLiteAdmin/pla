@@ -1575,7 +1575,7 @@ if(!$auth->isAuthorized())
 if(count($databases)==0) // the database array is empty, offer to create a new database
 {
 	//- HTML: form to create a new database, exit
-	if($directory!==false && is_writable($directory))
+	if($directory!==false && is_writable($directory) && (is_executable($directory) || DIRECTORY_SEPARATOR === '\\'))
 	{
 		echo "<div class='confirm' style='margin:20px;'>";
 		printf($lang['no_db'], PROJECT, PROJECT);
@@ -1602,7 +1602,7 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 		echo "</form>";
 		echo "</fieldset>";
 	}
-	elseif(($directory!==false && !is_executable($directory)))
+	elseif($directory!==false && !is_executable($directory) && DIRECTORY_SEPARATOR === '/')
 	{
 		echo "<div class='confirm' style='margin:20px;'>";
 		echo $lang['err'].": ".sprintf($lang['dir_not_executable'], PROJECT, $directory);
