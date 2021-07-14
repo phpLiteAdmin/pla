@@ -4,6 +4,11 @@ if (version_compare(phpversion(), '5.2.4', '<')) {
 	die('Your PHP version is PHP '.phpversion().', which is too old. You need at least PHP 5.2.4.');
 }
 
+if(strpos(ini_get('variables_order'),'G') === false || strpos(ini_get('variables_order'),'P') === false ||
+   strpos(ini_get('variables_order'),'C') === false || strpos(ini_get('variables_order'),'S') === false) {
+	die('The php configuration <em>variables_order</em> needs to include G, P, C and S. The current value is "'.ini_get('variables_order').'". Please check the php configuration (php.ini).');
+}
+
 # REMOVE_FROM_BUILD
 // include default configuration and language
 include './phpliteadmin.config.sample.php';
@@ -35,7 +40,7 @@ if (is_readable($config_filename))
 //constants 1
 define("PROJECT", "phpLiteAdmin");
 define("VERSION", "1.9.9-dev");
-define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging)
+define("FORCETYPE", false); //force the extension that will be used (set to false in almost all circumstances except debugging, possible values: false, "PDO", "SQLite3", "SQLiteDatabase")
 define("SYSTEMPASSWORD", $password); // Makes things easier.
 define('PROJECT_URL','https://www.phpliteadmin.org/');
 define('DONATE_URL','https://www.phpliteadmin.org/donate/');
