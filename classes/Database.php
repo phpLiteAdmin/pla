@@ -530,6 +530,9 @@ class Database
 		}
 		else if($this->type=="SQLite3")
 		{
+			if($result->numColumns() === 0) {
+				return array();
+			}
 			if($mode=="assoc")
 				$mode = SQLITE3_ASSOC;
 			else if($mode=="num")
