@@ -1,0 +1,20 @@
+{
+    "name": "planetacodigo/pla",
+    "description": "phpLiteAdmin is a web-based SQLite database admin tool written in PHP with support for SQLite3 and SQLite2",
+    "type": "library",
+    "license": "GNU General Public License",
+    "authors": [
+        {
+            "name": "Alan Hernandez"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.4"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+          "PhpLiteAdmin\\": "./"
+        }
+    }
+}

@@ -11,7 +11,7 @@ if(strpos(ini_get('variables_order'),'G') === false || strpos(ini_get('variables
 
 # REMOVE_FROM_BUILD
 // include default configuration and language
-include './phpliteadmin.config.sample.php';
+//include './phpliteadmin.config.sample.php';
 include './languages/lang_en.php';
 
 // setup class autoloading
