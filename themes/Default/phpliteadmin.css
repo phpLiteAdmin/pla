@@ -81,6 +81,11 @@ input, select, textarea
 	-moz-border-radius:5px;
 	padding:3px;
 }
+
+select {
+    width: 100%;
+}
+
 /* just input buttons */
 input.btn
 {
