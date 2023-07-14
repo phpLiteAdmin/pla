@@ -84,7 +84,7 @@ $lang = array(
 	"db_create" => "Vytvořit novou databázi",
 	"db_vac" => "Databáze, '%s', byla vysáta.",
 	"db_not_writeable" => "Databáze '%s' neexistuje a nemůže být vytvořena, protože nadřazený adresář '%s' nemá právo zápisu. Aplikace je nepoužitelná, dokud toto oprávnění nepovolíte.",
-	"db_not_writable" => "Databázový soubor nemá právo zápisu, jeho obsah tedy nemůže být žádným způsobem změněn."
+	"db_not_writable" => "Databázový soubor nemá právo zápisu, jeho obsah tedy nemůže být žádným způsobem změněn.",
 	"db_setup" => "Vyskytl se problém při nastavování vaší databáze %s. Pokusíme se zjistit, o co jde, abyste problém mohl snáze opravit.",
 	"db_exists" => "Databáze, jiný soubor nebo adresář jménem '%s' už existuje.",
 	"db_blank" => "Název databáze nemůže být prázdný.",
@@ -296,7 +296,7 @@ $lang = array(
 	"help8" => "Přidání Transaction do exportovaného SQL souboru",
 	"help8_x" => "V dialogu exportu do SQL souboru lze zvolit obalení dotazů příkazem TRANSACTION, tedy pokud dojde při importu z exportovaného souboru kdykoliv k chybě, databáze bude vrácena do původního stavu, částečně aktualizovaná data se do databáze nezapíší.",
 	"help9" => "Přidání komentářů do exportovaného SQL souboru",
-	"help9_x" => "V dialogu exportu do SQL souboru lze zvolit vložení komentářů vysvětlujících každý krok procesu, aby člověk lépe porozuměl, co provádí."
+	"help9_x" => "V dialogu exportu do SQL souboru lze zvolit vložení komentářů vysvětlujících každý krok procesu, aby člověk lépe porozuměl, co provádí.",
 	"help10" => "Částečné indexy",
 	"help10_x" => "Částečné indexy jsou indexy nad podmnožinou řádků tabulky používané v části WHERE. K tomu je zapotřebí verze SQLite 3.8.0 a novější, databázové soubory s částečnými indexy nebudou čitelné ani zapisovatelné ve starších verzích. Viz též <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite dokumentaci.</a>",
 	"help11" => "Maximální velikost nahrávaných souborů",
