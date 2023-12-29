@@ -36,14 +36,14 @@ $outputfile = 'phpliteadmin.php';
 date_default_timezone_set('UTC');
 
 // === identifiers recognized in EXPORT and ###something### directives ===
-$build_data = array(
-	// used for resource embedding
-	'resources' => array(),
-	'resourcesize' => 0,
-	// custom variables
-	'build_date' => date('Y-m-d'),
-	'build_year' => date('Y'),
-);
+$build_data = [
+    // used for resource embedding
+    'resources' => [],
+    'resourcesize' => 0,
+    // custom variables
+    'build_date' => date('Y-m-d'),
+    'build_year' => date('Y'),
+];
 
 ?>
 <!doctype html>
@@ -122,7 +122,7 @@ function minify_js($js)
 
 function comment_lines($text)
 {
-	return preg_replace('/^/m', "//\t", $text);
+	return preg_replace('/^/m', "//\t", (string) $text);
 }
 
 
@@ -131,9 +131,9 @@ function comment_lines($text)
 function replace_include($m)
 {
 	if ($m['filters']) {
-		$filters = array_map('trim', preg_split('@\s*\|\s*@', trim($m['filters'], ' |')));
+		$filters = array_map('trim', preg_split('@\s*\|\s*@', trim((string) $m['filters'], ' |')));
 	} else {
-		$filters = array();
+		$filters = [];
 	}
 
 	$source = '';
@@ -165,9 +165,9 @@ function replace_include($m)
 function replace_embed($m)
 {
 	if ($m['filters']) {
-		$filters = array_map('trim', preg_split('@\s*\|\s*@', trim($m['filters'], ' |')));
+		$filters = array_map('trim', preg_split('@\s*\|\s*@', trim((string) $m['filters'], ' |')));
 	} else {
-		$filters = array();
+		$filters = [];
 	}
 
 	$result = '';
@@ -190,8 +190,8 @@ function replace_embed($m)
 				$result .= $data;
 
 				// evaluate size and position relative to __COMPILER_HALT_OFFSET__
-				$size = strlen($data);
-				$build_data['resources'][$filename] = array($build_data['resourcesize'], $size);
+				$size = strlen((string) $data);
+				$build_data['resources'][$filename] = [$build_data['resourcesize'], $size];
 				$build_data['resourcesize'] += $size;
 			} else {
 				echo "<li class='warn'><span>{$filename}</span> - cannot read file";

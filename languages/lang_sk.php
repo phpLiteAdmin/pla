@@ -1,9 +1,10 @@
 <?php
 // Slovak translation by RobiNN (Róbert Kelčák)
 // Read our wiki on how to translate: https://bitbucket.org/phpliteadmin/public/wiki/Localization
-$lang = array(
+$lang = [
     "direction" => "LTR",
-    "date_format" => 'G:i \d\n\e j. n. Y (T)',  // see http://php.net/manual/en/function.date.php for what the letters stand for
+    "date_format" => 'G:i \d\n\e j. n. Y (T)',
+    // see http://php.net/manual/en/function.date.php for what the letters stand for
     "ver" => "verzia",
     "for" => "pre",
     "to" => "do",
@@ -17,7 +18,8 @@ $lang = array(
     "srch_again" => "Hľadať znova",
     "login" => "Prihlásiť sa",
     "logout" => "Odhlásiť sa",
-    "view" => "Zobrazenie",              // here, the noun SQL view is meant, not the verb "to view"
+    "view" => "Zobrazenie",
+    // here, the noun SQL view is meant, not the verb "to view"
     "confirm" => "Potvrdiť",
     "cancel" => "Zrušiť",
     "save_as" => "Uložiť ako",
@@ -281,5 +283,5 @@ $lang = array(
     "help10" => "Čiastkové indexy",
     "help10_x" => "Čiastkové indexy sú indexy nad podmnožinou riadkov tabuľky špecifikovanej klauzulou WHERE. Všimnite si, že to vyžaduje aspoň SQLite 3.8.0 a databázové súbory s čiastkovými indexmi nebudú čitateľné ani zapisovateľné staršími verziami. Pozrite si <a href='https://www.sqlite.org/partialindex.html' target='_blank'>SQLite dokumentáciu.</a>",
     "help11" => "Maximálna veľkosť nahratých súborov",
-    "help11_x" => "Maximálna veľkosť uploadovaných súborov je určená tromi nastaveniami PHP: <em>upload_max_filesize</em>, <em>post_max_size</em> a <em>memory_limit</em>. Najmenší týchto troch obmedzuje maximálnu veľkosť súboru obrázky. Ak chcete nahrať väčšie súbory, upravte tieto hodnoty vo svojom <em>php.ini</em> súboru."
-);
+    "help11_x" => "Maximálna veľkosť uploadovaných súborov je určená tromi nastaveniami PHP: <em>upload_max_filesize</em>, <em>post_max_size</em> a <em>memory_limit</em>. Najmenší týchto troch obmedzuje maximálnu veľkosť súboru obrázky. Ak chcete nahrať väčšie súbory, upravte tieto hodnoty vo svojom <em>php.ini</em> súboru.",
+];

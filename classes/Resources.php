@@ -7,27 +7,17 @@ class Resources {
 
 	// set this to the file containing getInternalResource;
 	// currently unused in split mode; set to __FILE__ for built PLA.
-	public static $embedding_file = __FILE__;
+	public static string $embedding_file = __FILE__;
 
-	private static $_resources = array(
-		'css' => array(
-			'mime' => 'text/css',
-			'data' => 'resources/phpliteadmin.css',
-		),
-		'javascript' => array(
-			'mime' => 'text/javascript',
-			'data' => 'resources/phpliteadmin.js',
-		),
-		'favicon' => array(
-			'mime' => 'image/x-icon',
-			'data' => 'resources/favicon.ico',
-			'base64' => 'true',
-		),
-	);
+	private static array $_resources = [
+        'css' => ['mime' => 'text/css', 'data' => 'resources/phpliteadmin.css'],
+        'javascript' => ['mime' => 'text/javascript', 'data' => 'resources/phpliteadmin.js'],
+        'favicon' => ['mime' => 'image/x-icon', 'data' => 'resources/favicon.ico', 'base64' => 'true']
+    ];
 
 	// outputs the specified resource, if defined in this class.
 	// the main script should do no further output after calling this function.
-	public static function output($resource)
+	public static function output($resource): void
 	{
 		if (isset(self::$_resources[$resource])) {
 			$res =& self::$_resources[$resource];
@@ -57,7 +47,7 @@ class Resources {
 
 			if (isset($data)) {
 				if (isset($res['base64'])) {
-					echo base64_decode($data);
+					echo base64_decode((string) $data);
 				} else {
 					echo $data;
 				}

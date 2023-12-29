@@ -4,8 +4,8 @@ if (version_compare(phpversion(), '5.2.4', '<')) {
 	die('Your PHP version is PHP '.phpversion().', which is too old. You need at least PHP 5.2.4.');
 }
 
-if(strpos(ini_get('variables_order'),'G') === false || strpos(ini_get('variables_order'),'P') === false ||
-   strpos(ini_get('variables_order'),'C') === false || strpos(ini_get('variables_order'),'S') === false) {
+if(!str_contains(ini_get('variables_order'),'G') || !str_contains(ini_get('variables_order'),'P') ||
+   !str_contains(ini_get('variables_order'),'C') || !str_contains(ini_get('variables_order'),'S')) {
 	die('The php configuration <em>variables_order</em> needs to include G, P, C and S. The current value is "'.ini_get('variables_order').'". Please check the php configuration (php.ini).');
 }
 
@@ -15,7 +15,7 @@ include './phpliteadmin.config.sample.php';
 include './languages/lang_en.php';
 
 // setup class autoloading
-function pla_autoload($classname)
+function pla_autoload($classname): bool
 {
 	$classfile = __DIR__ . '/classes/' . $classname . '.php';
 
@@ -99,7 +99,7 @@ if($language != 'en') {
 // This is only a workaround. Please better turn off magic quotes!
 // This code is from http://php.net/manual/en/security.magicquotes.disabling.php
 if (is_callable('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
-	$process = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
+	$process = [&$_GET, &$_POST, &$_COOKIE, &$_REQUEST];
 	foreach($process as $key => $val) {
 		foreach ($val as $k => $v) {
 			unset($process[$key][$k]);
@@ -107,7 +107,7 @@ if (is_callable('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
 				$process[$key][stripslashes($k)] = $v;
 				$process[] = &$process[$key][stripslashes($k)];
 			} else {
-				$process[$key][stripslashes($k)] = stripslashes($v);
+				$process[$key][stripslashes($k)] = stripslashes((string) $v);
 			}
 		}
 	}
@@ -116,19 +116,19 @@ if (is_callable('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
 
 
 //data types array
-$sqlite_datatypes = array("INTEGER", "REAL", "TEXT", "BLOB","NUMERIC","BOOLEAN","DATETIME");
+$sqlite_datatypes = ["INTEGER", "REAL", "TEXT", "BLOB", "NUMERIC", "BOOLEAN", "DATETIME"];
 
 //available SQLite functions array (don't add anything here or there will be problems)
-$sqlite_functions = array("abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper");
+$sqlite_functions = ["abs", "hex", "length", "lower", "ltrim", "random", "round", "rtrim", "trim", "typeof", "upper"];
 
 //- Support functions
 
 // for php < 5.6.0
 if(!function_exists('hash_equals'))
 {
-	function hash_equals($str1, $str2)
-	{
-		if(strlen($str1) != strlen($str2))
+	function hash_equals($str1, $str2): bool
+    {
+		if(strlen((string) $str1) != strlen((string) $str2))
 			return false;
 		else {
 			$res = $str1 ^ $str2;
@@ -143,35 +143,35 @@ if(!function_exists('hash_equals'))
 // workaround if mbsting extension is missing. Sure this means no multibyte support.
 if(!function_exists('mb_strlen'))
 {
-	function mb_strlen($s)
-	{
-		return strlen($s);
+	function mb_strlen($s): int
+    {
+		return strlen((string) $s);
 	}
 }
 if(!function_exists('mb_substr'))
 {
-	function mb_substr($s, $start, $length=null, $encoding=null)
-	{
-		return substr($s, $start, null === $length ? 2147483647 : $length);
+	function mb_substr($s, $start, $length=null, $encoding=null): string
+    {
+		return substr((string) $s, $start, $length ?? 2147483647);
 	}
 }
 // no other mbstring functions used so far
 
 //function that allows SQL delimiter to be ignored inside comments or strings
-function explode_sql($delimiter, $sql)
+function explode_sql($delimiter, $sql): array
 {
-	$ign = array('"' => '"', "'" => "'", "/*" => "*/", "--" => "\n"); // Ignore sequences.
-	$out = array();
+	$ign = ['"' => '"', "'" => "'", "/*" => "*/", "--" => "\n"]; // Ignore sequences.
+	$out = [];
 	$last = 0;
-	$slen = strlen($sql);
-	$dlen = strlen($delimiter);
+	$slen = strlen((string) $sql);
+	$dlen = strlen((string) $delimiter);
 	$i = 0;
 	while($i < $slen)
 	{
 		// Split on delimiter
-		if($slen - $i >= $dlen && substr($sql, $i, $dlen) == $delimiter)
+		if($slen - $i >= $dlen && substr((string) $sql, $i, $dlen) == $delimiter)
 		{
-			array_push($out, substr($sql, $last, $i - $last));
+			array_push($out, substr((string) $sql, $last, $i - $last));
 			$last = $i + $dlen;
 			$i += $dlen;
 			continue;
@@ -180,16 +180,16 @@ function explode_sql($delimiter, $sql)
 		foreach($ign as $start => $end)
 		{
 			$ilen = strlen($start);
-			if($slen - $i >= $ilen && substr($sql, $i, $ilen) == $start)
+			if($slen - $i >= $ilen && substr((string) $sql, $i, $ilen) == $start)
 			{
 				$i+=strlen($start);
 				$elen = strlen($end);
 				while($i < $slen)
 				{
-					if($slen - $i >= $elen && substr($sql, $i, $elen) == $end)
+					if($slen - $i >= $elen && substr((string) $sql, $i, $elen) == $end)
 					{
 						// SQL comment characters can be escaped by doubling the character. This recognizes and skips those.
-						if($start == $end && $slen - $i >= $elen*2 && substr($sql, $i, $elen*2) == $end.$end)
+						if($start == $end && $slen - $i >= $elen*2 && substr((string) $sql, $i, $elen*2) == $end.$end)
 						{
 							$i += $elen * 2;
 							continue;
@@ -208,15 +208,15 @@ function explode_sql($delimiter, $sql)
 		$i++;
 	}
 	if($last < $slen)
-		array_push($out, substr($sql, $last, $slen - $last));
+		array_push($out, substr((string) $sql, $last, $slen - $last));
 	return $out;
 }
 
 //function to scan entire directory tree and subdirectories
-function dir_tree($dir)
+function dir_tree($dir): array
 {
-	$path = array();
-	$stack = array($dir);
+	$path = [];
+	$stack = [$dir];
 	while($stack)
 	{
 		$thisdir = array_pop($stack);
@@ -246,31 +246,31 @@ function dir_tree($dir)
 }
 
 //the function echo the help [?] links to the documentation
-function helpLink($name)
+function helpLink($name): string
 {
 	global $lang;
 	return "<a href='?help=1' onclick='openHelp(\"".$name."\"); return false;' class='helpq' title='".$lang['help'].": ".$name."' target='_blank'><span>[?]</span></a>";
 }
 
 // function to encode value into HTML just like htmlentities, but with adjusted default settings
-function htmlencode($value, $flags=ENT_QUOTES, $encoding ="UTF-8")
+function htmlencode($value, $flags=ENT_QUOTES, $encoding ="UTF-8"): string
 {
-	return htmlentities($value, $flags, $encoding);
+	return htmlentities((string) $value, $flags, $encoding);
 }
 
 // reduce string chars
 function subString($str)
 {
 	global $charsNum, $params;
-	if($charsNum > 10 && (!isset($params->fulltexts) || !$params->fulltexts) && mb_strlen($str)>$charsNum)
+	if($charsNum > 10 && (!isset($params->fulltexts) || !$params->fulltexts) && mb_strlen((string) $str)>$charsNum)
 	{
-		$str = mb_substr($str, 0, $charsNum).'...';
+		$str = mb_substr((string) $str, 0, $charsNum).'...';
 	}
 	return $str;
 }
 
 // marks searchwords and htmlencodes correctly
-function markSearchWords($input, $field, $search)
+function markSearchWords($input, $field, $search): string
 {
 	$output = htmlencode($input);
 	if(isset($search['values'][$field]) && is_array($search['values'][$field]))
@@ -282,9 +282,9 @@ function markSearchWords($input, $field, $search)
 		{
 			if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
 				$regex .= '(?:'.($searchValue[0]=='%'?'':'^'); // does the searchvalue have to occur at the start?
-			$regex .= preg_quote(trim($searchValue,'%'),'/');  // the search value
+			$regex .= preg_quote(trim((string) $searchValue,'%'),'/');  // the search value
 			if($search['operators'][$field] =='LIKE' || $search['operators'][$field] == 'LIKE%')
-				$regex .= (substr($searchValue,-1)=='%'?'':'$').')';  // does the searchvalue have to occur at the end?
+				$regex .= (str_ends_with((string) $searchValue, '%')?'':'$').')';  // does the searchvalue have to occur at the end?
 			if($vali++<count($search['values'][$field]))
 				$regex .= '|';    // there is another search value, so we add a |
 		}
@@ -295,9 +295,9 @@ function markSearchWords($input, $field, $search)
 
 		// split the string into parts that match and should be highlighted and parts in between
 		// $fldBetweenParts: the parts that don't match (might contain empty strings)
-		$fldBetweenParts = preg_split($regex, $input);
+		$fldBetweenParts = preg_split($regex, (string) $input);
 		// $fldFoundParts[0]: the parts that match
-		preg_match_all($regex, $input, $fldFoundParts);
+		preg_match_all($regex, (string) $input, $fldFoundParts);
 
 		// stick the parts together
 		$output = '';
@@ -312,10 +312,10 @@ function markSearchWords($input, $field, $search)
 }
 
 // checks the (new) name of a database file
-function checkDbName($name)
+function checkDbName($name): bool
 {
 	global $allowed_extensions;
-	$info = pathinfo($name);
+	$info = pathinfo((string) $name);
 	if(isset($info['extension']) && !in_array($info['extension'], $allowed_extensions))
 	{
 		return false;
@@ -329,7 +329,7 @@ function checkDbName($name)
 // check whether a path is a db managed by this tool
 // requires that $databases is already filled!
 // returns the key of the db if managed, false otherwise.
-function isManagedDB($path)
+function isManagedDB($path): bool|int|string
 {
 	global $databases;
 	foreach($databases as $db_key => $database)
@@ -347,15 +347,15 @@ function isManagedDB($path)
 
 // from a typename of a colun, get the type of the column's affinty
 // see https://www.sqlite.org/datatype3.html section 2.1 for rules
-function get_type_affinity($type)
+function get_type_affinity($type): string
 {
-	if (preg_match("/INT/i", $type))
+	if (preg_match("/INT/i", (string) $type))
 		return "INTEGER";
-	else if (preg_match("/(?:CHAR|CLOB|TEXT)/i", $type))
+	else if (preg_match("/(?:CHAR|CLOB|TEXT)/i", (string) $type))
 		return "TEXT";
-	else if (preg_match("/BLOB/i", $type) || $type=="")
+	else if (preg_match("/BLOB/i", (string) $type) || $type=="")
 		return "NONE";
-	else if (preg_match("/(?:REAL|FLOA|DOUB)/i", $type))
+	else if (preg_match("/(?:REAL|FLOA|DOUB)/i", (string) $type))
 		return "REAL";
 	else
 		return "NUMERIC";
@@ -364,7 +364,7 @@ function get_type_affinity($type)
 
 // Returns a file size limit in bytes based on the PHP upload_max_filesize
 // post_max_size and memory_limit. Returns -1 in case of no limit.
-function fileUploadMaxSize()
+function fileUploadMaxSize(): float|int
 {
 	$max1 = parseSize(ini_get('post_max_size'));
 	$max2 = parseSize(ini_get('upload_max_filesize'));
@@ -381,17 +381,17 @@ function fileUploadMaxSize()
 
 // Parses given size string like "12M" into number of bytes
 // based on https://api.drupal.org/api/drupal/core%21lib%21Drupal%21Component%21Utility%21Bytes.php/function/Bytes%3A%3AtoInt/8.2.x
-function parseSize($size)
+function parseSize($size): float
 {
 	// Remove the non-unit characters from the size.
-	$unit = preg_replace('/[^bkmgtpezy]/i', '', $size);
+	$unit = preg_replace('/[^bkmgtpezy]/i', '', (string) $size);
 	// Remove the non-numeric characters from the size.
-	$size = preg_replace('/[^0-9\.]/', '', $size);
+	$size = preg_replace('/[^0-9\.]/', '', (string) $size);
 	if ($unit)
 	{
 		// Find the position of the unit in the ordered string which is the power
 		// of magnitude to multiply a kilobyte by.
-		return round($size * pow(1024, stripos('bkmgtpezy', $unit[0])));
+		return round($size * 1024 ** stripos('bkmgtpezy', $unit[0]));
 	}
 	else {
 		return round($size);
@@ -409,7 +409,7 @@ if (isset($_GET['logout']))
 else if (isset($_POST['login']) && isset($_POST['password']))
 {
 	$attempt = $auth->attemptGrant($_POST['password'], isset($_POST['remember']));
-	$params->redirect( $attempt ? array():array('failed'=>'1') );
+	$params->redirect( $attempt ? []:['failed'=>'1'] );
 }
 
 //- Actions on database files and bulk data
@@ -420,15 +420,15 @@ if ($auth->isAuthorized())
 	if(isset($_POST['new_dbname']))
 	{
 		if($_POST['new_dbname']=='')
-			$params->redirect(array('table'=>null), $lang['err'].': '.$lang['db_blank']);
+			$params->redirect(['table'=>null], $lang['err'].': '.$lang['db_blank']);
 		else
 		{
-			$str = preg_replace('@[^\w\-.]@u','', $_POST['new_dbname']);
+			$str = preg_replace('@[^\w\-.]@u','', (string) $_POST['new_dbname']);
 			$dbname = $str;
 			$dbpath = $str;
 			if(checkDbName($dbname))
 			{
-				$tdata = array();
+				$tdata = [];
 				$tdata['name'] = $dbname;
 				$tdata['path'] = $directory.DIRECTORY_SEPARATOR.$dbpath;
 				if(isset($_POST['new_dbtype']))
@@ -440,18 +440,18 @@ if ($auth->isAuthorized())
 			} else
 			{
 				if(is_file($dbname) || is_dir($dbname))
-					$params->redirect(array('view'=>'structure'),$lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname)));
+					$params->redirect(['view'=>'structure'],$lang['err'].': '.sprintf($lang['db_exists'], htmlencode($dbname)));
 				else
-					$params->redirect(array('view'=>'structure'),$lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']);
+					$params->redirect(['view'=>'structure'],$lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']);
 			}
 		}
 	}
 
 	//- Scan a directory for databases
-	if($directory!==false)
+	if(!empty($directory) && $directory!==false)
 	{
-		if($directory[strlen($directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
-			$directory = substr($directory, 0, strlen($directory)-1);
+		if($directory[strlen((string) $directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
+			$directory = substr((string) $directory, 0, strlen((string) $directory)-1);
 
 		if(is_dir($directory)) //make sure the directory is valid
 		{
@@ -459,7 +459,7 @@ if ($auth->isAuthorized())
 				$arr = dir_tree($directory);
 			else
 				$arr = scandir($directory);
-			$databases = array();
+			$databases = [];
 			$j = 0;
 			for($i=0; $i<sizeof($arr); $i++) //iterate through all the files in the databases
 			{
@@ -467,8 +467,8 @@ if ($auth->isAuthorized())
 					$arr[$i] = $directory.DIRECTORY_SEPARATOR.$arr[$i];
 
 				if(@!is_file($arr[$i])) continue;
-				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
-				if(strpos($con, "** This file contains an SQLite 2.1 database **", 0)!==false || strpos($con, "SQLite format 3", 0)!==false)
+				$con = file_get_contents($arr[$i], false, NULL, 0, 60);
+				if(str_contains($con, "** This file contains an SQLite 2.1 database **") || str_contains($con, "SQLite format 3"))
 				{
 					$databases[$j]['path'] = $arr[$i];
 					if($subdirectories===false)
@@ -476,7 +476,7 @@ if ($auth->isAuthorized())
 					else
 						$databases[$j]['name'] = $arr[$i];
 					$databases[$j]['writable'] = is_writable($databases[$j]['path']);
-					$databases[$j]['writable_dir'] = is_writable(dirname($databases[$j]['path']));
+					$databases[$j]['writable_dir'] = is_writable(dirname((string) $databases[$j]['path']));
 					$databases[$j]['readable'] = is_readable($databases[$j]['path']);
 					$j++;
 				}
@@ -509,14 +509,14 @@ if ($auth->isAuthorized())
 			if(!file_exists($databases[$i]['path']))
 			{
 				// the file does not exist and will be created when clicked, if permissions allow to
-				$databases[$i]['writable'] = is_writable(dirname($databases[$i]['path']));
-				$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
-				$databases[$i]['readable'] = is_writable(dirname($databases[$i]['path']));
+				$databases[$i]['writable'] = is_writable(dirname((string) $databases[$i]['path']));
+				$databases[$i]['writable_dir'] = is_writable(dirname((string) $databases[$i]['path']));
+				$databases[$i]['readable'] = is_writable(dirname((string) $databases[$i]['path']));
 			}
 			else
 			{
 				$databases[$i]['writable'] = is_writable($databases[$i]['path']);
-				$databases[$i]['writable_dir'] = is_writable(dirname($databases[$i]['path']));
+				$databases[$i]['writable_dir'] = is_writable(dirname((string) $databases[$i]['path']));
 				$databases[$i]['readable'] = is_readable($databases[$i]['path']);
 			}
 		}
@@ -525,7 +525,7 @@ if ($auth->isAuthorized())
 	// we now have the $databases array set. Check whether selected DB is a managed Db (is in this array)
 	if(!isset($currentDB) && (isset($_GET['database']) || isset($_POST['database']) ) )
 	{
-		$selected_db = ( isset($_POST['database']) ? $_POST['database'] : $_GET['database'] );
+		$selected_db = ( $_POST['database'] ?? $_GET['database'] );
 		$db_key = isManagedDB($selected_db);
 		if($db_key!==false) {
 			$currentDB = $databases[$db_key];
@@ -553,22 +553,22 @@ if ($auth->isAuthorized())
 	{
 		$oldpath = $_POST['oldname'];
 		$newpath = $_POST['newname'];
-		$oldpath_parts = pathinfo($oldpath);
-		$newpath_parts = pathinfo($newpath);
+		$oldpath_parts = pathinfo((string) $oldpath);
+		$newpath_parts = pathinfo((string) $newpath);
 		// only rename?
-		$newpath = $oldpath_parts['dirname'].DIRECTORY_SEPARATOR.basename($_POST['newname']);
+		$newpath = $oldpath_parts['dirname'].DIRECTORY_SEPARATOR.basename((string) $_POST['newname']);
 		if($newpath != $_POST['newname'] && $subdirectories)
 		{
 			// it seems that the file should not only be renamed but additionally moved.
 			// we need to make sure it stays within $directory...
 			$new_realpath = realpath($newpath_parts['dirname']).DIRECTORY_SEPARATOR;
 			$directory_realpath = realpath($directory).DIRECTORY_SEPARATOR;
-			if(strpos($new_realpath, $directory_realpath)===0)
+			if(str_starts_with($new_realpath, $directory_realpath))
 			{
 				// its okay, the new directory is within $directory
 				$newpath =  $_POST['newname'];
 			}
-			else $params->redirect(array('view'=>'rename'), $lang['err'].': '.$lang['db_moved_outside']);
+			else $params->redirect(['view'=>'rename'], $lang['err'].': '.$lang['db_moved_outside']);
 		}
 
 		if(checkDbName($newpath))
@@ -578,19 +578,19 @@ if ($auth->isAuthorized())
 			{
 				rename($oldpath, $newpath);
 				$databases[$checkDB]['path'] = $newpath;
-				$databases[$checkDB]['name'] = basename($newpath);
+				$databases[$checkDB]['name'] = basename((string) $newpath);
 				$currentDB = $databases[$checkDB];
 				$params->database = $databases[$checkDB]['path'];
-				$params->redirect(array('view'=>'rename'), sprintf($lang['db_renamed'], htmlencode($oldpath))." '".htmlencode($newpath)."'.");
+				$params->redirect(['view'=>'rename'], sprintf($lang['db_renamed'], htmlencode($oldpath))." '".htmlencode($newpath)."'.");
 			}
-			else $params->redirect(array('view'=>'rename'), $lang['err'].': '.$lang['rename_only_managed']);
+			else $params->redirect(['view'=>'rename'], $lang['err'].': '.$lang['rename_only_managed']);
 		}
 		else
 		{
 			if(is_file($newpath) || is_dir($newpath))
-				$params->redirect(array('view'=>'rename'), $lang['err'].": " . sprintf($lang['db_exists'], htmlencode($newpath)));
+				$params->redirect(['view'=>'rename'], $lang['err'].": " . sprintf($lang['db_exists'], htmlencode($newpath)));
 			else
-				$params->redirect(array('view'=>'rename'), $lang['err'].": " . $lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']);
+				$params->redirect(['view'=>'rename'], $lang['err'].": " . $lang['extension_not_allowed'].': '.implode(', ', array_map('htmlencode', $allowed_extensions)).'<br />'.$lang['add_allowed_extension']);
 		}
 	}
 
@@ -599,7 +599,7 @@ if ($auth->isAuthorized())
 	if(isset($_POST['export']))
 	{
 		ob_end_clean();
-		$export_filename = str_replace(array("\r", "\n"), '',$_POST['filename']); // against http header injection (php < 5.1.2 only)
+		$export_filename = str_replace(["\r", "\n"], '',(string) $_POST['filename']); // against http header injection (php < 5.1.2 only)
 		if($_POST['export_type']=="sql")
 		{
 			header('Content-Type: text/sql');
@@ -608,7 +608,7 @@ if ($auth->isAuthorized())
 				$tables = $_POST['tables'];
 			else
 			{
-				$tables = array();
+				$tables = [];
 				$tables[0] = $_POST['single_table'];
 			}
 			$drop = isset($_POST['drop']);
@@ -629,7 +629,7 @@ if ($auth->isAuthorized())
 				$tables = $_POST['tables'];
 			else
 			{
-				$tables = array();
+				$tables = [];
 				$tables[0] = $_POST['single_table'];
 			}
 			$field_terminate = $_POST['export_csv_fieldsterminated'];
@@ -665,7 +665,7 @@ if ($auth->isAuthorized())
 				$table = $_POST['single_table'];
 			else
 			{
-				$table = basename($_FILES["file"]["name"],".csv");
+				$table = basename((string) $_FILES["file"]["name"],".csv");
 				$i="";
 				while($db->getTypeOfTable($table.$i)!="")
 				{
@@ -684,7 +684,7 @@ if ($auth->isAuthorized())
 	{
 		ob_end_clean();
 		header("Content-type: application/octet-stream");
-		header('Content-Disposition: attachment; filename="'.basename($_GET['download']).'";');
+		header('Content-Disposition: attachment; filename="'.basename((string) $_GET['download']).'";');
 		header("Pragma: no-cache");
 		header("Expires: 0");
 		readfile($_GET['download']);
@@ -707,11 +707,11 @@ if ($auth->isAuthorized())
 	}
 
 	// collect parameters early, just once
-	$target_table = isset($_GET['table']) ? $_GET['table'] : null;
+	$target_table = $_GET['table'] ?? null;
 	// are we working on a view? let's check once here
 	$target_table_type = !is_null($target_table) ? $db->getTypeOfTable($target_table) : null;
 	if(is_null($target_table_type) && !is_null($target_table))
-		$params->redirect(array('table'=>null), $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));
+		$params->redirect(['table'=>null], $lang['err'].': '.sprintf($lang['tbl_inexistent'], htmlencode($target_table)));
 	$params->table = $target_table;
 
 	// initialize / change fulltexts and numrows parameter
@@ -736,7 +736,7 @@ if ($auth->isAuthorized())
 			case "table_create":
 				$num = intval($_POST['rows']);
 				$name = $_POST['tablename'];
-				$primary_keys = array();
+				$primary_keys = [];
 				for($i=0; $i<$num; $i++)
 				{
 					if($_POST[$i.'_field']!="" && isset($_POST[$i.'_primarykey']))
@@ -795,15 +795,15 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['tbl']." '".htmlencode($_POST['tablename'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$name) ), $completed);
+				$params->redirect(($result===false ? [] : ['action'=>'column_view', 'table'=>$name] ), $completed);
 				break;
 
 			//- Empty table (=table_empty)
 			case "table_empty":
 				if(isset($_GET['pk']))
-					$tables = json_decode($_GET['pk']);
-				else 
-					$tables=array($_GET['table']);
+					$tables = json_decode((string) $_GET['pk']);
+				else
+					$tables=[$_GET['table']];
 				$query1 = "BEGIN; ";
 				foreach($tables as $table)
 				{
@@ -824,10 +824,10 @@ if ($auth->isAuthorized())
 				if($result1 !== false)
 					$completed = $lang['tbl']." '".htmlencode(implode(', ',$tables))."' ".$lang['emptied'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";
 				if(count($tables)==1)
-					$action = array('action'=>'row_view');
+					$action = ['action'=>'row_view'];
 				else
-					$action = array();
-				$params->redirect(($result1===false ? array() : $action ), $completed);
+					$action = [];
+				$params->redirect(($result1===false ? [] : $action ), $completed);
 				break;
 
 			//- Create view (=view_create)
@@ -838,15 +838,15 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['view']." '".htmlencode($_POST['viewname'])."' ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(($result===false ? array() : array('action'=>'column_view', 'table'=>$_POST['viewname']) ), $completed);
+				$params->redirect(($result===false ? [] : ['action'=>'column_view', 'table'=>$_POST['viewname']] ), $completed);
 				break;
 
 			//- Drop table (or view) (=table_drop)
 			case "table_drop":
 				if(isset($_GET['pk']))
-					$tables = json_decode($_GET['pk']);
-				else 
-					$tables=array($_GET['table']);
+					$tables = json_decode((string) $_GET['pk']);
+				else
+					$tables=[$_GET['table']];
 				$query1 = "BEGIN; ";
 				foreach($tables as $table)
 				{
@@ -871,22 +871,22 @@ if ($auth->isAuthorized())
 					$target_table = null;
 					$completed = $lang['tbl'].' / '.$lang['view']." '".htmlencode(implode(', ',$tables))."' ".$lang['dropped'].".<br/><span style='font-size:11px;'>".htmlencode($query1)."<br />".htmlencode($query2)."</span>";;
 				}
-				$params->redirect(array('table'=>null), $completed);
+				$params->redirect(['table'=>null], $completed);
 				break;
 
 			//- Rename table (=table_rename)
 			case "table_rename":
 				$query = "ALTER TABLE ".$db->quote_id($_GET['table'])." RENAME TO ".$db->quote($_POST['newname']);
 				$type = $db->getTypeOfTable($_GET['table']);
-				if($db->getVersion()==3 && $type=='table' // SQLite 3 can rename tables, not views 
+				if($db->getVersion()==3 && $type=='table' // SQLite 3 can rename tables, not views
 					// In SQL(ite) table names are case-insensitve, so changing is not supported by SQLite.
 					// But table names are stored and displayed case sensitive, so we use the workaround for case sensitive renaming.
-					&& !($_GET['table'] !== $_POST['newname'] && strtolower($_GET['table']) === strtolower($_POST['newname']))
+					&& !($_GET['table'] !== $_POST['newname'] && strtolower((string) $_GET['table']) === strtolower((string) $_POST['newname']))
 					)
 					$result = $db->query($query, true);
 				else
-					// Workaround can rename tables of sqlite2 and views of both sqlite versions. Can also do case sensitive renames. 
-					$result = $db->query($query, false); 
+					// Workaround can rename tables of sqlite2 and views of both sqlite versions. Can also do case sensitive renames.
+					$result = $db->query($query, false);
 				if($result === false)
 					$completed = $db->getError(true);
 				else
@@ -894,17 +894,17 @@ if ($auth->isAuthorized())
 					$completed = $lang['tbl']." '".htmlencode($_GET['table'])."' ".$lang['renamed']." '".htmlencode($_POST['newname'])."'.<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 					$target_table = $_POST['newname'];
 				}
-				$params->redirect(array('action'=>'row_view', 'table'=>$_POST['newname']), $completed);
+				$params->redirect(['action'=>'row_view', 'table'=>$_POST['newname']], $completed);
 				break;
 
 			//- Search table (=table_search)
 			case "table_search":
-				$searchValues = array();
-				$searchOperators = array();
+				$searchValues = [];
+				$searchOperators = [];
 
 				$tableInfo = $db->getTableInfo($target_table);
 				$j = 0;
-				$whereExpr = array();
+				$whereExpr = [];
 				for($i=0; $i<sizeof($tableInfo); $i++)
 				{
 					$field = $tableInfo[$i][1];
@@ -918,23 +918,23 @@ if ($auth->isAuthorized())
 						else{
 							if($operator == "LIKE%"){
 								$operator = "LIKE";
-								if(!preg_match('/(^%)|(%$)/', $value)) $value = '%'.$value.'%';
-								$searchValues[$field] = array($value);
+								if(!preg_match('/(^%)|(%$)/', (string) $value)) $value = '%'.$value.'%';
+								$searchValues[$field] = [$value];
 								$valueQuoted = $db->quote($value);
 							}
 							elseif($operator == 'IN' || $operator == 'NOT IN')
 							{
-								$value = trim($value, '() ');
+								$value = trim((string) $value, '() ');
 								$values = explode(',',$value);
 								$values = array_map('trim', $values, array_fill(0,count($values),' \'"'));
 								if($operator == 'IN')
 									$searchValues[$field] = $values;
-								$values = array_map(array($db, 'quote'), $values);
+								$values = array_map([$db, 'quote'], $values);
 								$valueQuoted = '(' .implode(', ', $values) . ')';
 							}
 							else
 							{
-								$searchValues[$field] = array($value);
+								$searchValues[$field] = [$value];
 								$valueQuoted = $db->quote($value);
 							}
 							$whereExpr[$j] = $db->quote_id($field)." ".$operator." ".$valueQuoted;
@@ -952,12 +952,8 @@ if ($auth->isAuthorized())
 					}
 				}
 				$searchID = md5($searchWhere);
-				$_SESSION[COOKIENAME.'search'][$searchID] = array(
-					'where' => $searchWhere,
-					'values' => $searchValues,
-					'operators' => $searchOperators
-					);
-				$params->redirect(array('action'=>'table_search','search'=>$searchID));
+				$_SESSION[COOKIENAME.'search'][$searchID] = ['where' => $searchWhere, 'values' => $searchValues, 'operators' => $searchOperators];
+				$params->redirect(['action'=>'table_search', 'search'=>$searchID]);
 			break;
 
 		//- Row actions
@@ -981,7 +977,7 @@ if ($auth->isAuthorized())
 						for($j=0; $j<sizeof($tableInfo); $j++)
 						{
 							$null = isset($_POST[$j."_null"][$i]);
-							$type = strtoupper($tableInfo[$j]['type']);
+							$type = strtoupper((string) $tableInfo[$j]['type']);
 							$typeAffinity = get_type_affinity($type);
 							if(!$null && isset($_POST[$i.":".$j]))
 								$value = $_POST[$i.":".$j];
@@ -1052,29 +1048,29 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true) . $completed;
 				else
 					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-				$params->redirect(array('action'=>'row_view'), $completed);
+				$params->redirect(['action'=>'row_view'], $completed);
 				break;
 
 			//- Delete row (=row_delete)
 			case "row_delete":
-				$pks = json_decode($_GET['pk']);
+				$pks = json_decode((string) $_GET['pk']);
 
-				$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE (".$db->wherePK($target_table,json_decode($pks[0])).")";
+				$query = "DELETE FROM ".$db->quote_id($target_table)." WHERE (".$db->wherePK($target_table,json_decode((string) $pks[0])).")";
 				for($i=1; $i<sizeof($pks); $i++)
 				{
-					$query .= " OR (".$db->wherePK($target_table,json_decode($pks[$i])).")";
+					$query .= " OR (".$db->wherePK($target_table,json_decode((string) $pks[$i])).")";
 				}
 				$result = $db->query($query);
 				if($result === false)
 					$completed = $db->getError(true);
 				else
 					$completed = sizeof($pks)." ".$lang['rows']." ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(array('action'=>'row_view'), $completed);
+				$params->redirect(['action'=>'row_view'], $completed);
 				break;
 
 			//- Edit row (=row_edit)
 			case "row_edit":
-				$pks = json_decode($_GET['pk']);
+				$pks = json_decode((string) $_GET['pk']);
 				$z = 0;
 
 				$tableInfo = $db->getTableInfo($target_table);
@@ -1094,7 +1090,7 @@ if ($auth->isAuthorized())
 						for($j=0; $j<sizeof($tableInfo); $j++)
 						{
 							$null = isset($_POST[$j."_null"][$i]);
-							$type = strtoupper($tableInfo[$j]['type']);
+							$type = strtoupper((string) $tableInfo[$j]['type']);
 							$typeAffinity = get_type_affinity($type);
 							if(!$null)
 							{
@@ -1102,7 +1098,7 @@ if ($auth->isAuthorized())
 								{
 									if(isset($_POST["row_".$i."_field_".$j."_blob_use"]) && $_POST["row_".$i."_field_".$j."_blob_use"]=='old')
 									{
-										$select = 'SELECT '.$db->quote_id($tableInfo[$j]['name']).' AS \'blob\' FROM '.$db->quote_id($target_table).' WHERE '.$db->wherePK($target_table, json_decode($pks[$i]));
+										$select = 'SELECT '.$db->quote_id($tableInfo[$j]['name']).' AS \'blob\' FROM '.$db->quote_id($target_table).' WHERE '.$db->wherePK($target_table, json_decode((string) $pks[$i]));
 										$bl = $db->select($select);
 										$blobFiles[$j] = $bl['blob'];
 										unset($bl);
@@ -1178,7 +1174,7 @@ if ($auth->isAuthorized())
 						$query = "UPDATE ".$db->quote_id($target_table)." SET ";
 						for($j=0; $j<sizeof($tableInfo); $j++)
 						{
-							$type = strtoupper($tableInfo[$j]['type']);
+							$type = strtoupper((string) $tableInfo[$j]['type']);
 							$function = $_POST["function_".$j][$i];
 							$null = isset($_POST[$j."_null"][$i]);
 							// if the old BLOB value is chosen to be kept, just skip this column
@@ -1211,7 +1207,7 @@ if ($auth->isAuthorized())
 							$query .= ", ";
 						}
 						$query = substr($query, 0, -2);
-						$query .= " WHERE ".$db->wherePK($target_table, json_decode($pks[$i]));
+						$query .= " WHERE ".$db->wherePK($target_table, json_decode((string) $pks[$i]));
 						if(isset($blobFiles))
 						{
 							// blob files need to be done using a prepared statement because the query size would be too large
@@ -1234,12 +1230,12 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true) . $completed;
 				elseif(isset($_POST['new_row']))
 					$completed = $z." ".$lang['rows']." ".$lang['inserted'].".<br/><br/>".$completed;
-				$params->redirect(array('action'=>'row_view'), $completed);
+				$params->redirect(['action'=>'row_view'], $completed);
 				break;
 
 
 			case "row_get_blob":
-				$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode($_GET['pk'])));
+				$blobVal = $db->select("SELECT ".$db->quote_id($_GET['column'])." AS 'blob' FROM ".$db->quote_id($target_table)." WHERE ".$db->wherePK($target_table, json_decode((string) $_GET['pk'])));
 				$filename = 'download';
 				if(function_exists('getimagesizefromstring'))     // introduced in PHP 5.4.0
 					$imagesize = getimagesizefromstring($blobVal['blob']);
@@ -1258,7 +1254,7 @@ if ($auth->isAuthorized())
 				else
 					$extension = '.blob';
 				ob_end_clean();
-				header('Content-Length: '.strlen($blobVal['blob']));
+				header('Content-Length: '.strlen((string) $blobVal['blob']));
 				header("Content-type: ".$mimetype);
 				if(isset($_GET['download_blob']) && $_GET['download_blob'])
 					header('Content-Disposition: attachment; filename="'.$filename.$extension.'";');
@@ -1266,7 +1262,6 @@ if ($auth->isAuthorized())
 				header("Expires: 0");
 				echo $blobVal['blob'];
 				exit;
-				break;
 
 
 		//- Column actions
@@ -1317,12 +1312,12 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Delete column (=column_delete)
 			case "column_delete":
-				$pks = explode(":", $_GET['pk']);
+				$pks = explode(":", (string) $_GET['pk']);
 				$query = "ALTER TABLE ".$db->quote_id($target_table).' DROP '.$db->quote_id($pks[0]);
 				for($i=1; $i<sizeof($pks); $i++)
 				{
@@ -1333,12 +1328,12 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Add a primary key (=primarykey_add)
 			case "primarykey_add":
-				$pks = explode(":", $_GET['pk']);
+				$pks = explode(":", (string) $_GET['pk']);
 				$query = "ALTER TABLE ".$db->quote_id($target_table).' ADD PRIMARY KEY ('.$db->quote_id($pks[0]);
 				for($i=1; $i<sizeof($pks); $i++)
 				{
@@ -1350,7 +1345,7 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Edit column (=column_edit)
@@ -1361,7 +1356,7 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['tbl']." '".htmlencode($target_table)."' ".$lang['altered'].".";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Delete trigger (=trigger_delete)
@@ -1372,7 +1367,7 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['trigger']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Delete index (=index_delete)
@@ -1383,7 +1378,7 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['index']." '".htmlencode($_GET['pk'])."' ".$lang['deleted'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Create trigger (=trigger_create)
@@ -1405,7 +1400,7 @@ if ($auth->isAuthorized())
 					$completed = $db->getError(true);
 				else
 					$completed = $lang['trigger']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 
 			//- Create index (=index_create)
@@ -1441,7 +1436,7 @@ if ($auth->isAuthorized())
 					else
 						$completed = $lang['index']." ".$lang['created'].".<br/><span style='font-size:11px;'>".htmlencode($query)."</span>";
 				}
-				$params->redirect(array('action'=>'column_view'), $completed);
+				$params->redirect(['action'=>'column_view'], $completed);
 				break;
 		}
 	}
@@ -1465,7 +1460,7 @@ header('Content-Type: text/html; charset=utf-8');
 
 <?php
 //- HTML: css/theme include
-if(isset($_GET['theme'])) $theme = basename($_GET['theme']);
+if(isset($_GET['theme'])) $theme = basename((string) $_GET['theme']);
 
 // allow themes to be dropped in subfolder "themes"
 if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
@@ -1481,7 +1476,7 @@ else
 if(isset($_GET['help']))
 {
 	//help section array
-	$help = array($lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT));
+	$help = [$lang['help1'] => sprintf($lang['help1_x'], PROJECT, PROJECT, PROJECT)];
 	for($i=2; isset($lang['help'.$i]); $i++)
 		$help[$lang['help'.$i]]=$lang['help'.$i.'_x'];
 	?>
@@ -1528,11 +1523,11 @@ if($auth->isAuthorized())
 	<!-- SQL code editor with Syntax Highlighting etc. -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.css">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/codemirror.min.js" type="text/javascript"></script>
 	<!-- Codemirror 5.24.2 does not yet include the SQLite support that we wrote, so we fetch changed files from rawgit for the time being-->
-	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/c4387d6073b15ccf0f32773eb71a54f3b694f2f0/mode/sql/sql.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.js"></script>
-	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/65c70cf5d18ac3a0c1a3fe717d90a81ff823aa9f/addon/hint/sql-hint.js"></script>
+	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/c4387d6073b15ccf0f32773eb71a54f3b694f2f0/mode/sql/sql.js" type="text/javascript"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.24.2/addon/hint/show-hint.min.js" type="text/javascript"></script>
+	<script src="https://cdn.rawgit.com/codemirror/CodeMirror/65c70cf5d18ac3a0c1a3fe717d90a81ff823aa9f/addon/hint/sql-hint.js" type="text/javascript"></script>
 <?php
 }
 ?>
@@ -1594,7 +1589,7 @@ if(count($databases)==0) // the database array is empty, offer to create a new d
 			unset($_SESSION[COOKIENAME.'messages'][$_GET['message']]);
 		}
 		echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b></legend>";
-		echo $params->getForm(array('table'=>null), 'post', false, 'create_database');
+		echo $params->getForm(['table'=>null], 'post', false, 'create_database');
 		echo "<input type='text' name='new_dbname' style='width:150px;'/> ";
 		if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
 		{
@@ -1637,12 +1632,12 @@ echo "</div>";
 //- HTML: database list
 $db->print_db_list();
 echo "<fieldset style='margin:15px;'><legend>";
-echo "<a href='".$params->getURL(array('table'=>null))."'";
+echo "<a href='".$params->getURL(['table'=>null])."'";
 if (!$target_table)
 	echo " class='active_table'";
 $name = $currentDB['name'];
-if(strlen($name)>25)
-	$name = "...".substr($name, strlen($name)-22, 22);
+if(strlen((string) $name)>25)
+	$name = "...".substr((string) $name, strlen((string) $name)-22, 22);
 echo ">".htmlencode($name)."</a>";
 echo "</legend>";
 
@@ -1651,9 +1646,9 @@ $tables = $db->getTables(true, false);
 foreach($tables as $tableName => $tableType)
 {
 	echo "<span class='sidebar_table'>";
-	echo $params->getLink(array('action'=>'column_view', 'table'=>$tableName), "[".$lang[$tableType=='table'?'tbl':'view']."]");
+	echo $params->getLink(['action'=>'column_view', 'table'=>$tableName], "[".$lang[$tableType=='table'?'tbl':'view']."]");
 	echo "</span> ";
-	echo $params->getLink(array('action'=>'row_view', 'table'=>$tableName), htmlencode($tableName),
+	echo $params->getLink(['action'=>'row_view', 'table'=>$tableName], htmlencode($tableName),
 		($target_table == $tableName ? 'active_table' : '') );
 	echo "<br/>";
 }
@@ -1665,7 +1660,7 @@ echo "</fieldset>";
 if($directory!==false && is_writable($directory))
 {
 	echo "<fieldset style='margin:15px;'><legend><b>".$lang['db_create']."</b> ".helpLink($lang['help2'])."</legend>";
-	echo $params->getForm(array('table'=>null), 'post', false, 'create_database');
+	echo $params->getForm(['table'=>null], 'post', false, 'create_database');
 	echo "<input type='text' name='new_dbname' style='width:150px;'/>";
 	if(class_exists('SQLiteDatabase') && (class_exists('SQLite3') || class_exists('PDO')))
 	{
@@ -1680,7 +1675,7 @@ if($directory!==false && is_writable($directory))
 }
 
 echo "<div style='text-align:center;'>";
-echo $params->getForm(array(),'get');
+echo $params->getForm([],'get');
 echo "<input type='submit' value='".$lang['logout']."' name='logout' class='btn'/>";
 echo "</form>";
 echo "</div>";
@@ -1688,79 +1683,76 @@ echo "</div>";
 echo '</td><td valign="top" id="main_column" class="right_td" style="padding:9px 2px 9px 9px;">';
 
 //- HTML: breadcrumb navigation
-echo $params->getLink(array('table'=>null), htmlencode($currentDB['name']));
+echo $params->getLink(['table'=>null], htmlencode($currentDB['name']));
 if ($target_table)
-	echo " &rarr; ".$params->getLink(array('action'=>'row_view'), htmlencode($target_table));
+	echo " &rarr; ".$params->getLink(['action'=>'row_view'], htmlencode($target_table));
 echo "<br/><br/>";
 
 //- Show the various tab views for a table
 if($target_table)
 {
 	//- HTML: tabs
-	echo $params->getLink(array('action'=>'row_view'), $lang['browse'],
-		(in_array($_GET['action'], array('row_view', 'row_editordelete') ) ? 'tab_pressed' : 'tab'));
+	echo $params->getLink(['action'=>'row_view'], $lang['browse'],
+		(in_array($_GET['action'], ['row_view', 'row_editordelete'] ) ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array('action'=>'column_view'), $lang['struct'],
-		(in_array($_GET['action'], array('column_view', 'column_edit', 'column_confirm', 'primarykey_add', 'column_create', 'index_create', 'index_delete', 'trigger_create', 'trigger_delete') ) ? 'tab_pressed' : 'tab'));
+	echo $params->getLink(['action'=>'column_view'], $lang['struct'],
+		(in_array($_GET['action'], ['column_view', 'column_edit', 'column_confirm', 'primarykey_add', 'column_create', 'index_create', 'index_delete', 'trigger_create', 'trigger_delete'] ) ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array('action'=>'table_sql'), $lang['sql'],
+	echo $params->getLink(['action'=>'table_sql'], $lang['sql'],
 		($_GET['action']=="table_sql" ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array(
-		'action' => 'table_search',
-		'oldSearch' => (isset($_GET['search'])?$_GET['search']:null)
-		), $lang['srch'], ($_GET['action']=="table_search" ? 'tab_pressed' : 'tab'));
+	echo $params->getLink(['action' => 'table_search', 'oldSearch' => ($_GET['search'] ?? null)], $lang['srch'], ($_GET['action']=="table_search" ? 'tab_pressed' : 'tab'));
 
 	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
-		echo $params->getLink(array('action'=>'row_create'), $lang['insert'],
+		echo $params->getLink(['action'=>'row_create'], $lang['insert'],
 			($_GET['action']=="row_create" ? 'tab_pressed' : 'tab'));
 
-	echo $params->getLink(array('action'=>'table_export'), $lang['export'],
+	echo $params->getLink(['action'=>'table_export'], $lang['export'],
 		($_GET['action']=="table_export" ? 'tab_pressed' : 'tab'));
 
 	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
-		echo $params->getLink(array('action'=>'table_import'), $lang['import'],
+		echo $params->getLink(['action'=>'table_import'], $lang['import'],
 			($_GET['action']=="table_import" ? 'tab_pressed' : 'tab'));
 
 	if($db->isWritable() && $db->isDirWritable())
-		echo $params->getLink(array('action'=>'table_rename'), $lang['rename'],
+		echo $params->getLink(['action'=>'table_rename'], $lang['rename'],
 			($_GET['action']=="table_rename" ? 'tab_pressed' : 'tab'));
 
 	if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 	{
-		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_empty'), $lang['empty'],
+		echo $params->getLink(['action'=>'table_confirm', 'action2'=>'table_empty'], $lang['empty'],
 			(isset($_GET['action2']) && $_GET['action2']=="table_empty" ? 'tab_pressed empty' : 'tab empty'));
 
-		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
+		echo $params->getLink(['action'=>'table_confirm', 'action2'=>'table_drop'], $lang['drop'],
 			(isset($_GET['action2']) && $_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	} elseif($db->isWritable() && $db->isDirWritable()) {
-		echo $params->getLink(array('action'=>'table_confirm','action2'=>'table_drop'), $lang['drop'],
+		echo $params->getLink(['action'=>'table_confirm', 'action2'=>'table_drop'], $lang['drop'],
 			(isset($_GET['action2']) && $_GET['action2']=="table_drop" ? 'tab_pressed drop' : 'tab drop'));
 	}
 }
 else
 //- Show the various tab views for a database
 {
-	$view = isset($_GET['view']) ? $_GET['view'] : 'structure';
+	$view = $_GET['view'] ?? 'structure';
 
-	echo $params->getLink(array('view'=>'structure'), $lang['struct'], ($view=="structure" ? 'tab_pressed': 'tab')  );
+	echo $params->getLink(['view'=>'structure'], $lang['struct'], ($view=="structure" ? 'tab_pressed': 'tab')  );
 
-	echo $params->getLink(array('view'=>'sql'), $lang['sql'], ($view=="sql" ? 'tab_pressed': 'tab')  );
+	echo $params->getLink(['view'=>'sql'], $lang['sql'], ($view=="sql" ? 'tab_pressed': 'tab')  );
 
-	echo $params->getLink(array('view'=>'export'), $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
-
-	if($db->isWritable() && $db->isDirWritable())
-		echo $params->getLink(array('view'=>'import'), $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
+	echo $params->getLink(['view'=>'export'], $lang['export'], ($view=="export" ? 'tab_pressed': 'tab')  );
 
 	if($db->isWritable() && $db->isDirWritable())
-		echo $params->getLink(array('view'=>'vacuum'), $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
+		echo $params->getLink(['view'=>'import'], $lang['import'], ($view=="import" ? 'tab_pressed': 'tab')  );
+
+	if($db->isWritable() && $db->isDirWritable())
+		echo $params->getLink(['view'=>'vacuum'], $lang['vac'], ($view=="vacuum" ? 'tab_pressed': 'tab')  );
 
 	if($directory!==false && is_writable($directory))
 	{
 
-		echo $params->getLink(array('view'=>'rename'), $lang['db_rename'], ($view=="rename" ? 'tab_pressed': 'tab')  );
+		echo $params->getLink(['view'=>'rename'], $lang['db_rename'], ($view=="rename" ? 'tab_pressed': 'tab')  );
 
-		echo $params->getLink(array('view'=>'delete'), "<span>".$lang['db_del']."</span>", ($view=="delete" ? 'tab_pressed delete_db': 'tab delete_db')  );
+		echo $params->getLink(['view'=>'delete'], "<span>".$lang['db_del']."</span>", ($view=="delete" ? 'tab_pressed delete_db': 'tab delete_db')  );
 	}
 }
 
@@ -1784,14 +1776,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 	switch($_GET['action'])
 	{
 	//- Table actions
-	
+
 		//- Confirm table action (=table_confirm)
 		case "table_confirm":
 			if(isset($_GET['check']))
 				$pks = $_GET['check'];
 			elseif(isset($_GET['table']))
-				$pks = array($_GET['table']);
-			else $pks = array();
+				$pks = [$_GET['table']];
+			else $pks = [];
 
 			if(sizeof($pks)==0) //nothing was selected so show an error
 			{
@@ -1799,20 +1791,20 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo $lang['err'].": ".$lang['no_sel'];
 				echo "</div>";
 				echo "<br/><br/>";
-				echo $params->getLink(array(), $lang['return']);
+				echo $params->getLink([], $lang['return']);
 			}
 			else
 			{
-				echo $params->getForm(array('action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>json_encode($pks)));
+				echo $params->getForm(['action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>json_encode($pks)]);
 				echo "<div class='confirm'>";
 				printf($lang['ques_'.$_GET['action2']], htmlencode(implode(', ',$pks)), htmlencode($target_table));
 				echo "<br/><br/>";
 				echo "<input type='checkbox' name='vacuum' checked='checked'/> ".$lang['vac_on_empty']."<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
 				if(count($pks)==1)
-					$action = array('action'=>'row_view');
+					$action = ['action'=>'row_view'];
 				else
-					$action = array('table'=>null);
+					$action = ['table'=>null];
 				echo $params->getLink($action, $lang['cancel']);
 				echo "</div>";
 			}
@@ -1837,12 +1829,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$num = intval($_GET['tablefields']);
 				$name = $_GET['tablename'];
-				echo $params->getForm(array('action'=>'table_create', 'confirm'=>'1'));
+				echo $params->getForm(['action'=>'table_create', 'confirm'=>'1']);
 				echo "<input type='hidden' name='tablename' value='".htmlencode($name)."'/>";
 				echo "<input type='hidden' name='rows' value='".$num."'/>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				$headings = array($lang['fld'], $lang['type'], $lang['prim_key']);
+				$headings = [$lang['fld'], $lang['type'], $lang['prim_key']];
 				if($db->getType() != "SQLiteDatabase") $headings[] = $lang['autoincrement'];
 				$headings[] = $lang['not_null'];
 				$headings[] = $lang['def_val'];
@@ -1887,7 +1879,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['create']."' class='btn'/> ";
-				echo $params->getLink(array(), $lang['cancel']);
+				echo $params->getLink([], $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -1906,8 +1898,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				if($maxSavedQueries!=0 && $maxSavedQueries!=false)
 				{
 					if(!isset($_SESSION[COOKIENAME.'query_history']))
-						$_SESSION[COOKIENAME.'query_history'] = array();
-					$_SESSION[COOKIENAME.'query_history'][md5(strtolower($queryStr))] = $queryStr;
+						$_SESSION[COOKIENAME.'query_history'] = [];
+					$_SESSION[COOKIENAME.'query_history'][md5(strtolower((string) $queryStr))] = $queryStr;
 					if(sizeof($_SESSION[COOKIENAME.'query_history']) > $maxSavedQueries)
 						array_shift($_SESSION[COOKIENAME.'query_history']);
 				}
@@ -1915,7 +1907,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 				for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
 				{
-					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
+					if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", (string) $query[$i])))!="") //make sure this query is not an empty string
 					{
 						$queryTimer = new MicroTimer();
 						$table_result = $db->query($query[$i]);
@@ -1990,7 +1982,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 			echo "<fieldset>";
 			echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
-			echo $params->getForm(array('action'=>'table_sql'));
+			echo $params->getForm(['action'=>'table_sql']);
 			if(isset($_SESSION[COOKIENAME.'query_history']) && sizeof($_SESSION[COOKIENAME.'query_history'])>0)
 			{
 				echo "<b>".$lang['recent_queries']."</b><ul>";
@@ -2057,13 +2049,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div style='clear:both;'></div>";
 			echo "<br/><br/>";
 			echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
-			$file = pathinfo($db->getPath());
+			$file = pathinfo((string) $db->getPath());
 			$name = $file['filename'];
 			echo "<input type='text' name='filename' value='".htmlencode($name)."_".htmlencode($target_table)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 			echo "</fieldset>";
 			echo "</form>";
 			echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'],
-				$params->getLink(array('download' => $currentDB['path'], 'token' => $_SESSION[COOKIENAME.'token']), $lang["backup_hint_linktext"], '', $lang['backup']))."</div>";
+				$params->getLink(['download' => $currentDB['path'], 'token' => $_SESSION[COOKIENAME.'token']], $lang["backup_hint_linktext"], '', $lang['backup']))."</div>";
 			break;
 
 		//- Import table (=table_import)
@@ -2077,7 +2069,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo $lang['err'].': '.htmlencode($importSuccess);
 				echo "</div><br/>";
 			}
-			echo $params->getForm(array('action' => 'table_import'), 'post', true);
+			echo $params->getForm(['action' => 'table_import'], 'post', true);
 			echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['import_into']." ".htmlencode($target_table)."</b></legend>";
 			echo "<label><input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> ".$lang['sql']."</label>";
 			echo "<br/><label><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> ".$lang['csv']."</label>";
@@ -2116,7 +2108,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Rename table (=table_rename)
 		case "table_rename":
-			echo $params->getForm(array('action'=>'table_rename', 'confirm'=>'1'));
+			echo $params->getForm(['action'=>'table_rename', 'confirm'=>'1']);
 			printf($lang['rename_tbl'], htmlencode($target_table));
 			echo " <input type='text' name='newname' value='".htmlencode($target_table)."' style='width:200px;'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 			echo "</form>";
@@ -2128,7 +2120,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$tableInfo = $db->getTableInfo($target_table);
 
-				echo $params->getForm(array('action'=>'table_search', 'confirm'=>'1'));
+				echo $params->getForm(['action'=>'table_search', 'confirm'=>'1']);
 
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
@@ -2146,7 +2138,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					if(isset($_GET['oldSearch']) && isset($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['values'][$field]))
-						$value = implode($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['values'][$field], ",");
+						$value = implode(",", $_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['values'][$field]);
 					else
 						$value = '';
 					if(isset($_GET['oldSearch']) && isset($_SESSION[COOKIENAME.'search'][$_GET['oldSearch']]['operators'][$field]))
@@ -2166,17 +2158,17 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo $tdWithClassLeft;
 					echo "<select name='field_".$i."_operator' onchange='checkLike(\"field_".$i."_value\", this.options[this.selectedIndex].value); '>";
 
-					$operators = array('=', '>', '>=', '<', '<=', "= ''", "!= ''", '!=', 'LIKE', 'LIKE%','NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL');
-					$operatorsDisplay = array('LIKE%' => 'LIKE %...%', 'IN'=>'IN (..., ...)', 'NOT IN'=>'NOT IN (..., ...)');
-					$operatorsNumbersOnly = array('>', '>=', '<', '<=');
-					$operatorsTextOnly = array("= ''", "!= ''");
+					$operators = ['=', '>', '>=', '<', '<=', "= ''", "!= ''", '!=', 'LIKE', 'LIKE%', 'NOT LIKE', 'IN', 'NOT IN', 'IS NULL', 'IS NOT NULL'];
+					$operatorsDisplay = ['LIKE%' => 'LIKE %...%', 'IN'=>'IN (..., ...)', 'NOT IN'=>'NOT IN (..., ...)'];
+					$operatorsNumbersOnly = ['>', '>=', '<', '<='];
+					$operatorsTextOnly = ["= ''", "!= ''"];
 					foreach($operators as $op)
 					{
 						if($typeAffinity!="INTEGER" && $typeAffinity!="REAL" && $typeAffinity!="NUMERIC" && in_array($op, $operatorsNumbersOnly))
 							continue;
 						if($typeAffinity!="TEXT" && $typeAffinity!="NONE" && in_array($op, $operatorsTextOnly))
 							continue;
-						$display = (isset($operatorsDisplay[$op]) ? $operatorsDisplay[$op] : $op);
+						$display = ($operatorsDisplay[$op] ?? $op);
 						echo "<option value='".htmlencode($op)."'".($operator==$op?" selected='selected'":'').">".htmlencode($display)."</option>";
 					}
 					echo "</select>";
@@ -2282,13 +2274,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if($_GET['startRow']>0)
 			{
 				echo "<div style='float:left;'>";
-				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo $params->getForm(['action'=>$_GET['action']],'get');
 				echo "<input type='hidden' name='startRow' value='0'/>";
 				echo "<input type='submit' value='&larr;&larr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; overflow:hidden; margin-right:20px;'>";
-				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo $params->getForm(['action'=>$_GET['action']],'get');
 				echo "<input type='hidden' name='startRow' value='".max(0,intval($_GET['startRow']-$params->numRows))."'/>";
 				echo "<input type='submit' value='&larr;' class='btn'/> ";
 				echo "</form>";
@@ -2297,7 +2289,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 			//show certain number buttons
 			echo "<div style='float:left;'>";
-			echo $params->getForm(array('action'=>$_GET['action'], 'numRows'=>null),'get');
+			echo $params->getForm(['action'=>$_GET['action'], 'numRows'=>null],'get');
 			echo "<input type='submit' value='".$lang['show']." : ' name='show' class='btn'/> ";
 			echo "<input type='text' name='numRows' style='width:50px;' value='".$params->numRows."'/> ";
 			echo $lang['rows_records'];
@@ -2326,13 +2318,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if(intval($_GET['startRow']+$params->numRows)<$totalRows)
 			{
 				echo "<div style='float:left; margin-left:20px; '>";
-				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo $params->getForm(['action'=>$_GET['action']],'get');
 				echo "<input type='hidden' name='startRow' value='".intval($_GET['startRow']+$params->numRows)."'/>";
 				echo "<input type='submit' value='&rarr;' class='btn'/> ";
 				echo "</form>";
 				echo "</div>";
 				echo "<div style='float:left; '>";
-				echo $params->getForm(array('action'=>$_GET['action']),'get');
+				echo $params->getForm(['action'=>$_GET['action']],'get');
 				echo "<input type='hidden' name='startRow' value='".intval($totalRows-$remainder)."'/>";
 				echo "<input type='submit' value='&rarr;&rarr;' class='btn'/> ";
 				echo "</form>";
@@ -2368,11 +2360,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				//- Table view
 				if(!isset($_SESSION[COOKIENAME.'viewtype']) || $_SESSION[COOKIENAME.'viewtype']=="table")
 				{
-					echo $params->getForm(array('action'=>'row_editordelete'), 'post', false, 'checkForm');
+					echo $params->getForm(['action'=>'row_editordelete'], 'post', false, 'checkForm');
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					echo "<td colspan='3' class='tdheader' style='text-align:center'>";
-					echo "<a href='".$params->getURL(array('action'=>$_GET['action'], 'fulltexts'=>($params->fulltexts?0:1) ))."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
+					echo "<a href='".$params->getURL(['action'=>$_GET['action'], 'fulltexts'=>($params->fulltexts?0:1)])."' title='".$lang[($params->fulltexts?'no_full_texts':'full_texts')]."'>";
 					echo "<b>&".($params->fulltexts?'r':'l')."arr;</b>&nbsp;T&nbsp;<b>&".($params->fulltexts?'l':'r')."arr;</b></a>";
 					echo "</td>";
 
@@ -2383,7 +2375,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							$orderTag = ($_SESSION[COOKIENAME.'sortRows']==$tableInfo[$i]['name'] && $_SESSION[COOKIENAME.'orderRows']=="ASC") ? "DESC" : "ASC";
 						else
 							$orderTag = "ASC";
-						echo $params->getLink(array('action'=>$_GET['action'], 'sort'=>$tableInfo[$i]['name'], 'order'=>$orderTag ), htmlencode($tableInfo[$i]['name']));
+						echo $params->getLink(['action'=>$_GET['action'], 'sort'=>$tableInfo[$i]['name'], 'order'=>$orderTag], htmlencode($tableInfo[$i]['name']));
 						if(isset($_SESSION[COOKIENAME.'sortRows']) && $_SESSION[COOKIENAME.'sortRows']==$tableInfo[$i]['name'])
 							echo (($_SESSION[COOKIENAME.'orderRows']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 						echo "</td>";
@@ -2393,7 +2385,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					for($i=0; $row = $db->fetch($table_result, 'num'); $i++)
 					{
 						// -g-> $pk will always be the last columns in each row of the array because we are doing "SELECT *, PK_1, typeof(PK_1), PK2, typeof(PK_2), ... FROM ..."
-						$pk_arr = array();
+						$pk_arr = [];
 						for($col = $pkFirstCol; array_key_exists($col, $row); $col=$col+2)
 						{
 							// in $col we have the type and in $col-1 the value
@@ -2415,10 +2407,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 							echo "</td>";
 							echo $tdWithClass;
 							// -g-> Here, we need to put the PK in as the link for both the edit and delete.
-							echo $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'edit'),"<span>".$lang['edit']."</span>",'edit', $lang['edit']);
+							echo $params->getLink(['action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'edit'],"<span>".$lang['edit']."</span>",'edit', $lang['edit']);
 							echo "</td>";
 							echo $tdWithClass;
-							echo $params->getLink(array('action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'delete'),"<span>".$lang['del']."</span>",'delete', $lang['del']);
+							echo $params->getLink(['action'=>'row_editordelete', 'pk'=>$pk, 'type'=>'delete'],"<span>".$lang['del']."</span>",'delete', $lang['del']);
 							echo "</td>";
 						} else {
 							echo "<td class='td".($i%2 ? "1" : "2")."' colspan='3'></td>";
@@ -2434,18 +2426,18 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								echo "&nbsp;";
 							elseif($row[$j]===NULL)
 								echo "<i class='null'>NULL</i>";
-							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']) && !$hexblobs)
+							elseif(preg_match('/^BLOB/i', (string) $tableInfo[$j]['type']) && !$hexblobs)
 							{
 								echo "<div style='float:left; text-align: left; padding-right:2em'>";
-								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1),$lang["download"]).' | ';
-								echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>0),$lang["open_in_browser"],'','','_blank');
+								echo $params->getLink(['action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>1],$lang["download"]).' | ';
+								echo $params->getLink(['action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pk, 'column'=>$tableInfo[$j]['name'], 'download_blob'=>0],$lang["open_in_browser"],'','','_blank');
 								echo "</div><div style='float:right; text-align: right'>";
-								echo 'Size: '.number_format(strlen($row[$j])).' Bytes';
+								echo 'Size: '.number_format(strlen((string) $row[$j])).' Bytes';
 								echo "</div>";
 							}
-							elseif(preg_match('/^BLOB/i', $tableInfo[$j]['type']) && $hexblobs)
+							elseif(preg_match('/^BLOB/i', (string) $tableInfo[$j]['type']) && $hexblobs)
 							{
-								echo htmlencode(subString(bin2hex($row[$j])));
+								echo htmlencode(subString(bin2hex((string) $row[$j])));
 							}
 							elseif(isset($search))
 								echo markSearchWords(subString($row[$j]),$tableInfo[$j]['name'], $search);
@@ -2542,7 +2534,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						<?php
 						for($i=0; $row = $db->fetch($table_result); $i++)
 						{
-							$label = str_replace("'", "", htmlencode($row[$_SESSION[COOKIENAME.$target_table.'chartlabels']]));
+							$label = str_replace("'", "", (string) htmlencode($row[$_SESSION[COOKIENAME.$target_table.'chartlabels']]));
 							$value = htmlencode($row[$_SESSION[COOKIENAME.$target_table.'chartvalues']]);
 
 							if($value==NULL || $value=="")
@@ -2585,7 +2577,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					<div id="chart_div" style="float:left;"><?php echo $lang['no_chart']; ?></div>
 					<?php
 					echo "<fieldset style='float:right; text-align:center;' id='chartsettingsbox'><legend><b>Chart Settings</b></legend>";
-					echo $params->getForm(array('action'=>$_GET['action']));
+					echo $params->getForm(['action'=>$_GET['action']]);
 					echo $lang['chart_type'].": <select name='charttype'>";
 					echo "<option value='bar'";
 					if($_SESSION[COOKIENAME.'charttype']=="bar")
@@ -2634,19 +2626,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				if(isset($search) || $totalRows>0)
 					echo $lang['no_rows']."<br/><br/>";
 				elseif($target_table_type == 'table')
-					echo $lang['empty_tbl']." ".$params->getLink(array('action'=>'row_create'), $lang['click']) ." ".$lang['insert_rows'].'<br/><br/>';
+					echo $lang['empty_tbl']." ".$params->getLink(['action'=>'row_create'], $lang['click']) ." ".$lang['insert_rows'].'<br/><br/>';
 				echo "<span style='font-size:11px;'>".htmlencode($queryDisp)."</span>";
 				echo "</div><br/>";
 			}
 
 			if(isset($search))
-				echo "<br/><br/>".$params->getLink(array('action'=>'table_search','search'=>null,'oldSearch' => (isset($_GET['search'])?$_GET['search']:null)), $lang['srch_again']);
+				echo "<br/><br/>".$params->getLink(['action'=>'table_search', 'search'=>null, 'oldSearch' => ($_GET['search'] ?? null)], $lang['srch_again']);
 
 			break;
 
 		//- Create new row (=row_create)
 		case "row_create":
-			echo $params->getForm(array('action'=>'row_create'), 'get');
+			echo $params->getForm(['action'=>'row_create'], 'get');
 			echo $lang['restart_insert'];
 			echo " <select name='newRows'>";
 			for($i=1; $i<=40; $i++)
@@ -2661,7 +2653,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo " <input type='submit' value='".$lang['go']."' class='btn'/>";
 			echo "</form>";
 			echo "<br/>";
-			echo $params->getForm(array('action'=>'row_create','confirm'=>'1'), 'post', true);
+			echo $params->getForm(['action'=>'row_create', 'confirm'=>'1'], 'post', true);
 			$tableInfo = $db->getTableInfo($target_table);
 			if(isset($_GET['newRows']))
 				$num = $_GET['newRows'];
@@ -2684,14 +2676,14 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				for($i=0; $i<sizeof($tableInfo); $i++)
 				{
 					$field = $tableInfo[$i]['name'];
-					$type = strtoupper($tableInfo[$i]['type']);
+					$type = strtoupper((string) $tableInfo[$i]['type']);
 					$typeAffinity = get_type_affinity($type);
 					if($tableInfo[$i]['dflt_value'] === "NULL")
 						$value = NULL;
 					elseif(preg_match('/^BLOB/', $type) && $hexblobs)
-						$value = htmlencode(bin2hex(trim(trim($tableInfo[$i]['dflt_value']), "'")));
+						$value = htmlencode(bin2hex(trim(trim((string) $tableInfo[$i]['dflt_value']), "'")));
 					else
-						$value = htmlencode(trim(trim($tableInfo[$i]['dflt_value']), "'"));
+						$value = htmlencode(trim(trim((string) $tableInfo[$i]['dflt_value']), "'"));
 					$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 					echo "<tr>";
 					echo $tdWithClassLeft;
@@ -2743,7 +2735,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if(isset($_POST['check']))
 				$pks = $_POST['check'];
 			else if(isset($_GET['pk']))
-				$pks = array($_GET['pk']);
+				$pks = [$_GET['pk']];
 			else $pks[0] = "";
 			$str = implode(', ', $pks);
 			if($str=="") //nothing was selected so show an error
@@ -2751,19 +2743,19 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<div class='confirm'>";
 				echo $lang['err'].": ".$lang['no_sel'];
 				echo "</div>";
-				echo "<br/><br/>".$params->getLink(array('action'=>'row_view'),$lang['return']);
+				echo "<br/><br/>".$params->getLink(['action'=>'row_view'],$lang['return']);
 			}
 			else
 			{
 				if((isset($_POST['type']) && $_POST['type']=="edit") || (isset($_GET['type']) && $_GET['type']=="edit")) //edit
 				{
-					echo $params->getForm(array('action'=>'row_edit', 'confirm'=>'1', 'pk'=>json_encode($pks)),'post',true);
+					echo $params->getForm(['action'=>'row_edit', 'confirm'=>'1', 'pk'=>json_encode($pks)],'post',true);
 					$tableInfo = $db->getTableInfo($target_table);
 					$primary_key = $db->getPrimaryKey($target_table);
 
 					for($j=0; $j<sizeof($pks); $j++)
 					{
-						$query = "SELECT * FROM ".$db->quote_id($target_table)." WHERE " . $db->wherePK($target_table, json_decode($pks[$j]));
+						$query = "SELECT * FROM ".$db->quote_id($target_table)." WHERE " . $db->wherePK($target_table, json_decode((string) $pks[$j]));
 						$result1 = $db->select($query, 'num');
 
 						echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
@@ -2778,11 +2770,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						for($i=0; $i<sizeof($tableInfo); $i++)
 						{
 							$field = $tableInfo[$i]['name'];
-							$type = strtoupper($tableInfo[$i]['type']);
+							$type = strtoupper((string) $tableInfo[$i]['type']);
 							$typeAffinity = get_type_affinity($type);
 							$value = $result1[$i];
 							if(preg_match('/^BLOB/', $type) && $hexblobs)
-								$value = bin2hex($value);
+								$value = bin2hex((string) $value);
 							$tdWithClassLeft = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;'>";
 							echo "<tr>";
 							echo $tdWithClassLeft;
@@ -2816,8 +2808,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 								if($value!==NULL)
 								{
 									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='old' checked='checked'>";
-									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>1),$lang["download"]).' | ';
-									echo $params->getLink(array('action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>0),$lang["open_in_browser"],'','','_blank').'<br/>';
+									echo $params->getLink(['action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>1],$lang["download"]).' | ';
+									echo $params->getLink(['action'=>'row_get_blob', 'confirm'=>1, 'pk'=>$pks[$j], 'column'=>$field, 'download_blob'=>0],$lang["open_in_browser"],'','','_blank').'<br/>';
 									echo "<input type='radio' name='row_".$j."_field_".$i."_blob_use' value='new' id='row_".$j."_field_".$i."_blob_new'>";
 								}
 								echo "<input type='file' id='row_".$j."_field_".$i."_value' name='".$j.":".$i."'
@@ -2836,7 +2828,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						// Note: the 'Save changes' button must be first in the code so it is the one used when submitting the form with the Enter key (issue #215)
 						echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
 						echo "<input type='submit' name='new_row' value='".$lang['new_insert']."' class='btn'/> ";
-						echo $params->getLink(array('action'=>'row_view'), $lang['cancel']);
+						echo $params->getLink(['action'=>'row_view'], $lang['cancel']);
 						echo "</td>";
 						echo "</tr>";
 						echo "</table>";
@@ -2846,12 +2838,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				}
 				else //delete
 				{
-					echo $params->getForm(array('action'=>'row_delete', 'confirm'=>'1', 'pk'=>json_encode($pks)));
+					echo $params->getForm(['action'=>'row_delete', 'confirm'=>'1', 'pk'=>json_encode($pks)]);
 					echo "<div class='confirm'>";
 					printf($lang['ques_row_delete'], htmlencode($str), htmlencode($target_table));
 					echo "<br/><br/>";
 					echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-					echo $params->getLink(array('action'=>'row_view'), $lang['cancel']);
+					echo $params->getLink(['action'=>'row_view'], $lang['cancel']);
 					echo "</div>";
 				}
 			}
@@ -2863,7 +2855,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 		case "column_view":
 			$tableInfo = $db->getTableInfo($target_table);
 
-			echo $params->getForm(array('action'=>'column_confirm'), 'get', false, 'checkForm');
+			echo $params->getForm(['action'=>'column_confirm'], 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 			echo "<tr>";
 			if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
@@ -2908,10 +2900,10 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "<input type='checkbox' name='check[]' value='".htmlencode($fieldVal)."' id='check_".$i."'/>";
 					echo "</td>";
 					echo $tdWithClass;
-					echo $params->getLink(array('action'=>'column_edit', 'pk'=>$fieldVal),"<span>".$lang['edit']."</span>",'edit', $lang['edit']);
+					echo $params->getLink(['action'=>'column_edit', 'pk'=>$fieldVal],"<span>".$lang['edit']."</span>",'edit', $lang['edit']);
 					echo "</td>";
 					echo $tdWithClass;
-					echo $params->getLink(array('action'=>'column_confirm', 'action2'=>'column_delete', 'pk'=>$fieldVal),"<span>".$lang['del']."</span>",'delete', $lang['del']);
+					echo $params->getLink(['action'=>'column_confirm', 'action2'=>'column_delete', 'pk'=>$fieldVal],"<span>".$lang['del']."</span>",'delete', $lang['del']);
 					echo "</td>";
 				}
 				echo $tdWithClass;
@@ -2956,7 +2948,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if($target_table_type == 'table' && $db->isWritable() && $db->isDirWritable())
 			{
 				echo "<br/>";
-				echo $params->getForm(array('action'=>'column_create'), 'get');
+				echo $params->getForm(['action'=>'column_create'], 'get');
 				echo $lang['add']." <input type='text' name='tablefields' style='width:30px;' value='1'/> ".$lang['tbl_end']." <input type='submit' value='".$lang['go']."' name='addfields' class='btn'/>";
 				echo "</form>";
 			}
@@ -2966,7 +2958,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			echo "<div class='confirm'>";
 			echo "<b>".$lang['query_used_'.$target_table_type]."</b><br/>";
 			echo "<span style='font-size:11px;'>";
-			echo nl2br(htmlencode($db->export_sql(array($target_table),false,true,false,false,false,false)));
+			echo nl2br((string) htmlencode($db->export_sql([$target_table],false,true,false,false,false,false)));
 			echo "</span>";
 			echo "</div>";
 			echo "<br/>";
@@ -3005,7 +2997,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$tdWithClassLeftSpan = "<td class='td".($i%2 ? "1" : "2")."' style='text-align:left;' rowspan='".$span."'>";
 						echo "<tr>";
 						echo $tdWithClassSpan;
-						echo $params->getLink(array('action'=>'index_delete', 'pk'=>$result[$i]['name']), "<span>".$lang['del']."</span>", 'delete', $lang['del']);
+						echo $params->getLink(['action'=>'index_delete', 'pk'=>$result[$i]['name']], "<span>".$lang['del']."</span>", 'delete', $lang['del']);
 						echo "</td>";
 						echo $tdWithClassLeftSpan;
 						echo $result[$i]['name'];
@@ -3050,7 +3042,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 						$tdWithClass = "<td class='td".($i%2 ? "1" : "2")."'>";
 						echo "<tr>";
 						echo $tdWithClass;
-						echo $params->getLink(array('action'=>'trigger_delete', 'pk'=>$result[$i]['name']), "<span>".$lang['del']."</span>", 'delete', $lang['del']);
+						echo $params->getLink(['action'=>'trigger_delete', 'pk'=>$result[$i]['name']], "<span>".$lang['del']."</span>", 'delete', $lang['del']);
 						echo "</td>";
 						echo $tdWithClass;
 						echo htmlencode($result[$i]['name']);
@@ -3064,13 +3056,13 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 				if($db->isWritable() && $db->isDirWritable())
 				{
-					echo $params->getForm(array('action'=>'index_create'),'get');
+					echo $params->getForm(['action'=>'index_create'],'get');
 					echo "<br/><div class='tdheader'>";
 					echo $lang['create_index2']." <input type='text' name='numcolumns' style='width:30px;' value='1'/> ".$lang['cols']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
 					echo "</form>";
-	
-					echo $params->getForm(array('action'=>'trigger_create'),'get');
+
+					echo $params->getForm(['action'=>'trigger_create'],'get');
 					echo "<br/><div class='tdheader'>";
 					echo $lang['create_trigger2']." <input type='submit' value='".$lang['go']."' name='addindex' class='btn'/>";
 					echo "</div>";
@@ -3090,11 +3082,11 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			{
 				$num = intval($_GET['tablefields']);
 				$name = $_GET['table'];
-				echo $params->getForm(array('action'=>'column_create', 'confirm'=>'1'));
+				echo $params->getForm(['action'=>'column_create', 'confirm'=>'1']);
 				echo "<input type='hidden' name='rows' value='".$num."'/>";
 				echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 				echo "<tr>";
-				$headings = array($lang["fld"], $lang["type"], $lang["prim_key"]);
+				$headings = [$lang["fld"], $lang["type"], $lang["prim_key"]];
 				if($db->getType() != "SQLiteDatabase") $headings[] = $lang["autoincrement"];
 				$headings[] = $lang["not_null"];
 				$headings[] = $lang["def_val"];
@@ -3140,7 +3132,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<tr>";
 				echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 				echo "<input type='submit' value='".$lang['add_flds']."' class='btn'/> ";
-				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+				echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 				echo "</td>";
 				echo "</tr>";
 				echo "</table>";
@@ -3153,8 +3145,8 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 			if(isset($_GET['check']))
 				$pks = $_GET['check'];
 			elseif(isset($_GET['pk']))
-				$pks = array($_GET['pk']);
-			else $pks = array();
+				$pks = [$_GET['pk']];
+			else $pks = [];
 
 			if(sizeof($pks)==0) //nothing was selected so show an error
 			{
@@ -3162,7 +3154,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo $lang['err'].": ".$lang['no_sel'];
 				echo "</div>";
 				echo "<br/><br/>";
-				echo $params->getLink(array('action'=>'column_view'), $lang['return']);
+				echo $params->getLink(['action'=>'column_view'], $lang['return']);
 			}
 			else
 			{
@@ -3173,12 +3165,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					$str .= ", ".$pks[$i];
 					$pkVal .= ":".$pks[$i];
 				}
-				echo $params->getForm(array('action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>$pkVal));
+				echo $params->getForm(['action'=>$_GET['action2'], 'confirm'=>'1', 'pk'=>$pkVal]);
 				echo "<div class='confirm'>";
 				printf($lang['ques_'.$_GET['action2']], htmlencode($str), htmlencode($target_table));
 				echo "<br/><br/>";
 				echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+				echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 				echo "</div>";
 			}
 			break;
@@ -3216,12 +3208,12 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				else
 				{
 					$name = $target_table;
-					echo $params->getForm(array('action'=>'column_edit', 'confirm'=>'1'));
+					echo $params->getForm(['action'=>'column_edit', 'confirm'=>'1']);
 					echo "<input type='hidden' name='oldvalue' value='".htmlencode($_GET['pk'])."'/>";
 					echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 					echo "<tr>";
 					//$headings = array("Field", "Type", "Primary Key", "Autoincrement", "Not NULL", "Default Value");
-					$headings = array($lang["fld"], $lang["type"]);
+					$headings = [$lang["fld"], $lang["type"]];
 					for($k=0; $k<count($headings); $k++)
 						echo "<td class='tdheader'>".$headings[$k]."</td>";
 					echo "</tr>";
@@ -3272,7 +3264,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 					echo "<tr>";
 					echo "<td class='tdheader' style='text-align:right;' colspan='6'>";
 					echo "<input type='submit' value='".$lang['save_ch']."' class='btn'/> ";
-					echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+					echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 					echo "</td>";
 					echo "</tr>";
 					echo "</table>";
@@ -3283,22 +3275,22 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 
 		//- Delete index (=index_delete)
 		case "index_delete":
-			echo $params->getForm(array('action'=>'index_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1'));
+			echo $params->getForm(['action'=>'index_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1']);
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_index_delete'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+			echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 			echo "</div>";
 			echo "</form>";
 			break;
 
 		//- Delete trigger (=trigger_delete)
 		case "trigger_delete":
-			echo $params->getForm(array('action'=>'trigger_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1'));
+			echo $params->getForm(['action'=>'trigger_delete', 'pk'=>$_GET['pk'], 'confirm'=>'1']);
 			echo "<div class='confirm'>";
 			echo sprintf($lang['ques_trigger_delete'], htmlencode($_GET['pk']))."<br/><br/>";
 			echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-			echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+			echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 			echo "</div>";
 			echo "</form>";
 			break;
@@ -3310,7 +3302,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo $lang['specify_tbl'];
 			else
 			{
-				echo $params->getForm(array('action'=>'trigger_create', 'confirm'=>'1'));
+				echo $params->getForm(['action'=>'trigger_create', 'confirm'=>'1']);
 				echo $lang['trigger_name'].": <input type='text' name='trigger_name'/><br/><br/>";
 				echo "<fieldset><legend>".$lang['db_event']."</legend>";
 				echo $lang['before']."/".$lang['after'].": ";
@@ -3337,7 +3329,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<textarea name='triggersteps' style='width:500px; height:100px;' rows='8' cols='50'></textarea>";
 				echo "</fieldset><br/><br/>";
 				echo "<input type='submit' value='".$lang['create_trigger2']."' class='btn'/> ";
-				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+				echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 				echo "</form>";
 			}
 			break;
@@ -3351,7 +3343,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo $lang['specify_tbl'];
 			else
 			{
-				echo $params->getForm(array('action'=>'index_create', 'confirm'=>'1'));
+				echo $params->getForm(['action'=>'index_create', 'confirm'=>'1']);
 				$num = intval($_GET['numcolumns']);
 				$tableInfo = $db->getTableInfo($_GET['table']);
 				echo "<fieldset><legend>".$lang['define_index']."</legend>";
@@ -3383,7 +3375,7 @@ if(isset($_GET['action']) && !isset($_GET['confirm']))
 				echo "<br/><br/>";
 				echo "<input type='hidden' name='num' value='".$num."'/>";
 				echo "<input type='submit' value='".$lang['create_index1']."' class='btn'/> ";
-				echo $params->getLink(array('action'=>'column_view'), $lang['cancel']);
+				echo $params->getLink(['action'=>'column_view'], $lang['cancel']);
 				echo "</form>";
 			}
 			break;
@@ -3454,7 +3446,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo $lang['no_tbl']."<br/><br/>";
 		else
 		{
-			echo $params->getForm(array('action'=>'table_confirm',), 'get', false, 'checkForm');
+			echo $params->getForm(['action'=>'table_confirm'], 'get', false, 'checkForm');
 			echo "<table border='0' cellpadding='2' cellspacing='1' class='viewTable'>";
 			echo "<tr>";
 
@@ -3463,7 +3455,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="name" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 			else
 				$orderTag = "ASC";
-			echo $params->getLink(array('sort'=>'name', 'order'=>$orderTag), $lang['name']);
+			echo $params->getLink(['sort'=>'name', 'order'=>$orderTag], $lang['name']);
 			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="name")
 				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
 			echo "</td>";
@@ -3473,7 +3465,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				$orderTag = ($_SESSION[COOKIENAME.'sortTables']=="type" && $_SESSION[COOKIENAME.'orderTables']=="ASC") ? "DESC" : "ASC";
 			else
 				$orderTag = "ASC";
-			echo $params->getLink(array('sort'=>'type', 'order'=>$orderTag), $lang['type']);
+			echo $params->getLink(['sort'=>'type', 'order'=>$orderTag], $lang['type']);
 			echo helpLink($lang['help3']);
 			if(isset($_SESSION[COOKIENAME.'sortTables']) && $_SESSION[COOKIENAME.'sortTables']=="type")
 				echo (($_SESSION[COOKIENAME.'orderTables']=="ASC") ? " <b>&uarr;</b>" : " <b>&darr;</b>");
@@ -3492,7 +3484,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				if($records == '?')
 				{
 					$skippedTables = true;
-					$records = $params->getLink(array('forceCount'=>'1'), '?');
+					$records = $params->getLink(['forceCount'=>'1'], '?');
 				}
 				else
 					$totalRecords += $records;
@@ -3504,53 +3496,53 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 				echo "<input type='checkbox' name='check[]' value='".htmlencode($tableName)."' id='check_".htmlencode($tableId)."'/>";
 				echo "</td>";
 				echo $tdWithClassLeft;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), htmlencode($tableName));
+				echo $params->getLink(['table'=>$tableName, 'action'=>'row_view'], htmlencode($tableName));
 				echo "</td>";
 				echo $tdWithClassLeft;
 				echo ($tableType=="table"? $lang['tbl'] : $lang['view']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'row_view'), $lang['browse']);
+				echo $params->getLink(['table'=>$tableName, 'action'=>'row_view'], $lang['browse']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'column_view'), $lang['struct']);
+				echo $params->getLink(['table'=>$tableName, 'action'=>'column_view'], $lang['struct']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_sql'), $lang['sql']);
+				echo $params->getLink(['table'=>$tableName, 'action'=>'table_sql'], $lang['sql']);
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_search'), $lang['srch']);
+				echo $params->getLink(['table'=>$tableName, 'action'=>'table_search'], $lang['srch']);
 				echo "</td>";
 				echo $tdWithClass;
 				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'row_create'), $lang['insert']);
+					echo $params->getLink(['table'=>$tableName, 'action'=>'row_create'], $lang['insert']);
 				else
 					echo $lang['insert'];
 				echo "</td>";
 				echo $tdWithClass;
-				echo $params->getLink(array('table'=>$tableName, 'action'=>'table_export'), $lang['export']);
+				echo $params->getLink(['table'=>$tableName, 'action'=>'table_export'], $lang['export']);
 				echo "</td>";
 				echo $tdWithClass;
 				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_import'), $lang['import']);
+					echo $params->getLink(['table'=>$tableName, 'action'=>'table_import'], $lang['import']);
 				else
 					echo $lang['import'];
 				echo "</td>";
 				echo $tdWithClass;
 				if($db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_rename'), $lang['rename']);
+					echo $params->getLink(['table'=>$tableName, 'action'=>'table_rename'], $lang['rename']);
 				else
 					echo $lang['rename'];
 				echo "</td>";
 				echo $tdWithClass;
 				if($tableType=="table" && $db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName, 'action'=>'table_confirm', 'action2'=>'table_empty'), $lang['empty'], 'empty');
+					echo $params->getLink(['table'=>$tableName, 'action'=>'table_confirm', 'action2'=>'table_empty'], $lang['empty'], 'empty');
 				else
 					echo $lang['empty'];
 				echo "</td>";
 				echo $tdWithClass;
 				if($db->isWritable() && $db->isDirWritable())
-					echo $params->getLink(array('table'=>$tableName,'action'=>'table_confirm', 'action2'=>'table_drop'), $lang['drop'], 'drop');
+					echo $params->getLink(['table'=>$tableName, 'action'=>'table_confirm', 'action2'=>'table_drop'], $lang['drop'], 'drop');
 				else
 					echo $lang['drop'];
 				echo "</td>";
@@ -3562,7 +3554,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			}
 			echo "<tr>";
 			echo "<td class='tdheader' colspan='13'>".sizeof($tables)." ".$lang['total']."</td>";
-			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" ".$params->getLink(array('forceCount'=>'1'),'+ ?'):"")."</td>";
+			echo "<td class='tdheader' colspan='1' style='text-align:right;'>".$totalRecords.($skippedTables?" ".$params->getLink(['forceCount'=>'1'],'+ ?'):"")."</td>";
 			echo "</tr>";
 			echo "</table>";
 			echo "<a onclick='checkAll()'>".$lang['chk_all']."</a> / <a onclick='uncheckAll()'>".$lang['unchk_all']."</a> <i>".$lang['with_sel'].":</i> ";
@@ -3577,13 +3569,13 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "</form>";
 			echo "<br/>";
 			if($skippedTables)
-				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='".$params->getURL(array('forceCount'=>'1'))."'>","</a>")."</div>";
+				echo "<div class='confirm' style='margin-bottom:20px;'>".sprintf($lang["counting_skipped"],"<a href='".$params->getURL(['forceCount'=>'1'])."'>","</a>")."</div>";
 		}
 		if($db->isWritable() && $db->isDirWritable())
 		{
 			echo "<fieldset style='margin-top:2em'>";
 			echo "<legend><b>".$lang['create_tbl_db']." '".htmlencode($db->getName())."'</b></legend>";
-			echo $params->getForm(array('action'=>'table_create'), 'get');
+			echo $params->getForm(['action'=>'table_create'], 'get');
 			echo $lang['name'].": <input type='text' name='tablename' style='width:200px;'/> ";
 			echo $lang['fld_num'].": <input type='text' name='tablefields' style='width:90px;'/> ";
 			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
@@ -3592,7 +3584,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "<br/>";
 			echo "<fieldset>";
 			echo "<legend><b>".$lang['create_view']." '".htmlencode($db->getName())."'</b></legend>";
-			echo $params->getForm(array('action'=>'view_create', 'confirm'=>'1'));
+			echo $params->getForm(['action'=>'view_create', 'confirm'=>'1']);
 			echo $lang['name'].": <input type='text' name='viewname' style='width:200px;'/> ";
 			echo $lang['sel_state']." ".helpLink($lang['help4']).": <input type='text' name='select' style='width:400px;'/> ";
 			echo "<input type='submit' name='createtable' value='".$lang['go']."' class='btn'/>";
@@ -3611,8 +3603,8 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			if($maxSavedQueries!=0 && $maxSavedQueries!=false)
 			{
 				if(!isset($_SESSION[COOKIENAME.'query_history']))
-					$_SESSION[COOKIENAME.'query_history'] = array();
-				$_SESSION[COOKIENAME.'query_history'][md5(strtolower($queryStr))] = $queryStr;
+					$_SESSION[COOKIENAME.'query_history'] = [];
+				$_SESSION[COOKIENAME.'query_history'][md5(strtolower((string) $queryStr))] = $queryStr;
 				if(sizeof($_SESSION[COOKIENAME.'query_history']) > $maxSavedQueries)
 					array_shift($_SESSION[COOKIENAME.'query_history']);
 			}
@@ -3620,7 +3612,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 
 			for($i=0; $i<sizeof($query); $i++) //iterate through the queries exploded by the delimiter
 			{
-				if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", $query[$i])))!="") //make sure this query is not an empty string
+				if(str_replace(" ", "", str_replace("\n", "", str_replace("\r", "", (string) $query[$i])))!="") //make sure this query is not an empty string
 				{
 					$queryTimer = new MicroTimer();
 					$table_result = $db->query($query[$i]);
@@ -3695,7 +3687,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 
 		echo "<fieldset>";
 		echo "<legend><b>".sprintf($lang['run_sql'],htmlencode($db->getName()))."</b></legend>";
-		echo $params->getForm(array('view'=>'sql'));
+		echo $params->getForm(['view'=>'sql']);
 		if(isset($_SESSION[COOKIENAME.'query_history']) && sizeof($_SESSION[COOKIENAME.'query_history'])>0)
 		{
 			echo "<b>".$lang['recent_queries']."</b><ul>";
@@ -3723,7 +3715,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			printf($lang['db_vac'], htmlencode($db->getName()));
 			echo "</div><br/>";
 		}
-		echo $params->getForm(array('view'=>'vacuum'));
+		echo $params->getForm(['view'=>'vacuum']);
 		printf($lang['vac_desc'],htmlencode($db->getName()));
 		echo "<br/><br/>";
 		echo "<input type='submit' value='".$lang['vac']."' name='vacuum' class='btn'/>";
@@ -3732,7 +3724,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="export")
 	{
 		//- Export view (=export)
-		echo $params->getForm(array('view'=>'export'));
+		echo $params->getForm(['view'=>'export']);
 		echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['export']."</b></legend>";
 		echo "<select multiple='multiple' size='10' style='width:240px;' name='tables[]'>";
 		$tables = $db->getTables(true, false);
@@ -3774,13 +3766,13 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 		echo "<div style='clear:both;'></div>";
 		echo "<br/><br/>";
 		echo "<fieldset><legend><b>".$lang['save_as']."</b></legend>";
-		$file = pathinfo($db->getPath());
+		$file = pathinfo((string) $db->getPath());
 		$name = $file['filename'];
 		echo "<input type='text' name='filename' value='".htmlencode($name)."_".date("Y-m-d").".dump' style='width:400px;'/> <input type='submit' name='export' value='".$lang['export']."' class='btn'/>";
 		echo "</fieldset>";
 		echo "</form>";
 		echo "<div class='confirm' style='margin-top: 2em'>".sprintf($lang['backup_hint'],
-			$params->getLink(array('download'=>$currentDB['path'], 'token'=>$_SESSION[COOKIENAME.'token']), $lang["backup_hint_linktext"], '', $lang['backup'])
+			$params->getLink(['download'=>$currentDB['path'], 'token'=>$_SESSION[COOKIENAME.'token']], $lang["backup_hint_linktext"], '', $lang['backup'])
 			)."</div>";
 	}
 	else if($view=="import")
@@ -3796,7 +3788,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 			echo "</div><br/>";
 		}
 
-		echo $params->getForm(array('view'=>'import'), 'post', true);
+		echo $params->getForm(['view'=>'import'], 'post', true);
 		echo "<fieldset style='float:left; width:260px; margin-right:20px;'><legend><b>".$lang['import']."</b></legend>";
 		echo "<label><input type='radio' name='import_type' checked='checked' value='sql' onclick='toggleImports(\"sql\");'/> ".$lang['sql']."</label>";
 		echo "<br/><label><input type='radio' name='import_type' value='csv' onclick='toggleImports(\"csv\");'/> ".$lang['csv']."</label>";
@@ -3844,7 +3836,7 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="rename")
 	{
 		//- Rename database confirmation (=rename)
-		echo $params->getForm(array('view'=>'rename', 'database_rename'=>'1'));
+		echo $params->getForm(['view'=>'rename', 'database_rename'=>'1']);
 		echo "<input type='hidden' name='oldname' value='".htmlencode($db->getPath())."'/>";
 		echo $lang['db_rename']." '".htmlencode($db->getPath())."' ".$lang['to']." <input type='text' name='newname' style='width:200px;' value='".htmlencode($db->getPath())."'/> <input type='submit' value='".$lang['rename']."' name='rename' class='btn'/>";
 		echo "</form>";
@@ -3852,12 +3844,12 @@ if(!$target_table && !isset($_GET['confirm']) && (!isset($_GET['action']) || (is
 	else if($view=="delete")
 	{
 		//- Delete database confirmation (=delete)
-		echo $params->getForm(array('database_delete'=>'1'));
+		echo $params->getForm(['database_delete'=>'1']);
 		echo "<div class='confirm'>";
 		echo sprintf($lang['ques_database_delete'],htmlencode($db->getPath()))."<br/><br/>";
 		echo "<input name='database_delete' value='".htmlencode($db->getPath())."' type='hidden'/>";
 		echo "<input type='submit' value='".$lang['confirm']."' class='btn'/> ";
-		echo $params->getLink(array(), $lang['cancel']);
+		echo $params->getLink([], $lang['cancel']);
 		echo "</div>";
 		echo "</form>";
 	}
