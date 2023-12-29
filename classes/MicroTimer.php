@@ -4,8 +4,8 @@
 //
 class MicroTimer implements \Stringable {
 
-	private float $stopTime;
-    private float $startTime;
+    private float $stopTime = 0.0;
+    private float $startTime = 0.0;
 
     // creates and starts a timer
 	function __construct()
