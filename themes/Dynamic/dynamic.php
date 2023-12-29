@@ -7,7 +7,7 @@ header("Content-type: text/css");
 
 if(isset($_GET['image'])){
 	// Accomidate uppercase & lowercase file extensions
-	$image = strtolower($_GET['image']);
+	$image = strtolower((string) $_GET['image']);
 
 	// Set the mimetype and cache the image for a year
 	header("Content-type: image/png");
@@ -100,7 +100,7 @@ input:focus, textarea:focus, select:focus{ background:<?php echo $bgContent; ?>;
 /* just input buttons */
 input.btn { cursor:pointer;
 	background: -moz-linear-gradient( top, <?php echo $bgContent; ?> 0%, #ebebeb 50%, #dbdbdb 50%, #b5b5b5);
-	background: -webkit-gradient( linear, left top, left bottom, from(<?php echo bgContent; ?>), color-stop(0.50, #ebebeb), color-stop(0.50, #dbdbdb), to(#b5b5b5));
+	background: -webkit-gradient( linear, left top, left bottom, from(<?php echo \BGCONTENT; ?>), color-stop(0.50, #ebebeb), color-stop(0.50, #dbdbdb), to(#b5b5b5));
 	border: 1px solid #949494;
 	-moz-box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px 0px 3px rgba(255,255,255,1);
 	-webkit-box-shadow: 0px 1px 3px rgba(000,000,000,0.5), inset 0px 0px 3px rgba(255,255,255,1);

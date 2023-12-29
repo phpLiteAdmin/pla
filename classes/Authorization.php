@@ -5,9 +5,9 @@
 
 class Authorization
 {
-	private $authorized;
-	private $login_failed;
-	private $system_password_encrypted;
+	private bool $authorized;
+	private bool $login_failed;
+	private string $system_password_encrypted;
 
 	public function __construct()
 	{
@@ -15,7 +15,7 @@ class Authorization
 		$this->generateToken();
 		// second, check for possible CSRF attacks. to protect logins, this is done before checking login
 		$this->checkToken();
-		
+
 		// the salt and password encrypting is probably unnecessary protection but is done just
 		// for the sake of being very secure
 		if(!isset($_SESSION[COOKIENAME.'_salt']) && !isset($_COOKIE[COOKIENAME.'_salt']))
@@ -36,24 +36,24 @@ class Authorization
 			// no password
 			SYSTEMPASSWORD == ''
 			// correct password stored in session
-			|| isset($_SESSION[COOKIENAME.'password']) && hash_equals($_SESSION[COOKIENAME.'password'], $this->system_password_encrypted) 
+			|| isset($_SESSION[COOKIENAME.'password']) && hash_equals($_SESSION[COOKIENAME.'password'], $this->system_password_encrypted)
 			// correct password stored in cookie
 			|| isset($_COOKIE[COOKIENAME]) && isset($_COOKIE[COOKIENAME.'_salt']) && hash_equals(md5(SYSTEMPASSWORD."_".$_COOKIE[COOKIENAME.'_salt']), $_COOKIE[COOKIENAME]);
 	}
 
-	public function attemptGrant($password, $remember)
-	{
+	public function attemptGrant($password, $remember): bool
+    {
 		$hashed_password = crypt(SYSTEMPASSWORD, '$2a$07$'.self::generateSalt(22).'$');
-		if (hash_equals($hashed_password, crypt($password, $hashed_password))) {
+		if (hash_equals($hashed_password, crypt((string) $password, $hashed_password))) {
 			if ($remember) {
 				// user wants to be remembered, so set a cookie
 				$expire = time()+60*60*24*30; //set expiration to 1 month from now
-				setcookie(COOKIENAME, $this->system_password_encrypted, $expire, null, null, null, true);
-				setcookie(COOKIENAME."_salt", $_SESSION[COOKIENAME.'_salt'], $expire, null, null, null, true);
+				setcookie(COOKIENAME, $this->system_password_encrypted, ['expires' => $expire, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
+				setcookie(COOKIENAME."_salt", (string) $_SESSION[COOKIENAME.'_salt'], ['expires' => $expire, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
 			} else {
 				// user does not want to be remembered, so destroy any potential cookies
-				setcookie(COOKIENAME, "", time()-86400, null, null, null, true);
-				setcookie(COOKIENAME."_salt", "", time()-86400, null, null, null, true);
+				setcookie(COOKIENAME, "", ['expires' => time()-86400, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
+				setcookie(COOKIENAME."_salt", "", ['expires' => time()-86400, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
 				unset($_COOKIE[COOKIENAME]);
 				unset($_COOKIE[COOKIENAME.'_salt']);
 			}
@@ -67,11 +67,11 @@ class Authorization
 		return false;
 	}
 
-	public function revoke()
+	public function revoke(): void
 	{
 		//destroy everything - cookies and session vars
-		setcookie(COOKIENAME, "", time()-86400, null, null, null, true);
-		setcookie(COOKIENAME."_salt", "", time()-86400, null, null, null, true);
+		setcookie(COOKIENAME, "", ['expires' => time()-86400, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
+		setcookie(COOKIENAME."_salt", "", ['expires' => time()-86400, 'path' => '', 'domain' => '', 'secure' => null, 'httponly' => true]);
 		unset($_COOKIE[COOKIENAME]);
 		unset($_COOKIE[COOKIENAME.'_salt']);
 		session_unset();
@@ -82,23 +82,23 @@ class Authorization
 		$this->generateToken();
 	}
 
-	public function isAuthorized()
-	{
-		return $this->authorized;      
+	public function isAuthorized(): bool
+    {
+		return $this->authorized;
 	}
 
-	public function isFailedLogin()
-	{
+	public function isFailedLogin(): bool
+    {
 		return $this->login_failed;
 	}
 
-	public function isPasswordDefault()
-	{
+	public function isPasswordDefault(): bool
+    {
 		return SYSTEMPASSWORD == 'admin';
 	}
 
-	private static function generateSalt($saltSize)
-	{
+	private static function generateSalt(int $saltSize): string
+    {
 		$set = 'ABCDEFGHiJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 		$setLast = strlen($set) - 1;
 		$salt = '';
@@ -107,29 +107,17 @@ class Authorization
 		}
 		return $salt;
 	}
-	
-	private function generateToken()
+
+    private function generateToken(): void
 	{
-		// generate CSRF token 
+		// generate CSRF token
 		if (empty($_SESSION[COOKIENAME.'token']))
 		{
-			if (function_exists('random_bytes')) // introduced in PHP 7.0
-			{
-				$_SESSION[COOKIENAME.'token'] = bin2hex(random_bytes(32));
-			}
-			elseif (function_exists('openssl_random_pseudo_bytes')) // introduced in PHP 5.3.0
-			{
-				$_SESSION[COOKIENAME.'token'] = bin2hex(openssl_random_pseudo_bytes(32));
-			}
-			else
-			{
-				// For PHP 5.2.x - This case can be removed once we drop support for 5.2.x
-				$_SESSION[COOKIENAME.'token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
-			}
+			$_SESSION[COOKIENAME.'token'] = bin2hex(random_bytes(32));
 		}
 	}
-	
-	private function checkToken()
+
+	private function checkToken(): void
 	{
 		// checking CSRF token
 		if($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['download'])) // all POST forms need tokens! downloads are protected as well
@@ -138,7 +126,7 @@ class Authorization
 				$check_token=$_POST['token'];
 			elseif($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['token']))
 				$check_token=$_GET['token'];
-			
+
 			if (!isset($check_token))
 			{
 				die("CSRF token missing");

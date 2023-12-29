@@ -36,14 +36,14 @@ class Minifier
      *
      * @var string
      */
-    protected $input;
+    protected string $input;
 
     /**
      * Length of input javascript.
      *
      * @var int
      */
-    protected $len = 0;
+    protected int $len = 0;
 
     /**
      * The location of the character (in the input string) that is next to be
@@ -51,40 +51,40 @@ class Minifier
      *
      * @var int
      */
-    protected $index = 0;
+    protected int $index = 0;
 
     /**
      * The first of the characters currently being looked at.
      *
      * @var string
      */
-    protected $a = '';
+    protected string $a = '';
 
     /**
      * The next character being looked at (after a);
      *
      * @var string
      */
-    protected $b = '';
+    protected string $b = '';
 
     /**
      * This character is only active when certain look ahead actions take place.
      *
      *  @var string
      */
-    protected $c;
+    protected string $c;
 
     /**
      * Contains the options for the current minification process.
      *
      * @var array
      */
-    protected $options;
+    protected array $options;
 
     /**
      * These characters are used to define strings.
      */
-    protected $stringDelimiters = ['\'' => true, '"' => true, '`' => true];
+    protected array $stringDelimiters = ['\'' => true, '"' => true, '`' => true];
 
     /**
      * Contains the default options for minification. This array is merged with
@@ -93,7 +93,7 @@ class Minifier
      *
      * @var array
      */
-    protected static $defaultOptions = ['flaggedComments' => true];
+    protected static array $defaultOptions = ['flaggedComments' => true];
 
     /**
      * Contains lock ids which are used to replace certain code patterns and
@@ -101,18 +101,18 @@ class Minifier
      *
      * @var array
      */
-    protected $locks = [];
+    protected array $locks = [];
 
     /**
      * Takes a string containing javascript and removes unneeded characters in
      * order to shrink the code without altering it's functionality.
      *
-     * @param  string      $js      The raw javascript to be minified
-     * @param  array       $options Various runtime options in an associative array
-     * @throws \Exception
+     * @param string $js      The raw javascript to be minified
+     * @param array $options Various runtime options in an associative array
      * @return bool|string
+     *@throws \Exception
      */
-    public static function minify($js, $options = [])
+    public static function minify(string $js, array $options = []): bool|string
     {
         try {
             ob_start();
@@ -146,9 +146,9 @@ class Minifier
      * stripping out all unneeded characters.
      *
      * @param string $js      The raw javascript to be minified
-     * @param array  $options Various runtime options in an associative array
+     * @param array $options Various runtime options in an associative array
      */
-    protected function minifyDirectToOutput($js, $options)
+    protected function minifyDirectToOutput(string $js, array $options): void
     {
         $this->initialize($js, $options);
         $this->loop();
@@ -159,9 +159,9 @@ class Minifier
      *  Initializes internal variables, normalizes new lines,
      *
      * @param string $js      The raw javascript to be minified
-     * @param array  $options Various runtime options in an associative array
+     * @param array $options Various runtime options in an associative array
      */
-    protected function initialize($js, $options)
+    protected function initialize(string $js, array $options): void
     {
         $this->options = array_merge(static::$defaultOptions, $options);
         $this->input = str_replace(["\r\n", '/**/', "\r"], ["\n", "", "\n"], $js);
@@ -185,7 +185,7 @@ class Minifier
      *
      * @var array
      */
-    protected $noNewLineCharacters = [
+    protected array $noNewLineCharacters = [
         '(' => true,
         '-' => true,
         '+' => true,
@@ -196,7 +196,7 @@ class Minifier
      * The primary action occurs here. This function loops through the input string,
      * outputting anything that's relevant and discarding anything that is not.
      */
-    protected function loop()
+    protected function loop(): void
     {
         while ($this->a !== false && !is_null($this->a) && $this->a !== '') {
             switch ($this->a) {
@@ -229,7 +229,7 @@ class Minifier
                 default:
                     switch ($this->b) {
                         case "\n":
-                            if (strpos('}])+-"\'', $this->a) !== false) {
+                            if (str_contains('}])+-"\'', $this->a)) {
                                 echo $this->a;
                                 $this->saveString();
                                 break;
@@ -263,7 +263,7 @@ class Minifier
             // do reg check of doom
             $this->b = $this->getReal();
 
-            if (($this->b == '/' && strpos('(,=:[!&|?', $this->a) !== false)) {
+            if (($this->b == '/' && str_contains('(,=:[!&|?', $this->a))) {
                 $this->saveRegex();
             }
         }
@@ -274,7 +274,7 @@ class Minifier
      * the next request is ready to go. Another reason for this is to make sure
      * the variables are cleared and are not taking up memory.
      */
-    protected function clean()
+    protected function clean(): void
     {
         unset($this->input);
         $this->len = 0;
@@ -287,9 +287,9 @@ class Minifier
     /**
      * Returns the next string for processing based off of the current index.
      *
-     * @return string
+     * @return bool|string
      */
-    protected function getChar()
+    protected function getChar(): bool|string
     {
         // Check to see if we had anything in the look ahead buffer and use that.
         if (isset($this->c)) {
@@ -324,10 +324,9 @@ class Minifier
      * c code) rather than in script php.
      *
      *
-     * @return string            Next 'real' character to be processed.
-     * @throws \RuntimeException
+     * @return bool|string Next 'real' character to be processed.
      */
-    protected function getReal()
+    protected function getReal(): bool|string
     {
         $startIndex = $this->index;
         $char = $this->getChar();
@@ -356,10 +355,10 @@ class Minifier
      * Removed one line comments, with the exception of some very specific types of
      * conditional comments.
      *
-     * @param  int  $startIndex The index point where "getReal" function started
+     * @param int $startIndex The index point where "getReal" function started
      * @return void
      */
-    protected function processOneLineComments($startIndex)
+    protected function processOneLineComments(int $startIndex): void
     {
         $thirdCommentString = $this->index < $this->len ? $this->input[$this->index] : false;
 
@@ -378,11 +377,11 @@ class Minifier
      * Skips multiline comments where appropriate, and includes them where needed.
      * Conditional comments and "license" style blocks are preserved.
      *
-     * @param  int               $startIndex The index point where "getReal" function started
+     * @param int $startIndex The index point where "getReal" function started
      * @return void
      * @throws \RuntimeException Unclosed comments will throw an error
      */
-    protected function processMultiLineComments($startIndex)
+    protected function processMultiLineComments(int $startIndex): void
     {
         $this->getChar(); // current C
         $thirdCommentString = $this->getChar();
@@ -433,10 +432,10 @@ class Minifier
      * is found the first character of the string is returned and the index is set
      * to it's position.
      *
-     * @param  string       $string
+     * @param string $string
      * @return string|false Returns the first character of the string or false.
      */
-    protected function getNext($string)
+    protected function getNext(string $string): bool|string
     {
         // Find the next occurrence of "string" after the current position.
         $pos = strpos($this->input, $string, $this->index);
@@ -459,7 +458,7 @@ class Minifier
      *
      * @throws \RuntimeException Unclosed strings will throw an error
      */
-    protected function saveString()
+    protected function saveString(): void
     {
         $startpos = $this->index;
 
@@ -533,7 +532,7 @@ class Minifier
      *
      * @throws \RuntimeException Unclosed regex will throw an error
      */
-    protected function saveRegex()
+    protected function saveRegex(): void
     {
         echo $this->a . $this->b;
 
@@ -559,10 +558,10 @@ class Minifier
     /**
      * Checks to see if a character is alphanumeric.
      *
-     * @param  string $char Just one character
+     * @param string $char Just one character
      * @return bool
      */
-    protected static function isAlphaNumeric($char)
+    protected static function isAlphaNumeric(string $char): bool
     {
         return preg_match('/^[\w\$\pL]$/', $char) === 1 || $char == '/';
     }
@@ -570,10 +569,10 @@ class Minifier
     /**
      * Replace patterns in the given string and store the replacement
      *
-     * @param  string $js The string to lock
-     * @return bool
+     * @param string $js The string to lock
+     * @return bool|string
      */
-    protected function lock($js)
+    protected function lock(string $js): bool|string
     {
         /* lock things like <code>"asd" + ++x;</code> */
         $lock = '"LOCK---' . crc32(time()) . '"';
@@ -586,19 +585,16 @@ class Minifier
 
         $this->locks[$lock] = $matches[2];
 
-        $js = preg_replace('/([+-])\s+([+-])/S', "$1{$lock}$2", $js);
-        /* -- */
-
-        return $js;
+        return preg_replace('/([+-])\s+([+-])/S', "$1$lock$2", $js);
     }
 
     /**
      * Replace "locks" with the original characters
      *
-     * @param  string $js The string to unlock
-     * @return bool
+     * @param string $js The string to unlock
+     * @return bool|string
      */
-    protected function unlock($js)
+    protected function unlock(string $js): bool|string
     {
         if (empty($this->locks)) {
             return $js;
