@@ -448,7 +448,7 @@ if ($auth->isAuthorized())
 	}
 
 	//- Scan a directory for databases
-	if($directory!==false)
+	if(!empty($directory) && $directory!==false)
 	{
 		if($directory[strlen((string) $directory)-1]==DIRECTORY_SEPARATOR) //if user has a trailing slash in the directory, remove it
 			$directory = substr((string) $directory, 0, strlen((string) $directory)-1);
