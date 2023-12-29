@@ -467,7 +467,7 @@ if ($auth->isAuthorized())
 					$arr[$i] = $directory.DIRECTORY_SEPARATOR.$arr[$i];
 
 				if(@!is_file($arr[$i])) continue;
-				$con = file_get_contents($arr[$i], NULL, NULL, 0, 60);
+				$con = file_get_contents($arr[$i], false, NULL, 0, 60);
 				if(str_contains($con, "** This file contains an SQLite 2.1 database **") || str_contains($con, "SQLite format 3"))
 				{
 					$databases[$j]['path'] = $arr[$i];
