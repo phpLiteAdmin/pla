@@ -51,6 +51,9 @@ define('PROJECT_INSTALL_LINK','<a href="https://bitbucket.org/phpliteadmin/publi
 // up here, we don't output anything. debug output might appear here which is catched by ob and thrown later
 ob_start();
 
+// if inline_resources set
+$inline_resources = isset($inline_resources) ? $inline_resources : false;
+
 // Resource output (css and javascript files)
 // we get out of the main code as soon as possible, without inizializing the session
 if (isset($_GET['resource']))
@@ -1460,7 +1463,7 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
 <!-- Copyright <?php echo date("Y").' '.PROJECT.' ('.PROJECT_URL.')'; ?> -->
 <meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-<link rel="shortcut icon" href="?resource=favicon" />
+<link rel="shortcut icon" href="<?php echo $inline_resources ? 'data:image/png;base64,'.base64_encode(Resources::output('favicon', false)) :  '?resource=favicon';?>" />
 <title><?php echo PROJECT ?></title>
 
 <?php
@@ -1472,10 +1475,10 @@ if(is_file('themes/'.$theme)) $theme = 'themes/'.$theme;
 
 if (file_exists($theme))
 	// an external stylesheet exists - import it
-	echo "<link href='{$theme}' rel='stylesheet' type='text/css' />", PHP_EOL;
+	echo ($inline_resources ? '<style>'.Resources::output('css', false).'</style>' : "<link href='{$theme}' rel='stylesheet' type='text/css' />". PHP_EOL);
 else
 	// only use the default stylesheet if an external one does not exist
-	echo "<link href='?resource=css' rel='stylesheet' type='text/css' />", PHP_EOL;
+	echo ($inline_resources ? '<style>'.Resources::output('css', false).'</style>' : "<link href='?resource=css' rel='stylesheet' type='text/css' />". PHP_EOL);
 
 // HTML: output help text, then exit
 if(isset($_GET['help']))
@@ -1519,8 +1522,12 @@ if($auth->isAuthorized())
 {
 	//- Javascript include
 	?>
-	<!-- JavaScript Support -->
+	<!-- JavaScript Support -->	
+		<?php if ($inline_resources) { ?>
+	<script type='text/javascript'><?php echo Resources::output('javascript', false);?></script>
+		<?php } else { ?>
 	<script type='text/javascript' src='?resource=javascript'></script>
+		<?php } ?>
 	<script type="text/javascript">
 	var fileUploadMaxSize = <?php echo fileUploadMaxSize(); ?>;
 	var fileUploadMaxSizeErrorMsg = '<?php echo $lang['err'].': \n'.$lang['max_file_size']; ?>';
